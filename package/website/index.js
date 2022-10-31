@@ -10,30 +10,17 @@ function Page() {
 
 function Navbar() {
   return (
-    <nav className="navbar navbar-expand-sm  navbar-light page_nav">
-      <div className="container-fluid">
-        <ul className="navbar-nav">
-          <a className="navbar-brand" href="#">
-            <img src="./images/logo.svg" alt="" />
-          </a>
-          <li className="nav-item">
-            <a className="nav-link active" href="#">
-              Home
-            </a>
-          </li>
-          <li className="nav-item">
-            <a className="nav-link" href="#">
-              Portal
-            </a>
-          </li>
-          <li className="nav-item">
-            <a className="nav-link" href="#">
-              Contact us
-            </a>
-          </li>
-        </ul>
-      </div>
-    </nav>
+    <div className="page_nav">
+      <ul className="nav_ul">
+        <li>
+          <img src="./images/logo_icon.svg" className="navbar_logo" />
+        </li>
+        <li className="nav_item active">Home</li>
+        <li className="nav_item">Portal</li>
+        <li className="nav_item">Contact us</li>
+      </ul>
+    </div>
+
   );
 }
 

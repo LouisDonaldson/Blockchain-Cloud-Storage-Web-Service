@@ -1,12 +1,49 @@
+@font-face {
+    font-family: "Poppins";
+    src: url(./font/Poppins-Regular.ttf);
+}
+
 :root{
 
 }
 
 body {
-
+    font-family: "Poppins";
 }
 
 .page_nav{
-    border-bottom: 1pt solid gray;
+    border-bottom: 1pt solid lightgray; 
     margin-bottom: 5px;
+}
+
+.navbar_logo{
+    height: 40px;
+    width: auto;
+    margin-right: 10px;
+}
+
+.nav_ul{
+    list-style: none;
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    margin: 0px;
+}
+
+.nav_item{
+    margin: 0px 10px;
+    font-size: 12pt;
+    color: gray;
+    transition: 0.5s;
+}
+
+.nav_item.active{
+    color: black;
+}
+
+.nav_item:hover{
+    cursor: pointer;
+    color: black;
+    transition: 0.5s;
+
 }
