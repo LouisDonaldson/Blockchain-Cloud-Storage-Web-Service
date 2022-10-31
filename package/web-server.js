@@ -21,12 +21,21 @@ const server = http
         .catch((err) => {
           throw err;
         });
-    }
-    // else if (req.url.includes("/images/")) {
-    //     const image = await fs.readFile(__dirname + `${req.url}`)
-    //     res.write(image)
-    // }
-    else {
+      // } else if (req.url.includes("/images/")) {
+      //   const image = await fs.readFile(__dirname + `${req.url}`);
+      //   res.write(image);
+    } else if (req.url == "/index.css") {
+      fs.readFile(__dirname + `/website/index.css`)
+        .then((contents) => {
+          res.end(contents);
+        })
+        .catch((err) => {
+          throw err;
+        });
+    } else if (req.url.includes("/images/")) {
+      const image = await fs.readFile(__dirname + "/website/" + `${req.url}`);
+      res.write(image);
+    } else {
       res.writeHead(404);
       res.end("<h1>404 Not found</h1>");
     }
