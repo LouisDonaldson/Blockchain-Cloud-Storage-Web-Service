@@ -14,6 +14,8 @@ const server_handler = async (req, res) => {
     if (req.url == "/") {
         fs.readFile(__dirname + `/website/index.html`)
             .then((contents) => {
+                console.log("Responded with: " + contents)
+                // res.end("Wagwan")
                 res.end(contents);
             })
             .catch((err) => {
