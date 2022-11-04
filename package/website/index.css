@@ -4,8 +4,9 @@
 }
 
 :root{
-
-}
+    --primary-colour: rgb(33, 33, 35);
+    --secondary-colour: rgb(139, 202, 218);
+}   
 
 body {
     font-family: "Poppins";
@@ -61,4 +62,13 @@ body {
 
 .log_in_btn{
     justify-self: flex-end;
+    background-color: var(--primary-colour);
+    padding: 5px 10px;
+    border-radius: 10px;
+    color: white;
+}
+
+.log_in_btn:hover {
+    background-color: var(--secondary-colour);
+    color: white;
 }
