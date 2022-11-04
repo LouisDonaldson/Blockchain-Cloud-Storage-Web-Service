@@ -1,6 +1,7 @@
 const http = require("http");
 const fs = require("fs").promises;
 const port = 8000;
+const api_website_handler = require("./website_handler.js")
 
 const server = http
     .createServer(async (req, res) => {
@@ -9,53 +10,16 @@ const server = http
     .listen(port);
 console.log("Server running on port " + port)
 
+
 const server_handler = async (req, res) => {
     console.log(req.url);
-    if (req.url == "/") {
-        fs.readFile(__dirname + `/website/index.html`)
-            .then((contents) => {
-                console.log("Responded with: " + contents)
-                // res.end("Wagwan")
-                res.end(contents);
-            })
-            .catch((err) => {
-                throw err;
-            });
-    } else if (req.url == "/index.js") {
-        fs.readFile(__dirname + `/website/index.js`)
-            .then((contents) => {
-                res.end(contents);
-            })
-            .catch((err) => {
-                throw err;
-            });
-    } else if (req.url == "/index.css") {
-        fs.readFile(__dirname + `/website/index.css`)
-            .then((contents) => {
-                res.end(contents);
-            })
-            .catch((err) => {
-                throw err;
-            });
-    } else if (req.url.includes("/images/")) {
-        const image = await fs.readFile(__dirname + "/website/" + `${req.url}`);
-        res.writeHead(200, {
-            "Content-Type": "image/svg+xml"
-        })
-        res.end(image);
+    if (req.url.includes("/spotify/")) {
+        // Route to specific handler
+
     }
-    else if (req.url.includes("/font/")) {
-        const contents = await fs.readFile(__dirname + "/website/" + `${req.url}`);
-        res.writeHead(200, {
-            "Content-Type": "font/ttf"
-        })
-        res.end(contents);
-    }
-    //#region Default Response
-    // Ensure this is at the bottom of the page
     else {
-        res.writeHead(404);
-        res.end("<h1>404 Not found</h1>");
+        api_website_handler.HandleRequest(req, res)
     }
-    //#endregion
 }
+
+

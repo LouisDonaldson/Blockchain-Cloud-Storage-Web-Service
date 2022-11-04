@@ -62,13 +62,9 @@ body {
 
 .log_in_btn{
     justify-self: flex-end;
-    background-color: var(--primary-colour);
-    padding: 5px 10px;
-    border-radius: 10px;
-    color: white;
+   
 }
 
 .log_in_btn:hover {
-    background-color: var(--secondary-colour);
-    color: white;
+
 }
