@@ -6,6 +6,9 @@ module.exports = {
         if (req.url == "/") {
             fs.readFile(__dirname + `/website/index.html`)
                 .then((contents) => {
+                    res.writeHead(200, {
+                        "Content-type": "text/html"
+                    })
                     res.end(contents);
                 })
                 .catch((err) => {
@@ -14,6 +17,9 @@ module.exports = {
         } else if (req.url == "/index.js") {
             fs.readFile(__dirname + `/website/index.js`)
                 .then((contents) => {
+                    res.writeHead(200, {
+                        "Content-type": "text/javascript"
+                    })
                     res.end(contents);
                 })
                 .catch((err) => {
@@ -22,6 +28,9 @@ module.exports = {
         } else if (req.url == "/index.css") {
             fs.readFile(__dirname + `/website/index.css`)
                 .then((contents) => {
+                    res.writeHead(200, {
+                        "Content-type": "text/css"
+                    })
                     res.end(contents);
                 })
                 .catch((err) => {
