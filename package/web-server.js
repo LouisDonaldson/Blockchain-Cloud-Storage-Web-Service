@@ -14,7 +14,9 @@ const server = http
 console.log("Server running on port " + port);
 
 const server_handler = async (req, res) => {
-  console.log(req.url);
+  console.log(
+    `Incoming request for: ${req.url} (${req.connection.remoteAddress})`
+  );
   //   if (req.headers?.auth_token) {
   //     // check token authenticity here
   //     if (req.headers?.auth_token ?? undefined != temp_token) {
@@ -54,7 +56,7 @@ const server_handler = async (req, res) => {
       res.end("Unauthorised client");
       return;
     }
-    req.headers?.auth_token ? console.log(req.headers?.auth_token ?? "") : "";
+    // req.headers?.auth_token ? console.log(req.headers?.auth_token ?? "") : "";
     api_website_handler.HandleRequest(req, res);
   }
 };

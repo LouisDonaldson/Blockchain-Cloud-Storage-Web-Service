@@ -1,13 +1,14 @@
 const http = require("http");
 const fs = require("fs").promises;
 const axios = require("axios");
-const { Console } = require("console");
 const web_server_address = `localhost:8000`;
 
 const port = 3000;
 
 const server_handler = async (req, res) => {
-  console.log(req.url);
+  console.log(
+    `Incoming request for: ${req.url} (${req.connection.remoteAddress})`
+  );
   if (req.url.includes("/spotify/")) {
     // Route to specific handler
   } else {
