@@ -1,7 +1,7 @@
-@font-face {
+/* @font-face {
     font-family: "Poppins";
     src: url(./font/Poppins-Regular.ttf);
-}
+} */
 
 :root{
     --primary-colour: rgb(33, 33, 35);

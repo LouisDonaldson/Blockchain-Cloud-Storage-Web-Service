@@ -29,7 +29,9 @@ const api_website_handler = {
     });
     const data = response.data;
 
-    res.writeHead(200, response.headers);
+    res.writeHead(response.status, {
+      "Content-type": response?.headers?.["content-type"] ?? "",
+    });
     res.end(data);
   },
 };
