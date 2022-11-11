@@ -3,8 +3,9 @@ const fs = require("fs").promises;
 
 module.exports = {
   HandleRequest: async function (req, res) {
+    //#region Index
     if (req.url == "/") {
-      fs.readFile(__dirname + `/website/index.html`)
+      fs.readFile(__dirname + `/website/index/index.html`)
         .then((contents) => {
           res.writeHead(200, {
             "Content-type": "text/html",
@@ -15,7 +16,7 @@ module.exports = {
           throw err;
         });
     } else if (req.url == "/index.js") {
-      fs.readFile(__dirname + `/website/index.js`)
+      fs.readFile(__dirname + `/website/index/index.js`)
         .then((contents) => {
           res.writeHead(200, {
             "Content-type": "text/javascript",
@@ -26,7 +27,7 @@ module.exports = {
           throw err;
         });
     } else if (req.url == "/index.css") {
-      fs.readFile(__dirname + `/website/index.css`)
+      fs.readFile(__dirname + `/website/index/index.css`)
         .then((contents) => {
           res.writeHead(200, {
             "Content-type": "text/css",
@@ -36,7 +37,10 @@ module.exports = {
         .catch((err) => {
           throw err;
         });
-    } else if (req.url.includes("/images/")) {
+    }
+    //#endregion
+    //#region Misc
+    else if (req.url.includes("/images/")) {
       const image = await fs.readFile(__dirname + "/website/" + `${req.url}`);
       res.writeHead(200, {
         "Content-Type": "image/svg+xml",
@@ -51,6 +55,7 @@ module.exports = {
       });
       res.end(contents);
     }
+    //#endregion
     //#region Default Response
     // Ensure this is at the bottom of the page
     else {
