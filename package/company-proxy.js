@@ -4,11 +4,13 @@ const axios = require("axios");
 const web_server_address = `localhost:8000`;
 
 //#region Global variables
+let ping = false;
 const admin_log_in = {
   username: "admin",
   password: "password",
 };
 let company_id = 1;
+let company_name = "CompTest";
 const port = 3000;
 //#endregion
 
@@ -120,24 +122,28 @@ let ping_interval = 5000;
     .listen(port);
   console.log("Company proxy-server HTTP service running on port " + port);
 
-  console.log("Starting ping intervals to web-server.");
-  PingIntervals(ping_interval);
+  if (ping) {
+    console.log("Starting ping intervals to web-server.");
+    PingIntervals(ping_interval);
+  }
 })();
 
 function PingIntervals(time) {
   setTimeout(async () => {
-    try {
-      const active = await PingWebServer();
-      if (active) {
-        console.log("Ping successful.");
-        ping_interval = original_ping_interval;
+    if (ping) {
+      try {
+        const active = await PingWebServer();
+        if (active) {
+          console.log("Ping successful.");
+          ping_interval = original_ping_interval;
+          PingIntervals(ping_interval);
+        }
+      } catch (err) {
+        console.log("Ping failed...");
+        ping_interval = ping_interval + 5000;
+        console.log(`Retrying in '${ping_interval / 1000}' seconds.`);
         PingIntervals(ping_interval);
       }
-    } catch (err) {
-      console.log("Ping failed...");
-      ping_interval = ping_interval + 5000;
-      console.log(`Retrying in '${ping_interval / 1000}' seconds.`);
-      PingIntervals(ping_interval);
     }
   }, time);
 }
