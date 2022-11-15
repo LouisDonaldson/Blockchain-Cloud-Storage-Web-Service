@@ -1,4 +1,5 @@
 const pName = "Louis";
+let current_page = "home";
 
 function Page() {
   return (
@@ -9,38 +10,78 @@ function Page() {
   );
 }
 
-function Navbar() {
-  return (
-    <div className="page_nav">
-      <div className="nav_ul">
-        <div className="nav_left">
-          <div>
-            <img src="./images/logo_icon.svg" className="navbar_logo" />
+class Navbar extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { date: new Date() };
+  }
+
+  render() {
+    return (
+      <div className="page_nav">
+        <div className="nav_ul">
+          <div className="nav_left">
+            <div>
+              <img src="./images/logo_icon.svg" className="navbar_logo" />
+            </div>
+            <div className="nav_item active" id="home_btn">
+              Home
+            </div>
+            <div className="nav_item" id="portal_btn">
+              Portal
+            </div>
+            <div className="nav_item" id="contact_btn">
+              Contact us
+            </div>
           </div>
-          <div className="nav_item active" id="home_btn">
-            Home
-          </div>
-          <div className="nav_item" id="portal_btn">
-            Portal
-          </div>
-          <div className="nav_item" id="contact_btn">
-            Contact us
-          </div>
-        </div>
-        <div className="nav_right">
-          <div
-            className="nav_item log_in_btn"
-            id="log_in_btn"
-            data-bs-toggle="modal"
-            data-bs-target="#exampleModal"
-          >
-            Log in
+          <div className="nav_right">
+            <div
+              className="nav_item log_in_btn"
+              id="log_in_btn"
+              data-bs-toggle="modal"
+              data-bs-target="#exampleModal"
+            >
+              Log in
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  }
 }
+
+// function Navbar() {
+//   return (
+//     <div className="page_nav">
+//       <div className="nav_ul">
+//         <div className="nav_left">
+//           <div>
+//             <img src="./images/logo_icon.svg" className="navbar_logo" />
+//           </div>
+//           <div className="nav_item active" id="home_btn">
+//             Home
+//           </div>
+//           <div className="nav_item" id="portal_btn">
+//             Portal
+//           </div>
+//           <div className="nav_item" id="contact_btn">
+//             Contact us
+//           </div>
+//         </div>
+//         <div className="nav_right">
+//           <div
+//             className="nav_item log_in_btn"
+//             id="log_in_btn"
+//             data-bs-toggle="modal"
+//             data-bs-target="#exampleModal"
+//           >
+//             Log in
+//           </div>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
 
 function Log_In() {
   return (
@@ -85,3 +126,8 @@ function Log_In() {
 
 const root = ReactDOM.createRoot(document.getElementById("main_body"));
 root.render(<Page />);
+
+window.addEventListener("click", () => {
+  const home_btn = document.querySelector("#home_btn");
+  home_btn.click();
+});
