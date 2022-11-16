@@ -12,8 +12,7 @@ function Page() {
 
 class Navbar extends React.Component {
   constructor(props) {
-    super(props);
-    this.state = { date: new Date() };
+    super(props)
   }
 
   render() {
