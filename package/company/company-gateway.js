@@ -26,6 +26,7 @@ const port = 3001;
 //#endregion
 
 // only cache HTML, CSS and JS. Dynamic data does not require caching.
+let cache_counter = 0;
 let cache = {};
 
 function CheckCache(key) {
@@ -33,7 +34,7 @@ function CheckCache(key) {
   if (!caching) return false;
   for (const [k, v] of Object.entries(cache)) {
     if (key == k) {
-      return v;
+      return v.data;
     }
   }
 }
@@ -97,7 +98,13 @@ const api_website_handler = {
             },
           });
           const data = response.data;
-          cache[req.url] = data;
+          cache[req.url] = {
+            data: data,
+          };
+          setTimeout(() => {
+            delete cache[req.url];
+            console.log("Deleting " + req.url)
+          }, 5000)
           res.writeHead(response.status, {
             "Content-type": response?.headers?.["content-type"] ?? "",
           });
