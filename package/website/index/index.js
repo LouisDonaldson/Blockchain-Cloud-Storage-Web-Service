@@ -1,132 +1,70 @@
-const pName = "Louis";
-let current_page = "home";
-
-function Page() {
-  return (
-    <div>
-      <Navbar />
-      <Log_In />
-    </div>
-  );
-}
-
-class Navbar extends React.Component {
-  constructor(props) {
-    super(props)
-  }
-
-  render() {
-    return (
-      <div className="page_nav">
-        <div className="nav_ul">
-          <div className="nav_left">
-            <div>
-              <img src="./images/logo_icon.svg" className="navbar_logo" />
-            </div>
-            <div className="nav_item active" id="home_btn">
-              Home
-            </div>
-            <div className="nav_item" id="portal_btn">
-              Portal
-            </div>
-            <div className="nav_item" id="contact_btn">
-              Contact us
-            </div>
-          </div>
-          <div className="nav_right">
-            <div
-              className="nav_item log_in_btn"
-              id="log_in_btn"
-              data-bs-toggle="modal"
-              data-bs-target="#exampleModal"
-            >
-              Log in
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+class App {
+  constructor() {
+    this.api_handler = new ApiHandler()
+    window.addEventListener("DOMContentLoaded", () => {
+      this.ui_handler = new UiHandler();
+    })
   }
 }
 
-// function Navbar() {
-//   return (
-//     <div className="page_nav">
-//       <div className="nav_ul">
-//         <div className="nav_left">
-//           <div>
-//             <img src="./images/logo_icon.svg" className="navbar_logo" />
-//           </div>
-//           <div className="nav_item active" id="home_btn">
-//             Home
-//           </div>
-//           <div className="nav_item" id="portal_btn">
-//             Portal
-//           </div>
-//           <div className="nav_item" id="contact_btn">
-//             Contact us
-//           </div>
-//         </div>
-//         <div className="nav_right">
-//           <div
-//             className="nav_item log_in_btn"
-//             id="log_in_btn"
-//             data-bs-toggle="modal"
-//             data-bs-target="#exampleModal"
-//           >
-//             Log in
-//           </div>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// }
+class UiHandler {
+  constructor() {
+    //#region Event Listeners
+    this.body = document.querySelector('body')
+    const log_in_btn = document.querySelector('#log_in_btn');
+    const log_in_toggle_modal_btn = document.querySelector('#log_in_toggle_modal_btn')
+    log_in_btn.addEventListener("click", () => {
+      this.ClearLogInModal();
+      log_in_toggle_modal_btn.click();
+    })
 
-function Log_In() {
-  return (
-    <div
-      className="modal fade"
-      id="exampleModal"
-      tabIndex="-1"
-      aria-labelledby="exampleModalLabel"
-      aria-hidden="true"
-    >
-      <div className="modal-dialog">
-        <div className="modal-content">
-          <div className="modal-header">
-            <h5 className="modal-title" id="exampleModalLabel">
-              Log in
-            </h5>
-            <button
-              type="button"
-              className="btn-close"
-              data-bs-dismiss="modal"
-              aria-label="Close"
-            ></button>
-          </div>
-          <div className="modal-body">...</div>
-          <div className="modal-footer">
-            <button
-              type="button"
-              className="btn btn-secondary"
-              data-bs-dismiss="modal"
-            >
-              Close
-            </button>
-            <button type="button" className="btn btn-primary">
-              Log in
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+    const log_in_form = document.querySelector('.log_in_form');
+    log_in_form.addEventListener('click', (event) => {
+      event.preventDefault();
+      log_in_toggle_modal_btn.click();
+    })
+    //#endregion
+
+    this.UpdateUi()
+  }
+  ClearLogInModal() {
+    document.querySelector('#username_input').value = ""
+    document.querySelector('#password_input').value = ""
+  }
+  UpdateUi(company_data = app.api_handler.company_data) {
+    const company_name_text = document.querySelector('#company_name');
+    company_name_text.textContent = company_data?.name ?? "Secure Chain"
+    let blob = new Blob([new Uint8Array([...company_data?.logo?.data]).buffer]);
+    document.querySelector('.navbar_logo').src = URL.createObjectURL(blob);
+  }
 }
 
-const root = ReactDOM.createRoot(document.getElementById("main_body"));
-root.render(<Page />);
+class ApiHandler {
+  constructor() {
+    this.init()
+  }
+  async init() {
+    try {
+      this.company_data = JSON.parse(localStorage.getItem("company_data"))
+      app.ui_handler.UpdateUi(this.company_data)
+    }
+    catch { }
+    this.company_data = await this.GetCompanyData();
+    localStorage.setItem("company_data", JSON.stringify(this.company_data))
+    app.ui_handler.UpdateUi(this.company_data)
+  }
+  async GetCompanyData() {
+    try {
+      const response = await fetch("/data")
+      const data = await response.json();
+      return data;
+    }
+    catch (err) {
+      console.error(err)
+    }
+  }
+}
 
-window.addEventListener("click", () => {
-  const home_btn = document.querySelector("#home_btn");
-  home_btn.click();
-});
+const app = new App()
+
+

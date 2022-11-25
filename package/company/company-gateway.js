@@ -7,7 +7,7 @@ Main job is to route the requests to the correct location
 */
 
 let ping = false;
-let caching = false;
+let caching = true;
 
 const http = require("http");
 const fs = require("fs").promises;
@@ -29,6 +29,7 @@ const port = 3001;
 let cache = {};
 
 function CheckCache(key) {
+  // console.log(Object.entries(cache))
   if (!caching) return false;
   for (const [k, v] of Object.entries(cache)) {
     if (key == k) {
@@ -84,30 +85,33 @@ const api_website_handler = {
       let response;
       if (CheckCache(req.url)) {
         response = CheckCache(req.url);
+        res.end(response)
       }
-      try {
-        response = await axios({
-          method: "get",
-          url: `http://${web_server_address}${req.url}`,
-          headers: {
-            auth_token: this.server_token,
-          },
-        });
-        const data = response.data;
-        cache[req.url] = data;
-        res.writeHead(response.status, {
-          "Content-type": response?.headers?.["content-type"] ?? "",
-        });
-        res.end(data);
-      } catch (err) {
-        console.log("Axios error:");
-        console.error(err);
-        if (response?.status) {
-          res.writeHead(response?.status);
-        } else {
-          res.writeHead(502);
+      else {
+        try {
+          response = await axios({
+            method: "get",
+            url: `http://${web_server_address}${req.url}`,
+            headers: {
+              auth_token: this.server_token,
+            },
+          });
+          const data = response.data;
+          cache[req.url] = data;
+          res.writeHead(response.status, {
+            "Content-type": response?.headers?.["content-type"] ?? "",
+          });
+          res.end(data);
+        } catch (err) {
+          console.log("Axios error:");
+          console.error(err);
+          if (response?.status) {
+            res.writeHead(response?.status);
+          } else {
+            res.writeHead(502);
+          }
+          res.end();
         }
-        res.end();
       }
     }
   },

@@ -2,7 +2,7 @@ const http = require("http");
 const fs = require("fs").promises;
 const port = 8000;
 const api_website_handler = require("./website_handler.js");
-const database_handler = require("./database_handler.js");
+const database_handler = require("./main-database/main_database_handler.js");
 const { buffer } = require("stream/consumers");
 const encryption_handler = require("./encryption_handler");
 

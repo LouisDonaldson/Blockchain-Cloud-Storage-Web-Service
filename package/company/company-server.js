@@ -12,8 +12,12 @@ const http = require("http");
 const fs = require("fs").promises;
 const axios = require("axios");
 const web_server_address = `localhost:3001`;
+const database_handler = require("./database/company_database_handler.js");
 
 //#region Global variables
+
+const db_handler = new database_handler();
+// 
 
 const admin_log_in = {
   username: "admin",
@@ -28,8 +32,8 @@ const server_handler = async (req, res) => {
   console.log(
     `Incoming request for: ${req.url} (${req.connection.remoteAddress})`
   );
-  if (req.url.includes("/spotify/")) {
-    // Route to specific handler
+  if (req.url.includes("/data")) {
+    data_handler.GetCurrentData(req, res)
   } else {
     api_website_handler.HandleRequest(req, res);
   }
@@ -64,6 +68,20 @@ const api_website_handler = {
     }
   },
 };
+
+class CompanyDataHandler {
+  constructor() {
+
+  }
+  async GetCurrentData(req, res) {
+    // TEMP data obj
+    const body = {
+      name: "Dyl & Don Design Ltd",
+      logo: await fs.readFile("../package/dylndon.png")
+    }
+    res.end(JSON.stringify(body))
+  }
+}
 
 function GetServerToken() {
   return new Promise((resolve, reject) => {
@@ -100,8 +118,9 @@ async function PingWebServer() {
 
 const original_ping_interval = 5000;
 let ping_interval = 5000;
-
+let data_handler;
 (async function () {
+  data_handler = new CompanyDataHandler()
   console.log(
     `Company-proxy deployed.\nCompany ID set to '1' by default. Variable is 'company_id'.`
   );

@@ -6,6 +6,8 @@
 :root{
     --primary-colour: rgb(33, 33, 35);
     --secondary-colour: rgb(139, 202, 218);
+    --background-colour: white;
+    --font-contrast-colour: rgb(25, 25, 25);
 }   
 
 html{
