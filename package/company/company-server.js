@@ -6,7 +6,7 @@ deals with client interaction as well as well as routes data to and from the blo
 Sits behind the company gateway server
 */
 
-let ping = true;
+let ping = false;
 
 const http = require("http");
 const fs = require("fs").promises;

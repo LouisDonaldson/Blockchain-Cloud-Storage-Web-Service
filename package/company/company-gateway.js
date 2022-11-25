@@ -6,8 +6,8 @@ Provides authentication between the web-server and the company server.
 Main job is to route the requests to the correct location
 */
 
-let ping = true;
-let caching = true;
+let ping = false;
+let caching = false;
 
 const http = require("http");
 const fs = require("fs").promises;
