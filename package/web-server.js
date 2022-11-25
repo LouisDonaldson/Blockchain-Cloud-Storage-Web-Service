@@ -4,8 +4,9 @@ const port = 8000;
 const api_website_handler = require("./website_handler.js");
 const database_handler = require("./database_handler.js");
 const { buffer } = require("stream/consumers");
+const encryption_handler = require("./encryption_handler");
 
-const temp_token = btoa("this is a temporary token");
+// const temp_token = btoa("this is a temporary token");
 const db_handler = new database_handler();
 
 const server = http
@@ -26,16 +27,17 @@ const server_handler = async (req, res) => {
   } else if (req.url.slice(0, 6) == "/init/") {
     // specific init handler
     // temp
-    const body = { auth_token: temp_token };
+    const token = Token_Handler.GetNewToken();
+    const body = { auth_token: token.toString() };
     console.log(
-      `Auth token requested.\nAttached to response.\nToken: '${temp_token}'`
+      `Auth token requested.\nAttached to response.\nToken: '${token.toString()}'`
     );
     res.end(/* temp token */ JSON.stringify(body));
     //
   } else {
     if (req.headers?.auth_token) {
       // check token authenticity here
-      if (req.headers?.auth_token != temp_token) {
+      if (!Token_Handler.CheckToken(req.headers.auth_token)) {
         res.writeHead(401);
         res.end("Unauthorised client");
         return;
@@ -49,4 +51,23 @@ const server_handler = async (req, res) => {
     // req.headers?.auth_token ? console.log(req.headers?.auth_token ?? "") : "";
     api_website_handler.HandleRequest(req, res);
   }
+};
+
+let auth_tokens = [];
+const Token_Handler = {
+  GetNewToken: function () {
+    const token = encryption_handler.GenerateRandomToken();
+    console.log(token.toString());
+    auth_tokens.push(token);
+    return token;
+  },
+  CheckToken: (token) => {
+    for (const _token of auth_tokens) {
+      const token_string = _token.toString();
+      if (token == token_string) {
+        return true;
+      }
+    }
+    return false;
+  },
 };
