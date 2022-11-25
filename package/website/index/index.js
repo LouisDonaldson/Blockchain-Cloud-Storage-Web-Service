@@ -66,5 +66,3 @@ class ApiHandler {
 }
 
 const app = new App()
-
-
