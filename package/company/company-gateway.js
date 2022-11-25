@@ -1,11 +1,21 @@
+// Company gateway server
+/*
+Provides the gateway between the company network and the rest of the web.
+Provides authentication between the web-server and the company server.
+
+Main job is to route the requests to the correct location
+*/
+
+let ping = true;
+let caching = true;
+
 const http = require("http");
 const fs = require("fs").promises;
 const axios = require("axios");
 const web_server_address = `localhost:8000`;
 const encryption_handler = require("../encryption_handler");
 //#region Global variables
-let ping = false;
-let caching = true;
+
 const admin_log_in = {
   username: "admin",
   password: "password",

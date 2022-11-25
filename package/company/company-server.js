@@ -1,10 +1,20 @@
+// Company Server
+/*
+Contains the main business logic of the company. Handles requests to the database, 
+deals with client interaction as well as well as routes data to and from the blockchain miner
+
+Sits behind the company gateway server
+*/
+
+let ping = true;
+
 const http = require("http");
 const fs = require("fs").promises;
 const axios = require("axios");
 const web_server_address = `localhost:3001`;
 
 //#region Global variables
-let ping = false;
+
 const admin_log_in = {
   username: "admin",
   password: "password",
