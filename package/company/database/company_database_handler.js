@@ -5,14 +5,15 @@ module.exports = class Database_Handler {
   constructor(offline_dev = false) {
     this.offline_dev = offline_dev;
     console.log("Database handler created.");
-    (() => {
+    (async () => {
       // open the database
-      const db = open({
-        filename: './database.db',
+      const db = await open({
+        filename: `./company/database/company-database.db`,
         driver: sqlite3.Database
-      }).then(() => {
-        console.log("Database connected...")
       })
+      console.log("Database connected...")
+      await db.exec('CREATE TABLE tbl (col TEXT)')
+      await db.exec('INSERT INTO tbl VALUES ("test")')
     })()
   }
 };

@@ -27,6 +27,7 @@ const port = 3001;
 
 // only cache HTML, CSS and JS. Dynamic data does not require caching.
 let cache_counter = 0;
+const cache_deletion_timer = 10000
 let cache = {};
 
 function CheckCache(key) {
@@ -101,10 +102,12 @@ const api_website_handler = {
           cache[req.url] = {
             data: data,
           };
+
+          // deletes cached data a specific time after it comes in
           setTimeout(() => {
             delete cache[req.url];
             console.log("Deleting " + req.url)
-          }, 5000)
+          }, cache_deletion_timer)
           res.writeHead(response.status, {
             "Content-type": response?.headers?.["content-type"] ?? "",
           });
