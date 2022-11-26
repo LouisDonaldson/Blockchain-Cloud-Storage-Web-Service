@@ -77,7 +77,7 @@ class CompanyDataHandler {
     // TEMP data obj
     const body = {
       name: "Dyl & Don Design Ltd",
-      logo: await fs.readFile("../dylndon.png")
+      logo: await fs.readFile("../package/dylndon.png")
     }
     res.end(JSON.stringify(body))
   }
