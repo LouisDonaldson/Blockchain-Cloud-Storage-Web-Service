@@ -10,27 +10,11 @@ class App {
 class UiHandler {
   constructor() {
     //#region Event Listeners
-    this.body = document.querySelector('body')
-    const log_in_btn = document.querySelector('#log_in_btn');
-    const log_in_toggle_modal_btn = document.querySelector('#log_in_toggle_modal_btn')
-    log_in_btn.addEventListener("click", () => {
-      this.ClearLogInModal();
-      log_in_toggle_modal_btn.click();
-    })
 
-    const log_in_form = document.querySelector('.log_in_form');
-    log_in_form.addEventListener('click', (event) => {
-      event.preventDefault();
-      log_in_toggle_modal_btn.click();
-    })
     //#endregion
-
     this.UpdateUi()
   }
-  ClearLogInModal() {
-    document.querySelector('#username_input').value = ""
-    document.querySelector('#password_input').value = ""
-  }
+
   UpdateUi(company_data = app.api_handler.company_data) {
     const company_name_text = document.querySelector('#company_name');
     company_name_text.textContent = company_data?.name ?? "Secure Chain"

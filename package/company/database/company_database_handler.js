@@ -12,8 +12,8 @@ module.exports = class Database_Handler {
         driver: sqlite3.Database
       })
       console.log("Database connected...")
-      await db.exec('CREATE TABLE tbl (col TEXT)')
-      await db.exec('INSERT INTO tbl VALUES ("test")')
+      // await db.exec('CREATE TABLE tbl (col TEXT)')
+      // await db.exec('INSERT INTO tbl VALUES ("test")')
     })()
   }
 };

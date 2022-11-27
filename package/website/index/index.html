@@ -14,69 +14,42 @@
     <link rel="stylesheet" href="./index.css">
     <link href='https://fonts.googleapis.com/css?family=Poppins' rel='stylesheet'>
 </head>
+<!-- <img src="./images/logo_icon.svg" class="navbar_logo" />
+</div>
+<div class="" id="company_name">
+    Company Name
+</div> -->
 
 <body>
     <div id="main_body">
-        <div class="page_nav">
-            <div class="nav_ul">
-                <div class="nav_left">
+        <div class="log_in_overlay">
+            <div class="inner_overlay">
+                <div class="site_logo_alignment_div">
                     <div>
-                        <img src="./images/logo_icon.svg" class="navbar_logo" />
+                        <img src="../images/logo.svg" class="site_logo" alt="">
                     </div>
-                    <div class="" id="company_name">
-                        Company Name
+                </div>
+                <div class="company_logo_name_div">
+                    <div class="d-flex justify-content-center">
+                        <img src="../images/logo_icon.svg" class="company_logo_img navbar_logo" alt="">
+                    </div>
+                    <div class="company_name" id="company_name">
+                        Company name
+                    </div>
+                </div>
+                <div class="log_in_div">
+                    <div class="form_input_div">
+                        <label class="input_label">Username</label>
+                        <input type="text" class="log_in_input" placeholder="Enter username">
+                    </div>
+                    <div class="form_input_div">
+                        <label class="input_label">Password</label>
+                        <input type="password" class="log_in_input" placeholder="Enter password">
                     </div>
 
                 </div>
-                <div class="nav_right">
-                    <div class="nav_item log_in_btn" id="log_in_btn" data-bs-toggle="modal"
-                        data-bs-target="#exampleModal">
-                        Log in
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- Button to Open the Modal -->
-    <button type="button" class="btn btn-primary d-none" id="log_in_toggle_modal_btn" data-bs-toggle="modal"
-        data-bs-target="#log_in_modal">
-        Open modal
-    </button>
-
-    <!-- The Modal -->
-    <div class="modal" id="log_in_modal">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h4 class="modal-title">Log in</h4>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form class="log_in_form was-validated">
-                        <div class="mb-3 mt-0">
-                            <label for="email" class="form-label">Username:</label>
-                            <input type="text" class="form-control" id="username_input" placeholder="Enter username"
-                                required>
-                            <div class="valid-feedback">Valid.</div>
-                            <div class="invalid-feedback">Please fill out this field.</div>
-                        </div>
-                        <div class="mb-3">
-                            <label for="pwd" class="form-label">Password:</label>
-                            <input type="password" class="form-control" id="password_input" placeholder="Enter password"
-                                required>
-                            <div class="valid-feedback">Valid.</div>
-                            <div class="invalid-feedback">Please fill out this field.</div>
-                        </div>
-                        <div class="form-check mb-3">
-                            <label class="form-check-label">
-                                <input class="form-check-input" type="checkbox" name="remember"> Remember me
-                            </label>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Submit</button>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+                <div class="log_in_btn_div">
+                    <div class="log_in_btn">Log in</div>
                 </div>
             </div>
         </div>

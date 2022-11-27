@@ -18,59 +18,119 @@ body {
     font-family: "Poppins" !important;
 }
 
-.page_nav{
-    border-bottom: 1pt solid lightgray; 
-    margin-bottom: 5px;
-}
-
-.nav_left{
+#main_body{
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(180deg, #60969B 0%, rgba(96, 150, 155, 0) 100%), #476380;
+    box-shadow: inset 0px 0px 36px 17px rgba(0, 0, 0, 0.25);
     display: flex;
+    justify-content: center;
     align-items: center;
 }
 
-.nav_right{
-    display: flex;
-    align-items: center;
+.log_in_overlay{
+    position: absolute;
+    width: 400px;
+    height: 500px;
+    /* height: calc(1.375rem + 1.5vw); */
+    background: white;
+    box-shadow: 4px 6px 4px rgba(0, 0, 0, 0.25);
+
+    padding: 50px;
 }
 
-.navbar_logo{
-    height: 40px;
+.inner_overlay{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.site_logo_alignment_div{
+    display: flex;
+    width: 100%;
+    justify-content: flex-start;
+    margin-bottom: 20px;
+}
+
+.site_logo
+{
+    height: 30px;
     width: auto;
-    margin: 0px 10px 0px 5px;
 }
 
-.nav_ul{
-    list-style: none;
+.company_logo_img{
+    height: auto;
+    width: 80px;
+}
+
+.company_name
+{
+    font-size: 14pt;
+    margin-top: 5px;
+}
+
+.company_logo_name_div{
+    margin-bottom: 20px;
+}
+
+.log_in_div{
     display: flex;
+    justify-content: center;
     align-items: center;
-    padding: 10px;
-    margin: 0px;
-    justify-content: space-between;
+    flex-direction: column;
+    position: relative;
+    width: 100%;
+    margin-bottom: 20px;
 }
 
-.nav_item{
-    margin: 0px 10px;
+input {
+  all: unset;
+}
+
+.form_input_div{
+    border-bottom: 1pt darkgrey solid;
+    padding-bottom: 5px;
+    margin-bottom: 5px;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.input_label{
     font-size: 12pt;
-    color: gray;
-    transition: 0.5s;
 }
 
-.nav_item.active{
-    color: black;
+.log_in_input{
+    border: none;
+    font-size: 10pt;
 }
 
-.nav_item:hover{
-    cursor: pointer;
-    color: black;
-    transition: 0.5s;
-
+.log_in_btn_div{
+    display: flex;
+    width: 100%;
 }
 
 .log_in_btn{
-    justify-self: flex-end;
-   
+    position: relative;
+    width: 100%;
+    height: 50px;
+    background-color: #60969B;
+    display: flex;
+    justify-content: center;
+    text-align: center;
+    align-items: center;
+    color:white;
+    transition: 0.5s;
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.25);
+
 }
 
-.log_in_btn:hover {
-
+.log_in_btn:hover{
+    background-color: #476380;
+    transition: 0.5s;
+    cursor: pointer;
 }
+
+
