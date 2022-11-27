@@ -10,7 +10,32 @@ class App {
 class UiHandler {
   constructor() {
     //#region Event Listeners
+    const log_in_form = document.querySelector(".log_in_form")
+    const username_input = document.querySelector('#username_input')
+    const password_input = document.querySelector('#password_input')
+    log_in_form.addEventListener("submit", function (event) {
+      event.preventDefault();
+      const username = username_input.value;
+      const password = password_input.value;
+    })
 
+    const show_password_btn = document.querySelector('.show_password_btn')
+    show_password_btn.addEventListener("mousedown", () => {
+      show_password_btn.classList.add("close_eye")
+      password_input.type = "text"
+    })
+
+    show_password_btn.addEventListener("mouseup", () => {
+      show_password_btn.classList.remove("close_eye")
+      password_input.type = "password"
+
+    })
+
+    show_password_btn.addEventListener("mouseleave", () => {
+      show_password_btn.classList.remove("close_eye")
+      password_input.type = "password"
+
+    })
     //#endregion
     this.UpdateUi()
   }

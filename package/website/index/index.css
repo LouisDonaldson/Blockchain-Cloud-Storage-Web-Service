@@ -37,7 +37,7 @@ body {
     background: white;
     box-shadow: 4px 6px 4px rgba(0, 0, 0, 0.25);
 
-    padding: 50px;
+    padding: 70px;
 }
 
 .inner_overlay{
@@ -98,6 +98,10 @@ input {
     width: 100%;
 }
 
+.log_in_form{
+    width: 100%;
+}
+
 .input_label{
     font-size: 12pt;
 }
@@ -105,6 +109,37 @@ input {
 .log_in_input{
     border: none;
     font-size: 10pt;
+}
+
+.password_div{
+    display: flex;
+    justify-content: space-between;
+}
+
+
+.show_password_btn{
+    background-color: #60969B;
+    width: 20px;
+    height: 20px;
+    background-size: cover;
+}
+
+.show_password_btn:hover{
+    background-color:#476380;
+}
+
+.show_password_btn{
+    -webkit-mask-image: url(../images/eye-fill.svg);
+    mask-image: url(../images/eye-fill.svg);
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-size: cover;
+    -webkit-mask-position: 50%;
+}
+
+.show_password_btn.close_eye{
+    -webkit-mask-image: url(../images/eye-slash-fill.svg) !important;
+    mask-image: url(../images/eye-slash-fill.svg) !important;
 }
 
 .log_in_btn_div{
@@ -124,6 +159,7 @@ input {
     color:white;
     transition: 0.5s;
     box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.25);
+    border: none;
 
 }
 
@@ -131,6 +167,7 @@ input {
     background-color: #476380;
     transition: 0.5s;
     cursor: pointer;
+    border: none;
 }
 
 

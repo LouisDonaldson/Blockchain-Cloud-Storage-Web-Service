@@ -7,7 +7,7 @@ Main job is to route the requests to the correct location
 */
 
 let ping = false;
-let caching = true;
+let caching = false;
 
 const http = require("http");
 const fs = require("fs").promises;
