@@ -13,10 +13,20 @@ class UiHandler {
     const log_in_form = document.querySelector(".log_in_form")
     const username_input = document.querySelector('#username_input')
     const password_input = document.querySelector('#password_input')
-    log_in_form.addEventListener("submit", function (event) {
+    log_in_form.addEventListener("submit", async function (event) {
       event.preventDefault();
       const username = username_input.value;
       const password = password_input.value;
+      const log_in_response = await app.api_handler.LogIn(username, password)
+      if (log_in_response?.successful) {
+        const cookie_string = log_in_response.token.toString()
+        document.cookie = `session_token=${cookie_string}}`
+        window.location.reload();
+      }
+      else {
+        // log in auth unsuccessful
+        // display stuff
+      }
     })
 
     const show_password_btn = document.querySelector('.show_password_btn')
@@ -43,8 +53,11 @@ class UiHandler {
   UpdateUi(company_data = app.api_handler.company_data) {
     const company_name_text = document.querySelector('#company_name');
     company_name_text.textContent = company_data?.name ?? "Secure Chain"
-    let blob = new Blob([new Uint8Array([...company_data?.logo?.data]).buffer]);
-    document.querySelector('.navbar_logo').src = URL.createObjectURL(blob);
+    if (company_data?.logo?.data) {
+      let blob = new Blob([new Uint8Array([...company_data?.logo?.data]).buffer]);
+      document.querySelector('.navbar_logo').src = URL.createObjectURL(blob);
+    }
+
   }
 }
 
@@ -70,6 +83,22 @@ class ApiHandler {
     }
     catch (err) {
       console.error(err)
+    }
+  }
+  async LogIn(username, password) {
+    try {
+      const response = await fetch("/login", {
+        headers: {
+          username: username,
+          password: password
+        }
+      })
+      const data = await response.json()
+      console.log(response.headers)
+      return data
+    }
+    catch (err) {
+
     }
   }
 }

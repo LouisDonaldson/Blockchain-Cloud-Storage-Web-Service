@@ -135,11 +135,14 @@ input {
     mask-repeat: no-repeat;
     -webkit-mask-size: cover;
     -webkit-mask-position: 50%;
+    transition: 0.1s;
+
 }
 
 .show_password_btn.close_eye{
     -webkit-mask-image: url(../images/eye-slash-fill.svg) !important;
     mask-image: url(../images/eye-slash-fill.svg) !important;
+    transition: 0.1s;
 }
 
 .log_in_btn_div{

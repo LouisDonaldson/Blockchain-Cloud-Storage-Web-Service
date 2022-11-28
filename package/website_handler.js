@@ -15,7 +15,20 @@ module.exports = {
         .catch((err) => {
           throw err;
         });
-    } else if (req.url == "/index.js") {
+    } else if (req.url == "/portal") {
+      fs.readFile(__dirname + `/website/portal/portal.html`)
+        .then((contents) => {
+          res.writeHead(200, {
+            "Content-type": "text/html",
+          });
+          res.end(contents);
+        })
+        .catch((err) => {
+          throw err;
+        });
+    }
+
+    else if (req.url == "/index.js") {
       fs.readFile(__dirname + `/website/index/index.js`)
         .then((contents) => {
           res.writeHead(200, {
