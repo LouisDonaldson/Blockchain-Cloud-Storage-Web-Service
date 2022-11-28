@@ -173,4 +173,8 @@ input {
     border: none;
 }
 
+.error_message{
+        font-size: 10pt;
+        width: 100%;
+}
 

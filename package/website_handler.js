@@ -15,20 +15,7 @@ module.exports = {
         .catch((err) => {
           throw err;
         });
-    } else if (req.url == "/portal") {
-      fs.readFile(__dirname + `/website/portal/portal.html`)
-        .then((contents) => {
-          res.writeHead(200, {
-            "Content-type": "text/html",
-          });
-          res.end(contents);
-        })
-        .catch((err) => {
-          throw err;
-        });
-    }
-
-    else if (req.url == "/index.js") {
+    } else if (req.url == "/index.js") {
       fs.readFile(__dirname + `/website/index/index.js`)
         .then((contents) => {
           res.writeHead(200, {
@@ -44,6 +31,42 @@ module.exports = {
         .then((contents) => {
           res.writeHead(200, {
             "Content-type": "text/css",
+          });
+          res.end(contents);
+        })
+        .catch((err) => {
+          throw err;
+        });
+    }
+    //#endregion
+    //#region Portal
+    else if (req.url == "/portal") {
+      fs.readFile(__dirname + `/website/portal/portal.html`)
+        .then((contents) => {
+          res.writeHead(200, {
+            "Content-type": "text/html",
+          });
+          res.end(contents);
+        })
+        .catch((err) => {
+          throw err;
+        });
+    } else if (req.url == "/portal.css") {
+      fs.readFile(__dirname + `/website/portal/portal.css`)
+        .then((contents) => {
+          res.writeHead(200, {
+            "Content-type": "text/css",
+          });
+          res.end(contents);
+        })
+        .catch((err) => {
+          throw err;
+        });
+    } else if (req.url == "/portal.js") {
+      fs.readFile(__dirname + `/website/portal/portal.js`)
+        .then((contents) => {
+          res.writeHead(200, {
+            "Content-type": "text/javascript",
           });
           res.end(contents);
         })
@@ -69,6 +92,7 @@ module.exports = {
       res.end(contents);
     }
     //#endregion
+
     //#region Default Response
     // Ensure this is at the bottom of the page
     else {
