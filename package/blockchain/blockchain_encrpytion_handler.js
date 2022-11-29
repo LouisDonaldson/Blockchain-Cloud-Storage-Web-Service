@@ -1,8 +1,17 @@
 const crpyto_js = require("crypto-js");
 const Crypto = require("crypto");
 
-let transactions = [];
-let proof_of_work_string = "000000";
+let current_transactions = [];
+
+/* Transactions contain:
+    id: num,
+    meta: [] (meta data related to the transactions)
+*/
+
+let proof_of_work_string = "00";
+// 4 secs for 3
+// 17 secs for 4 // ideal
+// 39 secs for 5
 const proof_of_work_num = proof_of_work_string.length;
 
 class Handler {
@@ -28,17 +37,24 @@ class Handler {
     // timestamp of block creation
     // transactions
 
+    // temps
     const block_data = {
       test: "this is a test",
       hash: "dfgd8fgadf9gs8dgsdfgsdf7s8df8",
       timestamp: new Date().toISOString(),
     };
     let hash;
+
+    // timing
     const initial = new Date();
+    //
+
     do {
       hash = await this.GenerateHash(Object.entries(block_data).toString());
-      //   console.log(hash.token);
+      console.log(hash.token);
     } while (hash.token.slice(0, proof_of_work_num) != proof_of_work_string);
+
+    // timing
     const completed = new Date();
     const difference = completed - initial;
     console.log(
@@ -46,6 +62,7 @@ class Handler {
         (completed - initial) / 1000
       )} seconds.`
     );
+    //
 
     console.log(hash);
     const string = Object.entries(block_data).toString() + "," + hash.salt;

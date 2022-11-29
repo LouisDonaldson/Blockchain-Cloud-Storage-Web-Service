@@ -28,7 +28,7 @@ module.exports = class Database_Handler {
     //     password: "admin"
     //   }
     // };
-    const contents = await fs.readFile("company/configFile.txt");
+    const contents = await fs.readFile("company/configFile.json");
     const json = contents.toString();
     return JSON.parse(json);
   }
