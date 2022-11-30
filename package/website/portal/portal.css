@@ -24,6 +24,8 @@ body {
 .header_bar
 {
     display: flex;
+    justify-content: space-between;
+    box-shadow: 0px 4px 5px 3px rgba(0, 0, 0, 0.158);
 }
 
 .company_name_and_logo_div{
@@ -45,4 +47,20 @@ body {
 
 .company_name{
 
+}
+
+.header_right_side{
+    display: flex;
+    align-items: center;
+}
+
+.secure_chain_logo_div{
+    display: flex;
+    align-items: center;
+    margin-right: 10px;
+}
+
+.secure_chain_logo{
+    height: 35px;
+    width: auto;
 }
