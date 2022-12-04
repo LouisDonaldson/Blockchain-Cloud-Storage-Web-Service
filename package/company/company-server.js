@@ -181,10 +181,12 @@ class CompanyDataHandler {
     this.session_tokens = [];
     (async () => {
       this.config_file = await this.db_handler.GetConfigFile();
-    })
+    })()
   }
+  // what gets sent back to client every time it makes a request // only on portal page
   async SendCurrentData(req, res) {
     // res.end(JSON.stringify(await db_handler.GetConfigFile()))
+    // this.config_file = await this.db_handler.GetConfigFile();
     res.end(
       JSON.stringify(
         // this.config_file != undefined
@@ -198,7 +200,8 @@ class CompanyDataHandler {
         //     },
         //   }
         {
-          name: "Dyl & Don Design Ltd",
+          user_data: this.db_handler.GetUserData(req),
+          name: this.config_file.name,
           logo: await fs.readFile("../package/dylndon.png"),
           files: []
         }

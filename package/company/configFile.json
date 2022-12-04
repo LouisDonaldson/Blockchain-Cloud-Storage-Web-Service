@@ -3,7 +3,8 @@
     "admin_login":
     {   
         "username":"admin",
-        "password":"admin"
+        "password":"admin",
+        "name": "Admin"
     },
     "file_path": "./company-files"
 }

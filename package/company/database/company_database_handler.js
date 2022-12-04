@@ -2,6 +2,13 @@ const sqlite3 = require("sqlite3");
 const { open } = require("sqlite");
 const fs = require("fs").promises;
 
+/*
+to-do: migrate log in checking over to DB. Session tokens should be stored in DB
+table cols = username, session_token
+
+everytime /data is called get user data from db including name
+*/
+
 let db;
 module.exports = class Database_Handler {
   constructor(offline_dev = false) {
@@ -28,6 +35,8 @@ module.exports = class Database_Handler {
       "ID"	INTEGER UNIQUE,
       "Username"	varchar(50) NOT NULL UNIQUE,
       "Password"	varchar(50) NOT NULL,
+      "Name"	varchar(50) NOT NULL,
+
       PRIMARY KEY("ID" AUTOINCREMENT)
         );`);
 
@@ -36,8 +45,8 @@ module.exports = class Database_Handler {
 
         // Add dummy data here
         await db.exec(`
-        INSERT INTO users (Username, Password)
-        VALUES ("${config_data.admin_login.username}", "${config_data.admin_login.password}");`);
+        INSERT INTO users (Username, Password, Name)
+        VALUES ("${config_data.admin_login.username}", "${config_data.admin_login.password}", "${config_data.admin_login.name}");`);
         // console.log(response);
       } catch (err) {
         console.error(err);

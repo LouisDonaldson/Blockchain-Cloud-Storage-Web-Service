@@ -15,18 +15,30 @@ class App {
 
 class ApiHandler {
     constructor() {
-        this.init();
+        (async () => {
+            this.init(true);
+        })()
+        this.data_refresh_interval = 5000
     }
-    async init() {
+    init = async (use_storage = false) => {
         try {
-            this.company_data = JSON.parse(localStorage.getItem("company_data"));
+            if (use_storage) {
+                this.company_data = JSON.parse(localStorage.getItem("company_data"));
+                app.ui_handler.UpdateUi(this.company_data);
+            }
+            else {
+                throw new Error("Don't use storage to fetch company data.")
+            }
+
+        } catch {
+            const company_data = await this.GetCompanyData();
+            this.company_data = company_data
+            localStorage.setItem("company_data", JSON.stringify(this.company_data));
             app.ui_handler.UpdateUi(this.company_data);
-        } catch { }
-        this.company_data = await this.GetCompanyData();
-        localStorage.setItem("company_data", JSON.stringify(this.company_data));
-        app.ui_handler.UpdateUi(this.company_data);
+        }
+        setTimeout(this.init, this.data_refresh_interval)
     }
-    async GetCompanyData() {
+    GetCompanyData = async () => {
         try {
             const response = await fetch("/data");
             const data = await response.json();
