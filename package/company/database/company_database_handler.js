@@ -4,7 +4,7 @@ const fs = require("fs").promises;
 
 module.exports = class Database_Handler {
   constructor(offline_dev = false) {
-    this.GetTempConfigJSON();
+    // this.GetTempConfigJSON();
     this.offline_dev = offline_dev;
 
     console.log("Database handler created.");
@@ -15,7 +15,31 @@ module.exports = class Database_Handler {
         driver: sqlite3.Database,
       });
       console.log("Database connected...");
-      // await db.exec('CREATE TABLE tbl (col TEXT)')
+      try {
+        // drops table then creates new one
+        try {
+          await db.exec(` 
+      DROP TABLE users;`);
+        } catch {}
+
+        await db.exec(` 
+      CREATE TABLE users (
+      ID int AUTO_INCREMENT,
+      Username varchar(50) NOT NULL,
+      Password varchar(50) NOT NULL);`);
+
+        // Add dummy data here
+        await db.exec(`
+        INSERT INTO users (Username, Password)
+        VALUES ("louisd", "password");`);
+
+        const response = await db.exec(`
+        SELECT * FROM users;`);
+        console.log(response);
+      } catch (err) {
+        console.error(err);
+      }
+
       // await db.exec('INSERT INTO tbl VALUES ("test")')
     })();
   }
