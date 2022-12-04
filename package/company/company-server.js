@@ -186,20 +186,20 @@ class CompanyDataHandler {
         this.config_file != undefined
           ? this.config_file
           : {
-              name: "Dyl & Don Design Ltd",
-              logo: await fs.readFile("../package/dylndon.png"),
-              admin_login: {
-                username: "admin",
-                password: "admin",
-              },
-            }
+            name: "Dyl & Don Design Ltd",
+            logo: await fs.readFile("../package/dylndon.png"),
+            admin_login: {
+              username: "admin",
+              password: "admin",
+            },
+          }
       )
     );
   }
   async CheckAuth(username, password) {
     // check authentication
     //#region Temp
-    if (username == "admin" && password == "admin") {
+    if (await this.db_handler.CheckLogInDetails(username, password)) {
       const session_token = encryption_handler.GenerateRandomToken();
       this.session_tokens.push(session_token.toString());
       return {
