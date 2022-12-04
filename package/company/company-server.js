@@ -27,6 +27,7 @@ const server_handler = async (req, res) => {
     `Incoming request for: ${req.url} (${req.connection.remoteAddress})`
   );
   if (req.url.includes("/data")) {
+    // send back file names from DB as well as data from config file
     api_data_handler.SendCurrentData(req, res);
   } else if (req.url.includes("/login")) {
     // check auth here
@@ -178,21 +179,29 @@ class CompanyDataHandler {
   constructor() {
     this.db_handler = new database_handler();
     this.session_tokens = [];
+    (async () => {
+      this.config_file = await this.db_handler.GetConfigFile();
+    })
   }
   async SendCurrentData(req, res) {
     // res.end(JSON.stringify(await db_handler.GetConfigFile()))
     res.end(
       JSON.stringify(
-        this.config_file != undefined
-          ? this.config_file
-          : {
-            name: "Dyl & Don Design Ltd",
-            logo: await fs.readFile("../package/dylndon.png"),
-            admin_login: {
-              username: "admin",
-              password: "admin",
-            },
-          }
+        // this.config_file != undefined
+        //   ? this.config_file
+        //   : {
+        //     name: "Dyl & Don Design Ltd",
+        //     logo: await fs.readFile("../package/dylndon.png"),
+        //     admin_login: {
+        //       username: "admin",
+        //       password: "admin",
+        //     },
+        //   }
+        {
+          name: "Dyl & Don Design Ltd",
+          logo: await fs.readFile("../package/dylndon.png"),
+          files: []
+        }
       )
     );
   }

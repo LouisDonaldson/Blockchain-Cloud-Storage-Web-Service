@@ -4,5 +4,6 @@
     {   
         "username":"admin",
         "password":"admin"
-    }
+    },
+    "file_path": "./company-files"
 }

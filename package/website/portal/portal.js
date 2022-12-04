@@ -3,6 +3,12 @@ class App {
         this.api_handler = new ApiHandler();
         window.addEventListener("DOMContentLoaded", () => {
             this.ui_handler = new UiHandler();
+
+            const upload_btn = document.querySelector('.upload_btn')
+            upload_btn.addEventListener('click', () => {
+                const upload_modal = document.querySelector('.upload_modal');
+                upload_modal.classList.remove("d-none")
+            })
         });
     }
 }
