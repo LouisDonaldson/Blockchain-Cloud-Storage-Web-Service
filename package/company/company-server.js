@@ -177,11 +177,11 @@ const api_website_files_handler = {
 
 class CompanyDataHandler {
   constructor() {
-    this.db_handler = new database_handler();
+    this.db_handler = new database_handler(encryption_handler.GetHash);
     this.session_tokens = [];
     (async () => {
       this.config_file = await this.db_handler.GetConfigFile();
-    })()
+    })();
   }
   // what gets sent back to client every time it makes a request // only on portal page
   async SendCurrentData(req, res) {
@@ -203,7 +203,7 @@ class CompanyDataHandler {
           user_data: this.db_handler.GetUserData(req),
           name: this.config_file.name,
           logo: await fs.readFile("../package/dylndon.png"),
-          files: []
+          files: [],
         }
       )
     );
@@ -281,14 +281,14 @@ async function PingWebServer() {
   );
 
   // Ping web-server to make sure it's up
-  console.log("Pinging proxy...");
+  console.log("Pinging gateway...");
   try {
     if (PingWebServer()) {
-      console.log("Response from proxy.");
+      console.log("Response from gateway.");
     }
   } catch (err) {
-    console.log("No response from proxy...");
-    throw new Error("Proxy not active");
+    console.log("No response from gateway...");
+    throw new Error("gateway not active");
   }
 
   try {
@@ -304,7 +304,7 @@ async function PingWebServer() {
       server_handler(req, res);
     })
     .listen(port);
-  console.log("Company proxy-server HTTP service running on port " + port);
+  console.log("Company server HTTP service running on port " + port);
 
   if (ping) {
     console.log("Starting ping intervals to proxy.");

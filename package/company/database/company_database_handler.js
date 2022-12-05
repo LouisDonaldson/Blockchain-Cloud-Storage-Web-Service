@@ -11,7 +11,8 @@ everytime /data is called get user data from db including name
 
 let db;
 module.exports = class Database_Handler {
-  constructor(offline_dev = false) {
+  constructor(GetHash, offline_dev = false) {
+    this.GetHash = GetHash;
     // this.GetTempConfigJSON();
     this.offline_dev = offline_dev;
 
@@ -28,7 +29,7 @@ module.exports = class Database_Handler {
         try {
           await db.exec(` 
         DROP TABLE users;`);
-        } catch { }
+        } catch {}
 
         await db.exec(` 
       CREATE TABLE "users" (
@@ -40,13 +41,15 @@ module.exports = class Database_Handler {
       PRIMARY KEY("ID" AUTOINCREMENT)
         );`);
 
-        const config_data = await this.GetConfigFile()
-        config_data
+        const config_data = await this.GetConfigFile();
+        config_data;
 
         // Add dummy data here
+        const password_hash = await GetHash(config_data.admin_login.password);
+        const hash_string = password_hash.toString();
         await db.exec(`
         INSERT INTO users (Username, Password, Name)
-        VALUES ("${config_data.admin_login.username}", "${config_data.admin_login.password}", "${config_data.admin_login.name}");`);
+        VALUES ("${config_data.admin_login.username}", "${hash_string}", "${config_data.admin_login.name}");`);
         // console.log(response);
       } catch (err) {
         console.error(err);
@@ -62,24 +65,30 @@ module.exports = class Database_Handler {
   }
 
   async CheckLogInDetails(username, password) {
-    const sql_string =
-      `SELECT * FROM users WHERE users.Username = "${username}" AND users.Password = "${password}";`;
+    const sql_string = `SELECT * FROM users;`;
+    // const sql_string = `SELECT * FROM users
+    // WHERE users.Username = "${username}" AND users.Password = "${password}"
+    // ;`;
+    const hashed_password = await this.GetHash(password);
+    const hash_string = hashed_password.toString();
     try {
       const rows = await db.all(sql_string);
 
       if (rows.length == 1) {
-        if (rows[0].Username == username && rows[0].Password == password) {
+        if (rows[0].Username === username && rows[0].Password === hash_string) {
           return true;
         }
+      } else if (rows.length > 1) {
+        throw new Error(
+          "Error: Multiple users with provided log in details exist."
+        );
       }
-      else if (rows.length > 1) {
-        throw new Error("Error: Multiple users with provided log in details exist.")
-
-      }
-    }
-    catch (err) {
-      console.error(err)
+    } catch (err) {
+      console.error(err);
     }
     return false;
+  }
+  async GetUserData() {
+    return "";
   }
 };

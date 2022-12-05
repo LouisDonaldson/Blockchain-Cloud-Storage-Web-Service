@@ -10,4 +10,8 @@ module.exports = {
     );
     return token;
   },
+  async GetHash(object) {
+    const hash = await crpyto_js.SHA256(JSON.stringify(object));
+    return hash;
+  },
 };
