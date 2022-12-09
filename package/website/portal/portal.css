@@ -88,6 +88,48 @@ body {
 
 }
 
+input {
+    all: unset;
+}
+
+.inputs{
+    display: flex;
+    flex-direction: column;
+}
+
+.file_name_input_div{
+    display: flex;
+    margin-bottom: 10px;
+}
+
+.input_name_label{
+}
+
+.input_border{
+    border-bottom: 1pt solid darkgray;
+    padding: 0px 5px;
+}
+
+#file_name_input
+{
+    border: none;
+    color: #476380;
+    width: 350px;
+}
+
+.submit_btn{
+    background-color:#60969B;
+    color: white;
+    width: 100%;
+    padding: 10px 10px;
+    border-radius: 0px;
+}
+
+.submit_btn:hover {
+    background-color: #476380 !important;
+    color: white !important;
+}
+
 .underlay{
     position: relative;
     width: 100%;
