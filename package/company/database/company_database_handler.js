@@ -16,6 +16,41 @@ module.exports = class Database_Handler {
     // this.GetTempConfigJSON();
     this.offline_dev = offline_dev;
 
+    const CreateUsersTable = async () => {
+      try {
+        await db.exec(` 
+        DROP TABLE users;`);
+      } catch { }
+
+      await db.exec(` 
+      CREATE TABLE "users" (
+      "ID"	INTEGER UNIQUE,
+      "Username"	varchar(50) NOT NULL UNIQUE,
+      "Password"	varchar(50) NOT NULL,
+      "Name"	varchar(50) NOT NULL,
+
+      PRIMARY KEY("ID" AUTOINCREMENT)
+        );`);
+    }
+
+    const CreateSessionTokensTable = async () => {
+      try {
+        await db.exec(` 
+        DROP TABLE session_tokens;`);
+      } catch { }
+
+      try {
+        await db.exec(` 
+      CREATE TABLE "session_tokens" (
+      "userID"	INTEGER UNIQUE,
+      "Session_token"	varchar(50) NOT NULL UNIQUE);`);
+      }
+      catch (err) {
+        err
+      }
+
+    }
+
     console.log("Database handler created.");
     (async () => {
       // open the database
@@ -26,23 +61,10 @@ module.exports = class Database_Handler {
       console.log("Database connected...");
       try {
         // drops table then creates new one
-        try {
-          await db.exec(` 
-        DROP TABLE users;`);
-        } catch {}
-
-        await db.exec(` 
-      CREATE TABLE "users" (
-      "ID"	INTEGER UNIQUE,
-      "Username"	varchar(50) NOT NULL UNIQUE,
-      "Password"	varchar(50) NOT NULL,
-      "Name"	varchar(50) NOT NULL,
-
-      PRIMARY KEY("ID" AUTOINCREMENT)
-        );`);
+        await CreateUsersTable();
+        await CreateSessionTokensTable();
 
         const config_data = await this.GetConfigFile();
-        config_data;
 
         // Add dummy data here
         const password_hash = await GetHash(config_data.admin_login.password);
@@ -58,6 +80,9 @@ module.exports = class Database_Handler {
       // await db.exec('INSERT INTO tbl VALUES ("test")')
     })();
   }
+
+
+
   async GetConfigFile() {
     const contents = await fs.readFile("company/configFile.json");
     const json = contents.toString();
@@ -90,5 +115,15 @@ module.exports = class Database_Handler {
   }
   async GetUserData() {
     return "";
+  }
+  async GetUserId(username) {
+    const sql_string = `SELECT * FROM users WHERE users.Username = ${username}`
+    const rows = await db.all(sql_string);
+
+    if (rows.length > 1) {
+      throw new Error("Error: Multiple users with provided log in details exist.")
+    }
+
+    rows
   }
 };

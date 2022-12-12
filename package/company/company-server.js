@@ -213,6 +213,8 @@ class CompanyDataHandler {
     //#region Temp
     if (await this.db_handler.CheckLogInDetails(username, password)) {
       const session_token = encryption_handler.GenerateRandomToken();
+      const user_id = await this.db_handler.GetUserId(username)
+      api_data_handler.AddSessionToken(user_id, session_token)
       this.session_tokens.push(session_token.toString());
       return {
         auth: true,
