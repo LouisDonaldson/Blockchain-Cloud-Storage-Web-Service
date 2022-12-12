@@ -131,7 +131,7 @@ const api_website_files_handler = {
       if (req.url == "/") {
         if (req.headers?.cookie) {
           if (
-            api_website_files_handler.CheckValidSessionCookie(
+            await api_website_files_handler.CheckValidSessionCookie(
               req.headers.cookie
             )
           ) {
@@ -154,7 +154,7 @@ const api_website_files_handler = {
       default_route_request(req, res);
     }
   },
-  CheckValidSessionCookie: function (cookie_header) {
+  CheckValidSessionCookie: async function (cookie_header) {
     const cookies = cookie_header.split(";");
     // parse cookies
     for (const _cookie of cookies) {
@@ -162,7 +162,7 @@ const api_website_files_handler = {
       const split_cookie = cookie.split("=", 2);
       if (split_cookie[0] == "session_token") {
         if (
-          api_data_handler.CheckCookie(
+          await api_data_handler.CheckCookie(
             split_cookie[1].slice(0, split_cookie[1].length - 1)
           )
         ) {
@@ -214,8 +214,8 @@ class CompanyDataHandler {
     if (await this.db_handler.CheckLogInDetails(username, password)) {
       const session_token = encryption_handler.GenerateRandomToken();
       const user_id = await this.db_handler.GetUserId(username)
-      api_data_handler.AddSessionToken(user_id, session_token)
-      this.session_tokens.push(session_token.toString());
+      this.db_handler.AddSessionToken(user_id, session_token)
+      // this.session_tokens.push(session_token.toString());
       return {
         auth: true,
         token: session_token,
@@ -227,19 +227,8 @@ class CompanyDataHandler {
     }
     //#endregion
   }
-  CheckCookie(cookie_string) {
-    if (this.session_tokens.length < 1) {
-      return false;
-    } else {
-      return this.session_tokens.find((cookie) => {
-        if (cookie_string == cookie) {
-          return true;
-        }
-        // if (true == true) {
-        //   return true
-        // }
-      });
-    }
+  async CheckCookie(cookie_string) {
+    return await this.db_handler.CheckToken(cookie_string)
   }
 }
 

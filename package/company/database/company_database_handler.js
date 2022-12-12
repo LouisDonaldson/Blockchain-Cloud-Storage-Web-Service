@@ -80,17 +80,13 @@ module.exports = class Database_Handler {
       // await db.exec('INSERT INTO tbl VALUES ("test")')
     })();
   }
-
-
-
   async GetConfigFile() {
     const contents = await fs.readFile("company/configFile.json");
     const json = contents.toString();
     return JSON.parse(json);
   }
-
   async CheckLogInDetails(username, password) {
-    const sql_string = `SELECT * FROM users;`;
+    const sql_string = `SELECT * FROM users WHERE Username = "${username}";`;
     // const sql_string = `SELECT * FROM users
     // WHERE users.Username = "${username}" AND users.Password = "${password}"
     // ;`;
@@ -117,13 +113,59 @@ module.exports = class Database_Handler {
     return "";
   }
   async GetUserId(username) {
-    const sql_string = `SELECT * FROM users WHERE users.Username = ${username}`
+    const sql_string = `SELECT * FROM users WHERE users.Username = "${username}"`
     const rows = await db.all(sql_string);
 
     if (rows.length > 1) {
       throw new Error("Error: Multiple users with provided log in details exist.")
     }
 
-    rows
+    return rows[0].ID
+  }
+  async AddSessionToken(user_id, session_token) {
+    //     const sql_string =
+    //       `UPDATE session_tokens
+    // SET Session_token = 'Alfred ${session_token}'
+    // WHERE userID = ${user_id};`
+
+    const sql_string =
+      `INSERT INTO session_tokens (UserID, Session_token)
+      VALUES (${user_id}, "${session_token}");`
+    try {
+      await db.exec(sql_string);
+
+    }
+    catch (err) {
+      if (err.message.includes("SQLITE_CONSTRAINT: UNIQUE constraint failed:")) {
+        const new_sql_string =
+          `UPDATE session_tokens
+SET Session_token = '${session_token}'
+WHERE userID = ${user_id};`
+        await db.exec(new_sql_string)
+      }
+    }
+  }
+  async CheckToken(token_string) {
+    const sql_string = `SELECT * FROM Session_tokens WHERE Session_token = "${token_string}"`
+    const rows = await db.all(sql_string);
+
+    if (rows.length > 1) {
+      throw new Error("Error: Multiple users with provided log in details exist.")
+    }
+
+    if (rows.length == 0) {
+      return false
+    }
+    else {
+      if (token_string == rows[0].Session_token) {
+        return true
+      }
+      else {
+        throw new Error("Something went wrong when reading session tokens")
+      }
+      return true
+    }
+
+    return rows
   }
 };
