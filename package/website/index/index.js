@@ -82,7 +82,7 @@ class ApiHandler {
     try {
       this.company_data = JSON.parse(localStorage.getItem("company_data"));
       app.ui_handler.UpdateUi(this.company_data);
-    } catch {}
+    } catch { }
     this.company_data = await this.GetCompanyData();
     localStorage.setItem("company_data", JSON.stringify(this.company_data));
     app.ui_handler.UpdateUi(this.company_data);
@@ -99,6 +99,7 @@ class ApiHandler {
   async LogIn(username, password) {
     try {
       const response = await fetch("/login", {
+        type: "POST",
         headers: {
           username: username,
           password: password,
@@ -107,7 +108,7 @@ class ApiHandler {
       const data = await response.json();
       console.log(response.headers);
       return data;
-    } catch (err) {}
+    } catch (err) { }
   }
 }
 
