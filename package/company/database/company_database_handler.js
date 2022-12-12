@@ -16,6 +16,41 @@ module.exports = class Database_Handler {
     // this.GetTempConfigJSON();
     this.offline_dev = offline_dev;
 
+    const CreateUsersTable = async () => {
+      try {
+        await db.exec(` 
+        DROP TABLE users;`);
+      } catch { }
+
+      await db.exec(` 
+      CREATE TABLE "users" (
+      "ID"	INTEGER UNIQUE,
+      "Username"	varchar(50) NOT NULL UNIQUE,
+      "Password"	varchar(50) NOT NULL,
+      "Name"	varchar(50) NOT NULL,
+
+      PRIMARY KEY("ID" AUTOINCREMENT)
+        );`);
+    }
+
+    const CreateSessionTokensTable = async () => {
+      try {
+        await db.exec(` 
+        DROP TABLE session_tokens;`);
+      } catch { }
+
+      try {
+        await db.exec(` 
+      CREATE TABLE "session_tokens" (
+      "userID"	INTEGER UNIQUE,
+      "Session_token"	varchar(50) NOT NULL UNIQUE);`);
+      }
+      catch (err) {
+        err
+      }
+
+    }
+
     console.log("Database handler created.");
     (async () => {
       // open the database
@@ -26,23 +61,10 @@ module.exports = class Database_Handler {
       console.log("Database connected...");
       try {
         // drops table then creates new one
-        try {
-          await db.exec(` 
-        DROP TABLE users;`);
-        } catch {}
-
-        await db.exec(` 
-      CREATE TABLE "users" (
-      "ID"	INTEGER UNIQUE,
-      "Username"	varchar(50) NOT NULL UNIQUE,
-      "Password"	varchar(50) NOT NULL,
-      "Name"	varchar(50) NOT NULL,
-
-      PRIMARY KEY("ID" AUTOINCREMENT)
-        );`);
+        await CreateUsersTable();
+        await CreateSessionTokensTable();
 
         const config_data = await this.GetConfigFile();
-        config_data;
 
         // Add dummy data here
         const password_hash = await GetHash(config_data.admin_login.password);
@@ -63,9 +85,8 @@ module.exports = class Database_Handler {
     const json = contents.toString();
     return JSON.parse(json);
   }
-
   async CheckLogInDetails(username, password) {
-    const sql_string = `SELECT * FROM users;`;
+    const sql_string = `SELECT * FROM users WHERE Username = "${username}";`;
     // const sql_string = `SELECT * FROM users
     // WHERE users.Username = "${username}" AND users.Password = "${password}"
     // ;`;
@@ -90,5 +111,61 @@ module.exports = class Database_Handler {
   }
   async GetUserData() {
     return "";
+  }
+  async GetUserId(username) {
+    const sql_string = `SELECT * FROM users WHERE users.Username = "${username}"`
+    const rows = await db.all(sql_string);
+
+    if (rows.length > 1) {
+      throw new Error("Error: Multiple users with provided log in details exist.")
+    }
+
+    return rows[0].ID
+  }
+  async AddSessionToken(user_id, session_token) {
+    //     const sql_string =
+    //       `UPDATE session_tokens
+    // SET Session_token = 'Alfred ${session_token}'
+    // WHERE userID = ${user_id};`
+
+    const sql_string =
+      `INSERT INTO session_tokens (UserID, Session_token)
+      VALUES (${user_id}, "${session_token}");`
+    try {
+      await db.exec(sql_string);
+
+    }
+    catch (err) {
+      if (err.message.includes("SQLITE_CONSTRAINT: UNIQUE constraint failed:")) {
+        const new_sql_string =
+          `UPDATE session_tokens
+SET Session_token = '${session_token}'
+WHERE userID = ${user_id};`
+        await db.exec(new_sql_string)
+      }
+    }
+  }
+  async CheckToken(token_string) {
+    const sql_string = `SELECT * FROM Session_tokens WHERE Session_token = "${token_string}"`
+    const rows = await db.all(sql_string);
+
+    if (rows.length > 1) {
+      throw new Error("Error: Multiple users with provided log in details exist.")
+    }
+
+    if (rows.length == 0) {
+      return false
+    }
+    else {
+      if (token_string == rows[0].Session_token) {
+        return true
+      }
+      else {
+        throw new Error("Something went wrong when reading session tokens")
+      }
+      return true
+    }
+
+    return rows
   }
 };
