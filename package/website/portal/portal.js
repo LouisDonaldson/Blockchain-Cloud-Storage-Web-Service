@@ -62,6 +62,18 @@ class UiHandler {
     });
   }
   SubmitClicked() {
+    const file_input = document.querySelector("#file_input");
+    const reader = new FileReader();
+    reader.onload = function () {
+      let arrayBuffer = this.result,
+        array = new Uint8Array(arrayBuffer),
+        binaryString = String.fromCharCode.apply(null, array);
+
+      console.log(binaryString);
+    };
+    console.log(file_input);
+    reader.readAsArrayBuffer(file_input.files[0]);
+
     // temp
     this.CloseModal();
   }
