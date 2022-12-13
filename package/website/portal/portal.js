@@ -1,9 +1,27 @@
 class App {
   constructor() {
+    this.file_handler = new FileHandler()
     this.api_handler = new ApiHandler();
     window.addEventListener("DOMContentLoaded", () => {
       this.ui_handler = new UiHandler();
     });
+  }
+}
+
+class FileHandler {
+  CreateBinaryString(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = function () {
+        let arrayBuffer = this.result,
+          array = new Uint8Array(arrayBuffer),
+          binaryString = String.fromCharCode.apply(null, array);
+
+        resolve(binaryString);
+      };
+      reader.readAsArrayBuffer(file);
+    })
+
   }
 }
 
@@ -61,21 +79,23 @@ class UiHandler {
       once: true,
     });
   }
-  SubmitClicked() {
+  async SubmitClicked() {
     const file_input = document.querySelector("#file_input");
-    const reader = new FileReader();
-    reader.onload = function () {
-      let arrayBuffer = this.result,
-        array = new Uint8Array(arrayBuffer),
-        binaryString = String.fromCharCode.apply(null, array);
+    const file_input_name = document.querySelector('#file_name_input');
+    app.file_handler.CreateBinaryString(file_input.files[0]).then(file_binary_string => {
+      const tranmission_obj = {
+        name: `${file_input_name.value}`,
+        binaryString: file_binary_string
+      }
+      const json_obj = JSON.stringify(tranmission_obj);
+      console.log(json_obj)
 
-      console.log(binaryString);
-    };
-    console.log(file_input);
-    reader.readAsArrayBuffer(file_input.files[0]);
+      // send data to server
 
-    // temp
-    this.CloseModal();
+      // temp
+      this.CloseModal();
+    })
+
   }
   CloseModal() {
     const upload_modal = document.querySelector(".upload_modal");
