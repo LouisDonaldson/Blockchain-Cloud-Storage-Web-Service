@@ -17,7 +17,7 @@ class FileHandler {
           array = new Uint8Array(arrayBuffer),
           binaryString = String.fromCharCode.apply(null, array);
 
-        resolve(binaryString);
+        resolve(array);
       };
       reader.readAsArrayBuffer(file);
     })
@@ -57,6 +57,13 @@ class ApiHandler {
       console.error(err);
     }
   };
+  UploadFile = async (json_obj) => {
+    const response = await fetch("/file", {
+      method: "POST",
+      body: json_obj
+    })
+    response
+  }
 }
 
 class UiHandler {
@@ -91,6 +98,7 @@ class UiHandler {
       console.log(json_obj)
 
       // send data to server
+      app.api_handler.UploadFile(json_obj)
 
       // temp
       this.CloseModal();

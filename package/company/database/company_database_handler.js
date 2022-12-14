@@ -51,6 +51,26 @@ module.exports = class Database_Handler {
 
     }
 
+    const CreateFilesTable = async () => {
+      try {
+        await db.exec(` 
+        DROP TABLE files;`);
+      } catch { }
+
+      try {
+        await db.exec(` 
+      CREATE TABLE "files" (
+        "file_ID"	INTEGER UNIQUE,
+      "userID"	INTEGER,
+      "file_data"	BLOB NOT NULL,
+      
+      PRIMARY KEY("file_ID" AUTOINCREMENT));`);
+      }
+      catch (err) {
+        err
+      }
+
+    }
     console.log("Database handler created.");
     (async () => {
       // open the database
@@ -63,6 +83,7 @@ module.exports = class Database_Handler {
         // drops table then creates new one
         await CreateUsersTable();
         await CreateSessionTokensTable();
+        await CreateFilesTable();
 
         const config_data = await this.GetConfigFile();
 
@@ -123,11 +144,6 @@ module.exports = class Database_Handler {
     return rows[0].ID
   }
   async AddSessionToken(user_id, session_token) {
-    //     const sql_string =
-    //       `UPDATE session_tokens
-    // SET Session_token = 'Alfred ${session_token}'
-    // WHERE userID = ${user_id};`
-
     const sql_string =
       `INSERT INTO session_tokens (UserID, Session_token)
       VALUES (${user_id}, "${session_token}");`
@@ -163,9 +179,52 @@ WHERE userID = ${user_id};`
       else {
         throw new Error("Something went wrong when reading session tokens")
       }
-      return true
+    }
+  }
+  async GetUserIDFromToken(token_string) {
+    const sql_string = `SELECT * FROM Session_tokens WHERE Session_token = "${token_string}"`
+    const rows = await db.all(sql_string);
+
+    if (rows.length > 1) {
+      throw new Error("Error: Multiple users with same session token.")
     }
 
-    return rows
+    if (rows.length == 0) {
+      return false
+    }
+    else {
+      if (token_string == rows[0].Session_token) {
+        const user_data = await this.GetUserDataFromID(rows[0].userID)
+        return await user_data.ID
+      }
+      else {
+        throw new Error("Something went wrong when reading session tokens")
+      }
+    }
   }
-};
+  async GetUserDataFromID(id) {
+    const sql_string = `SELECT * FROM users WHERE users.ID = ${id}`
+    const rows = await db.all(sql_string);
+    if (rows[0].ID == id) {
+      return rows[0]
+    }
+    else {
+      throw new Error("Incorrect user data pulled from DB")
+    }
+  }
+  async UploadFile(upload_data) {
+    // const file_json = JSON.stringify(upload_data.binary_data)
+    const file_buffer = Buffer.from(JSON.stringify(upload_data.binary_data))
+    const binary_string = file_buffer.toString()
+    const sql_string =
+      `INSERT INTO files (UserID, file_data)
+      VALUES (${upload_data.userID}, '${binary_string}');`
+    try {
+      await db.exec(sql_string);
+      return true
+    }
+    catch (err) {
+      err
+    }
+  }
+}

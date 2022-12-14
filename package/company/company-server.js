@@ -147,7 +147,40 @@ const api_website_files_handler = {
         } else {
           default_route_request(req, res);
         }
-      } else {
+      }
+      else if (req.url == "/file" && req.method == "POST") {
+        if (req.headers?.cookie) {
+          if (
+            await api_website_files_handler.CheckValidSessionCookie(
+              req.headers.cookie
+            )
+          ) {
+            // cookie authorised
+
+            // handle file upload here
+            let incomingData = '';
+            req.on('data', chunk => {
+              incomingData += chunk.toString(); // convert Buffer to string
+            });
+            req.on('end', () => {
+              // handle response here
+              console.log(incomingData);
+              res.writeHead(200);
+              res.end();
+              api_data_handler.HandleFileUpload(incomingData, req.headers.cookie)
+            });
+
+          } else {
+            // cookie unauthorised
+            res.writeHead(404);
+            res.end()
+          }
+        } else {
+          res.writeHead(404);
+          res.end()
+        }
+      }
+      else {
         default_route_request(req, res);
       }
     } else {
@@ -189,16 +222,6 @@ class CompanyDataHandler {
     // this.config_file = await this.db_handler.GetConfigFile();
     res.end(
       JSON.stringify(
-        // this.config_file != undefined
-        //   ? this.config_file
-        //   : {
-        //     name: "Dyl & Don Design Ltd",
-        //     logo: await fs.readFile("../package/dylndon.png"),
-        //     admin_login: {
-        //       username: "admin",
-        //       password: "admin",
-        //     },
-        //   }
         {
           user_data: this.db_handler.GetUserData(req),
           name: this.config_file.name,
@@ -227,8 +250,42 @@ class CompanyDataHandler {
     }
     //#endregion
   }
+  async GetSessionTokenFromString(cookie_string) {
+    const cookies = cookie_string.split(";");
+    // parse cookies
+    for (const _cookie of cookies) {
+      const cookie = _cookie.trim();
+      const split_cookie = cookie.split("=", 2);
+      if (split_cookie[0] == "session_token") {
+        return split_cookie[1].slice(0, split_cookie[1].length - 1)
+      }
+    }
+  }
   async CheckCookie(cookie_string) {
     return await this.db_handler.CheckToken(cookie_string)
+  }
+  async HandleFileUpload(data_obj_json, token_string) {
+    function binaryStringToBuffer(string) {
+      const groups = string.match(/[01]{16}/g);
+      const numbers = groups.map(binary => parseInt(binary, 2))
+
+      return Buffer.from(new Uint16Array(numbers).buffer);
+    }
+
+    const data_obj = JSON.parse(data_obj_json)
+    // data_obj
+
+    // file name = obj.name
+    // file data = obj.binaryString
+    let file_buffer = data_obj.binaryString
+
+    const username = await this.db_handler.GetUserIDFromToken(await this.GetSessionTokenFromString(token_string))
+    if (await this.db_handler.UploadFile({
+      binary_data: file_buffer,
+      userID: username
+    })) {
+      // generate transaction and send to blockchain miner
+    }
   }
 }
 
