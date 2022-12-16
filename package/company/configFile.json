@@ -1,10 +1,10 @@
 {
-    "name":"Dyl & Don Design Ltd",
-    "admin_login":
-    {   
-        "username":"admin",
-        "password":"admin",
-        "name": "Admin"
-    },
-    "file_path": "./company-files"
+  "name": "Dyl & Don Design Ltd",
+  "logo_path": "../package/dylndon.png",
+  "admin_login": {
+    "username": "admin",
+    "password": "admin",
+    "name": "Admin"
+  },
+  "file_path": "./company-files"
 }

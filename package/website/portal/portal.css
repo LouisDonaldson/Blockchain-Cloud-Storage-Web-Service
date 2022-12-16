@@ -102,7 +102,23 @@ input {
     margin-bottom: 10px;
 }
 
-.input_name_label{
+.file_description_input_div{
+    display: flex;
+    margin-bottom: 10px;
+    flex-direction: column;
+}
+
+#file_description_input{
+    font-size: 12pt;
+    color: #476380;
+    resize: none;
+    border: none;
+    border: solid 1pt darkgray;
+}
+
+#file_description_input:focus-visible{
+    outline: none;
+    border: solid 1pt #476380;
 }
 
 .input_border{
@@ -213,6 +229,7 @@ input {
     height: -webkit-fill-available;
     padding: 10px;
     width: 100%;
+    flex-direction: column;
 }
 
 .viewer_header{
@@ -226,4 +243,36 @@ input {
     position: absolute;
     top: 5px;
     right: 5px;
+}
+
+.folder_view{
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.file_div{
+    position: relative;
+    min-width: 100px;
+    min-height: 100px;
+    max-height: 100px;
+    max-width: 300px;
+    border: solid 1pt #476380;
+    margin: 10px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    background-color: #60969B;
+    align-items: flex-start;
+    justify-content: center;
+}
+
+.file_meta_name{
+    font-size: 10pt;
+    font-weight: bold;
+}
+
+.file_meta_desc{
+    font-size: 8pt;
 }

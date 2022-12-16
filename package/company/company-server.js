@@ -14,6 +14,7 @@ const axios = require("axios");
 const web_server_address = `localhost:3001`;
 const database_handler = require("./database/company_database_handler.js");
 const encryption_handler = require("../encryption_handler");
+const miner = require("../blockchain/miner");
 
 //#region Global variables
 const port = 3000;
@@ -26,7 +27,7 @@ const server_handler = async (req, res) => {
   console.log(
     `Incoming request for: ${req.url} (${req.connection.remoteAddress})`
   );
-  if (req.url.includes("/data")) {
+  if (false) {
     // send back file names from DB as well as data from config file
     api_data_handler.SendCurrentData(req, res);
   } else if (req.url.includes("/login")) {
@@ -147,8 +148,7 @@ const api_website_files_handler = {
         } else {
           default_route_request(req, res);
         }
-      }
-      else if (req.url == "/file" && req.method == "POST") {
+      } else if (req.url == "/file" && req.method == "POST") {
         if (req.headers?.cookie) {
           if (
             await api_website_files_handler.CheckValidSessionCookie(
@@ -158,29 +158,49 @@ const api_website_files_handler = {
             // cookie authorised
 
             // handle file upload here
-            let incomingData = '';
-            req.on('data', chunk => {
+            let incomingData = "";
+            console.log("Incoming file transmission.");
+
+            req.on("data", (chunk) => {
               incomingData += chunk.toString(); // convert Buffer to string
             });
-            req.on('end', () => {
+            req.on("end", () => {
               // handle response here
-              console.log(incomingData);
+              console.log("File data read. No errors.");
               res.writeHead(200);
               res.end();
-              api_data_handler.HandleFileUpload(incomingData, req.headers.cookie)
+              api_data_handler.HandleFileUpload(
+                incomingData,
+                req.headers.cookie
+              );
             });
-
           } else {
             // cookie unauthorised
             res.writeHead(404);
-            res.end()
+            res.end();
           }
         } else {
           res.writeHead(404);
-          res.end()
+          res.end();
         }
-      }
-      else {
+      } else if (req.url.includes("/data")) {
+        api_data_handler.SendCurrentData(req, res);
+      } else if (req.url.includes("/fileMeta")) {
+        if (req.headers?.cookie) {
+          if (
+            await api_website_files_handler.CheckValidSessionCookie(
+              req.headers.cookie
+            )
+          ) {
+            api_data_handler.SendCurrentData(req, res);
+          } else {
+            // cookie not authed
+            res.writeHead(401);
+            res.end();
+          }
+        } else {
+        }
+      } else {
         default_route_request(req, res);
       }
     } else {
@@ -221,14 +241,12 @@ class CompanyDataHandler {
     // res.end(JSON.stringify(await db_handler.GetConfigFile()))
     // this.config_file = await this.db_handler.GetConfigFile();
     res.end(
-      JSON.stringify(
-        {
-          user_data: this.db_handler.GetUserData(req),
-          name: this.config_file.name,
-          logo: await fs.readFile("../package/dylndon.png"),
-          files: [],
-        }
-      )
+      JSON.stringify({
+        user_data: this.db_handler.GetUserData(req),
+        name: this.config_file.name,
+        logo: await fs.readFile(this.config_file.logo_path),
+        files: await this.db_handler.GetFileMeta(),
+      })
     );
   }
   async CheckAuth(username, password) {
@@ -236,8 +254,8 @@ class CompanyDataHandler {
     //#region Temp
     if (await this.db_handler.CheckLogInDetails(username, password)) {
       const session_token = encryption_handler.GenerateRandomToken();
-      const user_id = await this.db_handler.GetUserId(username)
-      this.db_handler.AddSessionToken(user_id, session_token)
+      const user_id = await this.db_handler.GetUserId(username);
+      this.db_handler.AddSessionToken(user_id, session_token);
       // this.session_tokens.push(session_token.toString());
       return {
         auth: true,
@@ -257,33 +275,42 @@ class CompanyDataHandler {
       const cookie = _cookie.trim();
       const split_cookie = cookie.split("=", 2);
       if (split_cookie[0] == "session_token") {
-        return split_cookie[1].slice(0, split_cookie[1].length - 1)
+        return split_cookie[1].slice(0, split_cookie[1].length - 1);
       }
     }
   }
   async CheckCookie(cookie_string) {
-    return await this.db_handler.CheckToken(cookie_string)
+    return await this.db_handler.CheckToken(cookie_string);
   }
   async HandleFileUpload(data_obj_json, token_string) {
-    function binaryStringToBuffer(string) {
-      const groups = string.match(/[01]{16}/g);
-      const numbers = groups.map(binary => parseInt(binary, 2))
-
-      return Buffer.from(new Uint16Array(numbers).buffer);
-    }
-
-    const data_obj = JSON.parse(data_obj_json)
+    console.log("Uploading data to database.");
+    const data_obj = JSON.parse(data_obj_json);
     // data_obj
 
     // file name = obj.name
     // file data = obj.binaryString
-    let file_buffer = data_obj.binaryString
+    let file_buffer = data_obj.binaryString;
 
-    const username = await this.db_handler.GetUserIDFromToken(await this.GetSessionTokenFromString(token_string))
-    if (await this.db_handler.UploadFile({
-      binary_data: file_buffer,
-      userID: username
-    })) {
+    const username = await this.db_handler.GetUserIDFromToken(
+      await this.GetSessionTokenFromString(token_string)
+    );
+    if (
+      await this.db_handler.UploadFile({
+        binary_data: file_buffer,
+        fileName: data_obj.name,
+        userID: username,
+        description: data_obj.description,
+      })
+    ) {
+      console.log(
+        "Data successfully uploaded.\nGenerating transaction for miner..."
+      );
+
+      const transaction_buffer = Buffer.from(JSON.stringify(file_buffer));
+      const binary_string = transaction_buffer.toString();
+      const file_hash = await encryption_handler.GetHash(binary_string);
+      console.log(file_hash.toString());
+
       // generate transaction and send to blockchain miner
     }
   }
