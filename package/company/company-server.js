@@ -294,24 +294,27 @@ class CompanyDataHandler {
     const username = await this.db_handler.GetUserIDFromToken(
       await this.GetSessionTokenFromString(token_string)
     );
+
+    const transaction_buffer = Buffer.from(JSON.stringify(file_buffer));
+    const binary_string = transaction_buffer.toString();
+    const file_hash = await encryption_handler.GetHash(binary_string);
+    // console.log(file_hash.toString());
+
     if (
       await this.db_handler.UploadFile({
         binary_data: file_buffer,
         fileName: data_obj.name,
         userID: username,
         description: data_obj.description,
+        hash: file_hash.toString()
       })
     ) {
       console.log(
         "Data successfully uploaded.\nGenerating transaction for miner..."
       );
 
-      const transaction_buffer = Buffer.from(JSON.stringify(file_buffer));
-      const binary_string = transaction_buffer.toString();
-      const file_hash = await encryption_handler.GetHash(binary_string);
-      console.log(file_hash.toString());
-
       // generate transaction and send to blockchain miner
+      miner.HandleNewFile(file_hash.toString(), new Date().toISOString())
     }
   }
 }
