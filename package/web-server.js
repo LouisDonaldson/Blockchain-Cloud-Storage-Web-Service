@@ -34,7 +34,10 @@ const server_handler = async (req, res) => {
     );
     res.end(/* temp token */ JSON.stringify(body));
     //
-  } else {
+  } else if (req.url == "/config") {
+    // read password hash, return company config file
+  }
+  else {
     if (req.headers?.auth_token) {
       // check token authenticity here
       if (!Token_Handler.CheckToken(req.headers.auth_token)) {

@@ -11,7 +11,8 @@ everytime /data is called get user data from db including name
 
 let db;
 module.exports = class Database_Handler {
-  constructor(GetHash, offline_dev = false) {
+  constructor(GetHash, offline_dev = false, config_data) {
+    this.config_data = config_data
     this.GetHash = GetHash;
     // this.GetTempConfigJSON();
     this.offline_dev = offline_dev;
@@ -20,7 +21,7 @@ module.exports = class Database_Handler {
       try {
         await db.exec(` 
         DROP TABLE users;`);
-      } catch {}
+      } catch { }
 
       await db.exec(` 
       CREATE TABLE "users" (
@@ -37,7 +38,7 @@ module.exports = class Database_Handler {
       try {
         await db.exec(` 
         DROP TABLE session_tokens;`);
-      } catch {}
+      } catch { }
 
       try {
         await db.exec(` 
@@ -53,7 +54,7 @@ module.exports = class Database_Handler {
       try {
         await db.exec(` 
         DROP TABLE files;`);
-      } catch {}
+      } catch { }
 
       try {
         await db.exec(` 
@@ -83,7 +84,7 @@ module.exports = class Database_Handler {
         await CreateSessionTokensTable();
         await CreateFilesTable();
 
-        const config_data = await this.GetConfigFile();
+        const config_data = this.config_data
 
         // Add dummy data here
         const password_hash = await GetHash(config_data.admin_login.password);

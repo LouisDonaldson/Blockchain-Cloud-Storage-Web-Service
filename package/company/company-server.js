@@ -14,7 +14,7 @@ const axios = require("axios");
 const web_server_address = `localhost:3001`;
 const database_handler = require("./database/company_database_handler.js");
 const encryption_handler = require("../encryption_handler");
-const miner = require("../blockchain/miner");
+// const miner = require("../blockchain/miner");
 
 //#region Global variables
 const port = 3000;
@@ -226,6 +226,35 @@ const api_website_files_handler = {
       }
     }
   },
+  GetConfigFile: async function () {
+    const GetAuthPassword = async () => {
+
+      try {
+        const file = await fs.readFile(`${__dirname}/auth_config.json`)
+        const config_data = JSON.parse(file.toString())
+        return config_data.password
+      }
+      catch (err) {
+        throw new Error("Error when reading configuration file.")
+      }
+    }
+    try {
+      const response = await axios({
+        method: "get",
+        url: `http://${web_server_address}/config`,
+        headers: {
+          auth_token: api_website_files_handler.server_token,
+          password: await encryption_handler.GetHash(await GetAuthPassword())
+        },
+      });
+      const data = response.data;
+    }
+    catch (err) {
+      err
+    }
+
+
+  }
 };
 
 class CompanyDataHandler {
@@ -233,7 +262,6 @@ class CompanyDataHandler {
     this.db_handler = new database_handler(encryption_handler.GetHash);
     this.session_tokens = [];
     (async () => {
-      this.config_file = await this.db_handler.GetConfigFile();
     })();
   }
   // what gets sent back to client every time it makes a request // only on portal page
@@ -369,6 +397,7 @@ async function PingWebServer() {
     throw new Error("gateway not active");
   }
 
+  // Gets auth token from Web server
   try {
     api_website_files_handler.server_token = await GetServerToken();
     console.log("Auth token received");
@@ -376,6 +405,11 @@ async function PingWebServer() {
     throw new Error(`Auth token wasn't retrieved.`);
   }
 
+  // getting company_config
+  api_data_handler.config_file = await api_website_files_handler.GetConfigFile();
+  console.log("Company config data received.")
+
+  // Starting HTTP service
   console.log("Starting HTTP service...");
   const server = http
     .createServer(async (req, res) => {
