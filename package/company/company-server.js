@@ -14,7 +14,11 @@ const axios = require("axios");
 const web_server_address = `localhost:3001`;
 const database_handler = require("./database/company_database_handler.js");
 const encryption_handler = require("../encryption_handler");
-const miner = require("../blockchain/miner");
+const BlockchainHandler = require("./BlockchainHandler.js");
+// const miner = require("../blockchain/miner");
+// const { Worker } = require("node:worker_threads");
+// const miner = new Worker("../blockchain/miner");
+const blockchain_handler = new BlockchainHandler();
 
 //#region Global variables
 const port = 3000;
@@ -306,7 +310,7 @@ class CompanyDataHandler {
         fileName: data_obj.name,
         userID: username,
         description: data_obj.description,
-        hash: file_hash.toString()
+        hash: file_hash.toString(),
       })
     ) {
       console.log(
@@ -314,7 +318,16 @@ class CompanyDataHandler {
       );
 
       // generate transaction and send to blockchain miner
-      miner.HandleNewFile(file_hash.toString(), new Date().toISOString())
+      // miner.HandleNewFile(file_hash.toString(), new Date().toISOString())
+      // miner.postMessage(
+      //   `${JSON.stringify({
+      //     type: "newFile",
+      //     data: {
+      //       hash: file_hash.toString(),
+      //       date: new Date().toISOString(),
+      //     },
+      //   })}`
+      // );
     }
   }
 }
