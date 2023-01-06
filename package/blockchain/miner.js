@@ -11,6 +11,10 @@ const fs = require("fs").promises;
 
 // encryption_handler.GenerateValidHash();
 
+// company server address
+const company_server_address = "localhost";
+const web_server_port = 3000;
+
 class Miner {
   constructor(company_ID) {
     this.company_ID = company_ID;
@@ -39,4 +43,19 @@ class ApiHandler {
 
   // const config_data = await fs.readFile(/* config file data here */);
   const config_data = {};
+
+  const IntitialiseConnection = () => {
+    axios(`http://${company_server_address}:${web_server_port}/minerInit`)
+      .then((response) => {
+        if (response.status == 200) {
+          resolve(true);
+        } else {
+          resolve(false);
+        }
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  };
+  IntitialiseConnection();
 })();
