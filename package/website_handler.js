@@ -93,6 +93,14 @@ module.exports = {
     }
     //#endregion
 
+    //#region blockchain
+    else if (req.url.includes("/blockchain/")) {
+      if (req.url.includes("/init")) {
+        // return init data back to miner
+      }
+    }
+    //#endregion
+
     //#region Default Response
     // Ensure this is at the bottom of the page
     else {

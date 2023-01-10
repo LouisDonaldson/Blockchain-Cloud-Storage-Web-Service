@@ -8,6 +8,8 @@ Sits behind the company gateway server
 
 let ping = false;
 
+const ip = require("ip");
+
 const http = require("http");
 const fs = require("fs").promises;
 const axios = require("axios");
@@ -18,13 +20,14 @@ const BlockchainHandler = require("./BlockchainHandler.js");
 // const miner = require("../blockchain/miner");
 // const { Worker } = require("node:worker_threads");
 // const miner = new Worker("../blockchain/miner");
-const blockchain_handler = new BlockchainHandler();
+let blockchain_handler;
 
 //#region Global variables
 const port = 3000;
 const original_ping_interval = 5000;
 let ping_interval = 5000;
 let api_data_handler;
+let machine_address = ip.address()
 //#endregion
 
 const server_handler = async (req, res) => {
@@ -238,6 +241,11 @@ class CompanyDataHandler {
     this.session_tokens = [];
     (async () => {
       this.config_file = await this.db_handler.GetConfigFile();
+      this.blockchain_handler = new BlockchainHandler(this.config_file.num_miners, machine_address, port);
+      this.blockchain_handler.InitialiseConnection().catch(err => {
+        console.error("Error when intialising blockchain connection: " + err.message);
+      })
+      blockchain_handler = this.blockchain_handler
     })();
   }
   // what gets sent back to client every time it makes a request // only on portal page
@@ -390,8 +398,9 @@ async function PingWebServer() {
   }
 
   console.log("Starting HTTP service...");
-  const server = http
+  const server = await http
     .createServer(async (req, res) => {
+      // console.log(server)
       server_handler(req, res);
     })
     .listen(port);

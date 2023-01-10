@@ -6,5 +6,7 @@
     "password": "admin",
     "name": "Admin"
   },
-  "file_path": "./company-files"
+  "file_path": "./company-files",
+  "num_miners": "1"
+  
 }
