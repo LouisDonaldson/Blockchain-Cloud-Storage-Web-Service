@@ -47,8 +47,19 @@ module.exports = class BlockchainHandler {
 };
 
 const api_handler = {
-  InitialiseHandler: function () {
+  StartHTTP: function () {
+    http.createServer((req, res) => {
 
+    }).listen(3001)
+  },
+  HTTP_Handler: function (req, res) {
+    if (req.url.includes("blockchain")) {
+
+    }
+    else {
+      res.writeHead("502");
+      res.end()
+    }
   }
 }
 
