@@ -120,6 +120,11 @@ class UiHandler {
 
     const submit_btn = document.querySelector(".submit_btn");
 
+    const close_btn = document.querySelector('.close_btn');
+    close_btn.addEventListener("click", () => {
+      app.ui_handler.CloseModal()
+    })
+
     submit_btn.addEventListener("click", app.ui_handler.SubmitClickCallback, {
       once: true,
     });
@@ -129,24 +134,30 @@ class UiHandler {
     const file_input = document.querySelector("#file_input");
     const file_input_name = document.querySelector("#file_name_input");
     const file_input_desc = document.querySelector("#file_description_input");
-    app.file_handler
-      .CreateBinaryString(file_input.files[0])
-      .then((file_binary_string) => {
-        const tranmission_obj = {
-          name: `${file_input_name.value}`,
-          description: file_input_desc?.value ?? "",
-          binaryString: file_binary_string,
-          timeStamp: new Date().toISOString(),
-        };
-        const json_obj = JSON.stringify(tranmission_obj);
-        console.log(json_obj);
+    if (file_input.files.length > 0) {
+      app.file_handler
+        .CreateBinaryString(file_input.files[0])
+        .then((file_binary_string) => {
+          const tranmission_obj = {
+            name: `${file_input_name.value}`,
+            description: file_input_desc?.value ?? "",
+            binaryString: file_binary_string,
+            timeStamp: new Date().toISOString(),
+          };
+          const json_obj = JSON.stringify(tranmission_obj);
+          console.log(json_obj);
 
-        // send data to server
-        app.api_handler.UploadFile(json_obj);
+          // send data to server
+          app.api_handler.UploadFile(json_obj);
 
-        // temp
-        this.CloseModal();
-      });
+          // temp
+          this.CloseModal();
+        });
+    }
+    else {
+      this.CloseModal();
+    }
+
   }
   CloseModal() {
     const upload_modal = document.querySelector(".upload_modal");
