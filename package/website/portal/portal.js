@@ -86,15 +86,64 @@ class ApiHandler {
 
 class UiHandler {
   constructor() {
+    this.InitialiseUI();
     this.UpdateUi();
 
-    const upload_btn = document.querySelector(".upload_btn");
-    upload_btn.addEventListener("click", this.OpenModal);
+    // const upload_btn = document.querySelector(".upload_btn");
+    // upload_btn.addEventListener("click", this.OpenModal);
+
+    // this.ui_components = {
+    //   UploadButton: function () {},
+    // };
+  }
+
+  InitialiseUI() {
+    const DisplayHomeContent = () => {
+      const folder_view = document.querySelector(".folder_view");
+      folder_view.innerHTML = "";
+
+      folder_view.innerHTML = `
+      <div class="home_buttons">
+        <div class="home_upload_btn" id="home_upload_btn">
+          <span>Upload</span>
+          <div class="upload_img_div"></div> 
+        </div>
+      </div>
+      <div class="home_recent_header">Recent</div>
+      <div class="recent_files_div">
+
+      </div>`;
+
+      const home_upload_btn = folder_view.querySelector(".home_upload_btn");
+      home_upload_btn.addEventListener("click", this.OpenModal);
+
+      const viewer_header = document.querySelector(".viewer_header");
+      viewer_header.textContent = "Home";
+
+      const recent_files_div = folder_view.querySelector(".recent_files_div");
+      this.UpdateFileDisplay(recent_files_div);
+
+      // this.UpdateFileDisplay();
+    };
+
+    const explorer_links = document.querySelector(".explorer_body_links");
+    explorer_links.innerHTML = `
+    <ul>
+        <li class="active" id="home_link">Home</li>
+        <li id="files_link">Files</li>
+        <li id="recent_link">Recent</li>
+    </ul>`;
+
+    const home_link = explorer_links.querySelector("#home_link");
+    home_link.addEventListener("click", DisplayHomeContent);
+
+    // Home by default
+    home_link.click();
   }
   //updates UI files
-  async UpdateFileDisplay() {
-    const folder_view = document.querySelector(".folder_view");
-    folder_view.innerHTML = "";
+  async UpdateFileDisplay(parent) {
+    // const folder_view = document.querySelector(".folder_view");
+    parent.innerHTML = "";
     const files = app.api_handler.company_data.files;
     files.forEach((fileMeta) => {
       const file_div = document.createElement("div");
@@ -106,7 +155,7 @@ class UiHandler {
       <div class="file_meta_desc">
       ${fileMeta.description}
       </div>`;
-      folder_view.append(file_div);
+      parent.append(file_div);
     });
   }
   // callback for submit button event listener
@@ -171,8 +220,6 @@ class UiHandler {
     );
   }
   UpdateUi(company_data = app.api_handler.company_data) {
-    this.UpdateFileDisplay();
-
     const company_name_text = document.querySelector("#company_name");
     company_name_text.textContent = company_data?.name ?? "Secure Chain";
     if (company_data?.logo?.data) {
