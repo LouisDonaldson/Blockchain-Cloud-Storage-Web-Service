@@ -15,8 +15,8 @@ class FileHandler {
       const reader = new FileReader();
       reader.onload = function () {
         let arrayBuffer = this.result,
-          array = new Uint8Array(arrayBuffer),
-          binaryString = String.fromCharCode.apply(null, array);
+          array = new Uint8Array(arrayBuffer);
+        // binaryString = String.fromCharCode.apply(null, array);
 
         resolve(array);
       };
@@ -120,10 +120,10 @@ class UiHandler {
 
     const submit_btn = document.querySelector(".submit_btn");
 
-    const close_btn = document.querySelector('.close_btn');
+    const close_btn = document.querySelector(".close_btn");
     close_btn.addEventListener("click", () => {
-      app.ui_handler.CloseModal()
-    })
+      app.ui_handler.CloseModal();
+    });
 
     submit_btn.addEventListener("click", app.ui_handler.SubmitClickCallback, {
       once: true,
@@ -153,11 +153,9 @@ class UiHandler {
           // temp
           this.CloseModal();
         });
-    }
-    else {
+    } else {
       this.CloseModal();
     }
-
   }
   CloseModal() {
     const upload_modal = document.querySelector(".upload_modal");
