@@ -122,7 +122,7 @@ class UiHandler {
 
       const recent_files_div = folder_view.querySelector(".recent_files_div");
       this.UpdateFileDisplay(recent_files_div);
-
+      // setInterval(() => this.UpdateFileDisplay(recent_files_div), 5000);
       // this.UpdateFileDisplay();
     };
 
@@ -149,12 +149,16 @@ class UiHandler {
       const file_div = document.createElement("div");
       file_div.classList.add("file_div");
       file_div.innerHTML = `
-      <div class="file_meta_name">
-      ${fileMeta.fileName}
+      <div class="file_icon_div"></div>
+      <div class="file_text">
+        <div class="file_meta_name">
+          ${fileMeta.fileName}
+        </div>
+        <div class="file_meta_desc">
+          ${fileMeta.description}
+        </div>
       </div>
-      <div class="file_meta_desc">
-      ${fileMeta.description}
-      </div>`;
+      `;
       parent.append(file_div);
     });
   }

@@ -252,19 +252,36 @@ input {
   flex-direction: column;
 }
 
+.recent_files_div {
+  width: 100%;
+}
+
 .file_div {
-  position: relative;
+  /* position: relative;
   min-width: 100px;
   min-height: 100px;
   max-height: 100px;
-  max-width: 300px;
+  max-width: 300px; */
   /* border: solid 1pt #476380; */
-  border-radius: 5px;
+  /* border-radius: 5px;
   margin: 10px;
-  padding: 10px;
+  padding: 10px; */
+  display: flex;
+  /* flex-direction: column; */
+  /* background-color: #60969b; */
+  align-items: center;
+  /* justify-content: center; */
+  border: solid 1pt lightgray;
+  border-left: none;
+  border-right: none;
+  padding: 5px 0px;
+  margin-bottom: 10px;
+  width: 100%;
+}
+
+.file_text {
   display: flex;
   flex-direction: column;
-  background-color: #60969b;
   align-items: flex-start;
   justify-content: center;
 }
@@ -272,10 +289,20 @@ input {
 .file_meta_name {
   font-size: 10pt;
   font-weight: bold;
+  margin-right: 10px;
 }
 
 .file_meta_desc {
   font-size: 8pt;
+}
+
+.file_icon_div {
+  -webkit-mask-image: url(../images/file-earmark-fill.svg);
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  height: 30px;
+  width: 30px;
+  background-color: #60969b;
 }
 
 .explorer_body_links {
