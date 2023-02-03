@@ -126,7 +126,7 @@ class UiHandler {
 
       const recent_files_div = folder_view.querySelector(".recent_files_div");
       this.UpdateFileDisplay(recent_files_div);
-      // setInterval(() => this.UpdateFileDisplay(recent_files_div), 5000);
+      setInterval(() => this.UpdateFileDisplay(recent_files_div), 5000);
       // this.UpdateFileDisplay();
     };
 
@@ -169,7 +169,6 @@ class UiHandler {
         <div class="file_right">
           <div class="additional_meta">Uploaded at: ${date_string}</div>
         </div>
-        
       </div>
       `;
       parent.append(file_div);
