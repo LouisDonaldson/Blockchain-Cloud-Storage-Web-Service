@@ -63,6 +63,7 @@ module.exports = class Database_Handler {
       "userID"	INTEGER,
       "file_data"	BLOB NOT NULL,
       "description" TEXT,
+      "timeStamp" TEXT,
       
       PRIMARY KEY("file_ID" AUTOINCREMENT));`);
       } catch (err) {
@@ -211,8 +212,8 @@ WHERE userID = ${user_id};`;
     // const file_json = JSON.stringify(upload_data.binary_data)
     const file_buffer = Buffer.from(JSON.stringify(upload_data.binary_data));
     const binary_string = file_buffer.toString();
-    const sql_string = `INSERT INTO files (UserID, fileName, file_data, description)
-      VALUES (${upload_data.userID}, "${upload_data.fileName}", '${binary_string}', "${upload_data.description}");`;
+    const sql_string = `INSERT INTO files (UserID, fileName, file_data, description, timestamp)
+      VALUES (${upload_data.userID}, "${upload_data.fileName}", '${binary_string}', "${upload_data.description}", "${upload_data.timestamp}");`;
     try {
       await db.exec(sql_string);
       return true;
@@ -222,7 +223,7 @@ WHERE userID = ${user_id};`;
     }
   }
   async GetFileMeta() {
-    const sql_string = `SELECT fileName, description FROM files`;
+    const sql_string = `SELECT fileName, description, timestamp FROM files`;
     const rows = await db.all(sql_string);
     return rows;
   }

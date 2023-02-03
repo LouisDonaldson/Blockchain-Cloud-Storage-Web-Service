@@ -280,10 +280,29 @@ input {
 }
 
 .file_text {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.file_left {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
   justify-content: center;
+  align-items: flex-start;
+}
+
+.file_right {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.additional_meta {
+  font-size: 8pt;
+  color: gray;
 }
 
 .file_meta_name {

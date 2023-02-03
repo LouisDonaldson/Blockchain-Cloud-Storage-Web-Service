@@ -76,9 +76,13 @@ class ApiHandler {
   };
   //uploads file to server
   UploadFile = async (json_obj) => {
+    const body = {
+      file: JSON.stringify(json_obj),
+      dateTime: new Date().toLocaleString(),
+    };
     const response = await fetch("/file", {
       method: "POST",
-      body: json_obj,
+      body: JSON.stringify(body),
     });
     response;
   };
@@ -146,17 +150,26 @@ class UiHandler {
     parent.innerHTML = "";
     const files = app.api_handler.company_data.files;
     files.forEach((fileMeta) => {
+      const file_date = new Date(fileMeta.timeStamp);
+      const date_string = `${file_date.toLocaleDateString()} ${file_date.toLocaleTimeString()}`;
+
       const file_div = document.createElement("div");
       file_div.classList.add("file_div");
       file_div.innerHTML = `
       <div class="file_icon_div"></div>
       <div class="file_text">
-        <div class="file_meta_name">
-          ${fileMeta.fileName}
+        <div class="file_left">
+          <div class="file_meta_name">
+            ${fileMeta.fileName}
+          </div>
+          <div class="file_meta_desc">
+            ${fileMeta.description}
+          </div>
         </div>
-        <div class="file_meta_desc">
-          ${fileMeta.description}
+        <div class="file_right">
+          <div class="additional_meta">Uploaded at: ${date_string}</div>
         </div>
+        
       </div>
       `;
       parent.append(file_div);

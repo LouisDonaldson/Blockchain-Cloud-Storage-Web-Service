@@ -27,7 +27,7 @@ const port = 3000;
 const original_ping_interval = 5000;
 let ping_interval = 5000;
 let api_data_handler;
-let machine_address = ip.address()
+let machine_address = ip.address();
 //#endregion
 
 const server_handler = async (req, res) => {
@@ -241,11 +241,17 @@ class CompanyDataHandler {
     this.session_tokens = [];
     (async () => {
       this.config_file = await this.db_handler.GetConfigFile();
-      this.blockchain_handler = new BlockchainHandler(this.config_file.num_miners, machine_address, port);
-      this.blockchain_handler.InitialiseConnection().catch(err => {
-        console.error("Error when intialising blockchain connection: " + err.message);
-      })
-      blockchain_handler = this.blockchain_handler
+      this.blockchain_handler = new BlockchainHandler(
+        this.config_file.num_miners,
+        machine_address,
+        port
+      );
+      this.blockchain_handler.InitialiseConnection().catch((err) => {
+        console.error(
+          "Error when intialising blockchain connection: " + err.message
+        );
+      });
+      blockchain_handler = this.blockchain_handler;
     })();
   }
   // what gets sent back to client every time it makes a request // only on portal page
@@ -297,11 +303,13 @@ class CompanyDataHandler {
   async HandleFileUpload(data_obj_json, token_string) {
     console.log("Uploading data to database.");
     const data_obj = JSON.parse(data_obj_json);
+    const file_data = JSON.parse(JSON.parse(data_obj.file));
+    const dateTime = data_obj.dateTime;
     // data_obj
 
     // file name = obj.name
     // file data = obj.binaryString
-    let file_buffer = data_obj.binaryString;
+    let file_buffer = file_data.binaryString;
 
     const username = await this.db_handler.GetUserIDFromToken(
       await this.GetSessionTokenFromString(token_string)
@@ -315,10 +323,11 @@ class CompanyDataHandler {
     if (
       await this.db_handler.UploadFile({
         binary_data: file_buffer,
-        fileName: data_obj.name,
+        fileName: file_data.name,
         userID: username,
-        description: data_obj.description,
+        description: file_data.description,
         hash: file_hash.toString(),
+        timestamp: file_data.timeStamp,
       })
     ) {
       console.log(
