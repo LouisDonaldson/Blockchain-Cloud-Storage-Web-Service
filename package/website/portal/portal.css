@@ -279,6 +279,10 @@ input {
   width: 100%;
 }
 
+.file_div:hover {
+  background-color: #60969b30;
+}
+
 .file_text {
   width: 100%;
   display: flex;
@@ -288,9 +292,9 @@ input {
 
 .file_left {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   justify-content: center;
-  align-items: flex-start;
+  align-items: center;
 }
 
 .file_right {
@@ -313,6 +317,9 @@ input {
 
 .file_meta_desc {
   font-size: 8pt;
+}
+
+.file_name_desc {
 }
 
 .file_icon_div {
@@ -387,4 +394,31 @@ li.active {
   -webkit-mask-image: url(../images/cloud-plus-fill.svg);
   -webkit-mask-repeat: no-repeat;
   -webkit-mask-position: center;
+}
+
+.download_button {
+  background-color: #476380;
+  width: 20px;
+  height: 20px;
+  margin-left: 10px;
+  -webkit-mask-image: url(../images/cloud-arrow-down-fill.svg);
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: cover;
+  animation: fade-in 0.25s ease-in forwards;
+}
+
+.download_button:hover {
+  background-color: #60969b;
+  transition: 0.25s;
+  cursor: pointer;
+}
+
+@keyframes fade-in {
+  0% {
+    opacity: 0%;
+  }
+  100% {
+    opacity: 100%;
+  }
 }
