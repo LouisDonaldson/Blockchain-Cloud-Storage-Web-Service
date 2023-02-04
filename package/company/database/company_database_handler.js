@@ -223,8 +223,13 @@ WHERE userID = ${user_id};`;
     }
   }
   async GetFileMeta() {
-    const sql_string = `SELECT fileName, description, timestamp FROM files`;
+    const sql_string = `SELECT fileName, description, timestamp, UserID FROM files`;
     const rows = await db.all(sql_string);
+    for (const i in rows) {
+      const row = rows[i];
+      const user_data = await this.GetUserDataFromID(row.userID);
+      rows[i].uploaded_by = user_data.Name;
+    }
     return rows;
   }
 };

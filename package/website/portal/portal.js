@@ -126,8 +126,9 @@ class UiHandler {
 
       const recent_files_div = folder_view.querySelector(".recent_files_div");
       this.UpdateFileDisplay(recent_files_div);
-      // setInterval(() => this.UpdateFileDisplay(recent_files_div), 5000);
-      // this.UpdateFileDisplay();
+
+      // auto refresh
+      setInterval(() => this.UpdateFileDisplay(recent_files_div), 5000);
     };
 
     const explorer_links = document.querySelector(".explorer_body_links");
@@ -170,7 +171,7 @@ class UiHandler {
           <div class="hover_section"></div>
         </div>
         <div class="file_right">
-          <div class="additional_meta">Uploaded at: ${date_string}</div>
+          <div class="additional_meta">Uploaded at: ${date_string} by ${fileMeta.uploaded_by}</div>
         </div>
       </div>
       `;
@@ -179,7 +180,10 @@ class UiHandler {
       const hover_section = file_div.querySelector(".hover_section");
 
       file_div.addEventListener("mouseenter", () => {
-        hover_section.innerHTML = `<div class="download_button"></div>`;
+        hover_section.innerHTML = `
+        <div class="download_button"></div>
+        <div class="view_button"></div>
+        `;
       });
 
       file_div.addEventListener("mouseleave", () => {

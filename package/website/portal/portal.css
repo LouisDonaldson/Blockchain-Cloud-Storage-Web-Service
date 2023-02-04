@@ -307,6 +307,7 @@ input {
 .additional_meta {
   font-size: 8pt;
   color: gray;
+  padding-right: 5px;
 }
 
 .file_meta_name {
@@ -396,6 +397,10 @@ li.active {
   -webkit-mask-position: center;
 }
 
+.hover_section {
+  display: flex;
+}
+
 .download_button {
   background-color: #476380;
   width: 20px;
@@ -421,4 +426,22 @@ li.active {
   100% {
     opacity: 100%;
   }
+}
+
+.view_button {
+  background-color: #476380;
+  width: 20px;
+  height: 20px;
+  margin-left: 10px;
+  -webkit-mask-image: url(../images/eye-fill.svg);
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: cover;
+  animation: fade-in 0.25s ease-in forwards;
+}
+
+.view_button:hover {
+  background-color: #60969b;
+  transition: 0.25s;
+  cursor: pointer;
 }
