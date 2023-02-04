@@ -181,13 +181,22 @@ class UiHandler {
 
       file_div.addEventListener("mouseenter", () => {
         hover_section.innerHTML = `
-        <div class="download_button"></div>
-        <div class="view_button"></div>
+        <div class="download_button" data-bs-toggle="tooltip" title="Download"></div>
+        <div class="view_button" data-bs-toggle="tooltip" title="View"></div>
         `;
+
+        // Initialize tooltips
+        var tooltipTriggerList = [].slice.call(
+          hover_section.querySelectorAll('[data-bs-toggle="tooltip"]')
+        );
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+          return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
       });
 
       file_div.addEventListener("mouseleave", () => {
         hover_section.innerHTML = "";
+        bootstrap.tooltip = [];
       });
     });
   }
