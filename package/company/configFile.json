@@ -4,7 +4,8 @@
   "admin_login": {
     "username": "admin",
     "password": "admin",
-    "name": "Admin"
+    "name": "Admin",
+    "Permission_Level":"1"
   },
   "file_path": "./company-files",
   "num_miners": "1"

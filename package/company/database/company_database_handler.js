@@ -2,12 +2,8 @@ const sqlite3 = require("sqlite3");
 const { open } = require("sqlite");
 const fs = require("fs").promises;
 
-/*
-to-do: migrate log in checking over to DB. Session tokens should be stored in DB
-table cols = username, session_token
-
-everytime /data is called get user data from db including name
-*/
+// any changes to the configuration of tables means this needs to be set to true to take affect
+const reset_tables = true
 
 let db;
 module.exports = class Database_Handler {
@@ -20,11 +16,12 @@ module.exports = class Database_Handler {
       try {
         await db.exec(` 
         DROP TABLE users;`);
-      } catch {}
+      } catch { }
 
       await db.exec(` 
       CREATE TABLE "users" (
       "ID"	INTEGER UNIQUE,
+      "Permission_Level" INTEGER NOT NULL,
       "Username"	varchar(50) NOT NULL UNIQUE,
       "Password"	varchar(50) NOT NULL,
       "Name"	varchar(50) NOT NULL,
@@ -37,7 +34,7 @@ module.exports = class Database_Handler {
       try {
         await db.exec(` 
         DROP TABLE session_tokens;`);
-      } catch {}
+      } catch { }
 
       try {
         await db.exec(` 
@@ -53,7 +50,7 @@ module.exports = class Database_Handler {
       try {
         await db.exec(` 
         DROP TABLE files;`);
-      } catch {}
+      } catch { }
 
       try {
         await db.exec(` 
@@ -79,20 +76,24 @@ module.exports = class Database_Handler {
       });
       console.log("Database connected...");
       try {
-        // drops table then creates new one
-        await CreateUsersTable();
-        await CreateSessionTokensTable();
-        await CreateFilesTable();
-
         const config_data = await this.GetConfigFile();
 
-        // Add dummy data here
-        const password_hash = await GetHash(config_data.admin_login.password);
-        const hash_string = password_hash.toString();
-        await db.exec(`
-        INSERT INTO users (Username, Password, Name)
-        VALUES ("${config_data.admin_login.username}", "${hash_string}", "${config_data.admin_login.name}");`);
-        // console.log(response);
+        if (reset_tables) {
+          // drops table then creates new one
+          await CreateUsersTable();
+          await CreateSessionTokensTable();
+          await CreateFilesTable();
+
+          // Add dummy data here
+          const password_hash = await GetHash(config_data.admin_login.password);
+          const hash_string = password_hash.toString();
+          await db.exec(`
+            INSERT INTO users (Username, Password, Name, Permission_Level)
+            VALUES ("${config_data.admin_login.username}", "${hash_string}", "${config_data.admin_login.name}", "${config_data.admin_login.Permission_Level}");`);
+          // console.log(response);
+
+        }
+
       } catch (err) {
         console.error(err);
       }
