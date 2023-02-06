@@ -135,6 +135,11 @@ const api_website_files_handler = {
         res.end();
       }
     };
+
+    const Unauthorised_User_Route = async (req, res) => {
+      res.end(`<a href="/">Unauthorised. Click to go to the homepage and log in.</a>`)
+    }
+
     if (check_auth) {
       if (req.url == "/") {
         if (req.headers?.cookie) {
@@ -190,7 +195,20 @@ const api_website_files_handler = {
           res.writeHead(404);
           res.end();
         }
-      } else if (req.url.includes("/data")) {
+      } else if (req.url == "/portal") {
+        if (req.headers?.cookie) {
+          if (await api_website_files_handler.CheckValidSessionCookie(req.headers.cookie)) {
+            default_route_request(req, res);
+          }
+          else {
+            Unauthorised_User_Route(req, res);
+          }
+        }
+        else {
+          Unauthorised_User_Route(req, res);
+        }
+      }
+      else if (req.url.includes("/data")) {
         api_data_handler.SendCurrentData(req, res);
       } else if (req.url.includes("/fileMeta")) {
         if (req.headers?.cookie) {

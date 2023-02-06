@@ -3,14 +3,14 @@
     src: url(./font/Poppins-Regular.ttf);
 } */
 
-:root{
+:root {
     --primary-colour: rgb(33, 33, 35);
     --secondary-colour: rgb(139, 202, 218);
     --background-colour: white;
     --font-contrast-colour: rgb(25, 25, 25);
-}   
+}
 
-html{
+html {
     font-family: Arial, Helvetica, sans-serif;
 }
 
@@ -18,7 +18,7 @@ body {
     font-family: "Poppins" !important;
 }
 
-#main_body{
+#main_body {
     position: absolute;
     width: 100%;
     height: 100%;
@@ -29,7 +29,7 @@ body {
     align-items: center;
 }
 
-.log_in_overlay{
+.log_in_overlay {
     position: absolute;
     width: 400px;
     height: 500px;
@@ -40,56 +40,54 @@ body {
     padding: 70px;
 }
 
-.inner_overlay{
+.inner_overlay {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
 }
 
-.site_logo_alignment_div{
+.site_logo_alignment_div {
     display: flex;
     width: 100%;
     justify-content: flex-start;
     margin-bottom: 20px;
 }
 
-.site_logo
-{
+.site_logo {
     height: 30px;
     width: auto;
 }
 
-.company_logo_img{
+.company_logo_img {
     height: auto;
     width: 80px;
 }
 
-.company_name
-{
+.company_name {
     font-size: 14pt;
     margin-top: 5px;
 }
 
-.company_logo_name_div{
+.company_logo_name_div {
     margin-bottom: 20px;
 }
 
-.log_in_div{
+.log_in_div {
     display: flex;
     justify-content: center;
     align-items: center;
     flex-direction: column;
     position: relative;
     width: 100%;
-    margin-bottom: 20px;
+    /* margin-bottom: 20px; */
 }
 
 input {
-  all: unset;
+    all: unset;
 }
 
-.form_input_div{
+.form_input_div {
     border-bottom: 1pt darkgrey solid;
     padding-bottom: 5px;
     margin-bottom: 5px;
@@ -98,37 +96,37 @@ input {
     width: 100%;
 }
 
-.log_in_form{
+.log_in_form {
     width: 100%;
 }
 
-.input_label{
+.input_label {
     font-size: 12pt;
 }
 
-.log_in_input{
+.log_in_input {
     border: none;
     font-size: 10pt;
 }
 
-.password_div{
+.password_div {
     display: flex;
     justify-content: space-between;
 }
 
 
-.show_password_btn{
+.show_password_btn {
     background-color: #60969B;
     width: 20px;
     height: 20px;
     background-size: cover;
 }
 
-.show_password_btn:hover{
-    background-color:#476380;
+.show_password_btn:hover {
+    background-color: #476380;
 }
 
-.show_password_btn{
+.show_password_btn {
     -webkit-mask-image: url(../images/eye-fill.svg);
     mask-image: url(../images/eye-fill.svg);
     -webkit-mask-repeat: no-repeat;
@@ -139,18 +137,18 @@ input {
 
 }
 
-.show_password_btn.close_eye{
+.show_password_btn.close_eye {
     -webkit-mask-image: url(../images/eye-slash-fill.svg) !important;
     mask-image: url(../images/eye-slash-fill.svg) !important;
     transition: 0.1s;
 }
 
-.log_in_btn_div{
+.log_in_btn_div {
     display: flex;
     width: 100%;
 }
 
-.log_in_btn{
+.log_in_btn {
     position: relative;
     width: 100%;
     height: 50px;
@@ -159,22 +157,37 @@ input {
     justify-content: center;
     text-align: center;
     align-items: center;
-    color:white;
+    color: white;
     transition: 0.5s;
     box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.25);
     border: none;
 
 }
 
-.log_in_btn:hover{
+.log_in_btn:hover {
     background-color: #476380;
     transition: 0.5s;
     cursor: pointer;
     border: none;
 }
 
-.error_message{
-        font-size: 10pt;
-        width: 100%;
+.create_new_account_div {
+    text-decoration: underline;
+    margin: 10px 0px 15px 0px;
+    color: #60969B;
+    font-size: 10pt;
+    /* transition: 0.25s; */
+    display: inline-flex;
+
 }
 
+.create_new_account_div:hover {
+    color: #476380;
+    /* transition: 0.25s; */
+    cursor: pointer;
+}
+
+.error_message {
+    font-size: 10pt;
+    width: 100%;
+}

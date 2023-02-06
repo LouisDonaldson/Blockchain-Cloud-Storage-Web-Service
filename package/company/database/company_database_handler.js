@@ -87,9 +87,17 @@ module.exports = class Database_Handler {
           // Add dummy data here
           const password_hash = await GetHash(config_data.admin_login.password);
           const hash_string = password_hash.toString();
+
+          // admin has top level permissions
           await db.exec(`
             INSERT INTO users (Username, Password, Name, Permission_Level)
             VALUES ("${config_data.admin_login.username}", "${hash_string}", "${config_data.admin_login.name}", "${config_data.admin_login.Permission_Level}");`);
+          // console.log(response);
+
+          // temporary account // Permission level 2
+          await db.exec(`
+            INSERT INTO users (Username, Password, Name, Permission_Level)
+            VALUES ("temp", "${hash_string}", "Temporary Account", "2");`);
           // console.log(response);
 
         }
