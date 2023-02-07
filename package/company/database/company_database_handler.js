@@ -3,7 +3,7 @@ const { open } = require("sqlite");
 const fs = require("fs").promises;
 
 // any changes to the configuration of tables means this needs to be set to true to take affect
-const reset_tables = true
+const reset_tables = false;
 
 let db;
 module.exports = class Database_Handler {
@@ -16,7 +16,7 @@ module.exports = class Database_Handler {
       try {
         await db.exec(` 
         DROP TABLE users;`);
-      } catch { }
+      } catch {}
 
       await db.exec(` 
       CREATE TABLE "users" (
@@ -34,7 +34,7 @@ module.exports = class Database_Handler {
       try {
         await db.exec(` 
         DROP TABLE session_tokens;`);
-      } catch { }
+      } catch {}
 
       try {
         await db.exec(` 
@@ -50,7 +50,7 @@ module.exports = class Database_Handler {
       try {
         await db.exec(` 
         DROP TABLE files;`);
-      } catch { }
+      } catch {}
 
       try {
         await db.exec(` 
@@ -99,9 +99,7 @@ module.exports = class Database_Handler {
             INSERT INTO users (Username, Password, Name, Permission_Level)
             VALUES ("temp", "${hash_string}", "Temporary Account", "2");`);
           // console.log(response);
-
         }
-
       } catch (err) {
         console.error(err);
       }
