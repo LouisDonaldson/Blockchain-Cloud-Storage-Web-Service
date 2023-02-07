@@ -137,8 +137,10 @@ const api_website_files_handler = {
     };
 
     const Unauthorised_User_Route = async (req, res) => {
-      res.end(`<a href="/">Unauthorised. Click to go to the homepage and log in.</a>`)
-    }
+      res.end(
+        `<a href="/">Unauthorised. Click to go to the homepage and log in.</a>`
+      );
+    };
 
     if (check_auth) {
       if (req.url == "/") {
@@ -197,18 +199,19 @@ const api_website_files_handler = {
         }
       } else if (req.url == "/portal") {
         if (req.headers?.cookie) {
-          if (await api_website_files_handler.CheckValidSessionCookie(req.headers.cookie)) {
+          if (
+            await api_website_files_handler.CheckValidSessionCookie(
+              req.headers.cookie
+            )
+          ) {
             default_route_request(req, res);
-          }
-          else {
+          } else {
             Unauthorised_User_Route(req, res);
           }
-        }
-        else {
+        } else {
           Unauthorised_User_Route(req, res);
         }
-      }
-      else if (req.url.includes("/data")) {
+      } else if (req.url.includes("/data")) {
         api_data_handler.SendCurrentData(req, res);
       } else if (req.url.includes("/fileMeta")) {
         if (req.headers?.cookie) {
@@ -278,13 +281,29 @@ class CompanyDataHandler {
     // this.config_file = await this.db_handler.GetConfigFile();
     res.end(
       JSON.stringify({
-        user_data: this.db_handler.GetUserData(req),
+        user_data: await this.GetUserData(req),
         name: this.config_file.name,
         logo: await fs.readFile(this.config_file.logo_path),
         files: await this.db_handler.GetFileMeta(),
       })
     );
   }
+
+  async GetUserData(req) {
+    if (req.headers?.cookie) {
+      if (
+        api_website_files_handler.CheckValidSessionCookie(req.headers?.cookie)
+      ) {
+        let cookie_header = req.headers.cookie.split("=")[1];
+        cookie_header = cookie_header.slice(0, cookie_header.length - 1);
+        const user_data = await this.db_handler.GetUserDataFromToken(
+          cookie_header
+        );
+        return user_data;
+      }
+    }
+  }
+
   async CheckAuth(username, password) {
     // check authentication
     //#region Temp
@@ -315,9 +334,11 @@ class CompanyDataHandler {
       }
     }
   }
+
   async CheckCookie(cookie_string) {
     return await this.db_handler.CheckToken(cookie_string);
   }
+
   async HandleFileUpload(data_obj_json, token_string) {
     console.log("Uploading data to database.");
     const data_obj = JSON.parse(data_obj_json);

@@ -6,6 +6,7 @@ class App {
     window.addEventListener("DOMContentLoaded", () => {
       this.ui_handler = new UiHandler();
     });
+    this.user_data;
   }
 }
 
@@ -22,6 +23,9 @@ class FileHandler {
       };
       reader.readAsArrayBuffer(file);
     });
+  }
+  async DownloadFile(file_id) {
+    const response = await app.api_handler.RequestFileData(file_id);
   }
 }
 
@@ -44,14 +48,30 @@ class ApiHandler {
     } catch {
       const company_data = await this.GetCompanyData();
       this.company_data = company_data;
-      const file_data = await this.GetFileData();
+      const file_data = await this.GetFileMetaData();
       localStorage.setItem("company_data", JSON.stringify(this.company_data));
       app.ui_handler.UpdateUi(this.company_data);
     }
     setTimeout(this.init, this.data_refresh_interval);
   };
-  GetFileData = async () => {
+  GetFileMetaData = async () => {
     const response = await fetch("/fileMeta");
+    if (response.status == 200) {
+      const data = await response.json();
+      return data;
+    } else {
+      if (response.status == 401) {
+        window.location.reload();
+      } else return [];
+    }
+  };
+  RequestFileData = async (file_id, user_id) => {
+    const response = await fetch("/filedata", {
+      body: {
+        file_id: file_id,
+        // requesting_user_id: app.,
+      },
+    });
     if (response.status == 200) {
       const data = await response.json();
       return data;
@@ -181,22 +201,19 @@ class UiHandler {
 
       file_div.addEventListener("mouseenter", () => {
         hover_section.innerHTML = `
-        <div class="download_button" data-bs-toggle="tooltip" title="Download"></div>
-        <div class="view_button" data-bs-toggle="tooltip" title="View"></div>
+        <div class="download_button"></div>
+        <div class="view_button"></div>
         `;
 
-        // Initialize tooltips
-        var tooltipTriggerList = [].slice.call(
-          hover_section.querySelectorAll('[data-bs-toggle="tooltip"]')
-        );
-        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-          return new bootstrap.Tooltip(tooltipTriggerEl);
+        const download_button = hover_section.querySelector(".download_button");
+        download_button.addEventListener("click", (e) => {
+          // console.log(e);
+          app.file_handler.DownloadFile(fileMeta.file_ID);
         });
       });
 
       file_div.addEventListener("mouseleave", () => {
         hover_section.innerHTML = "";
-        bootstrap.tooltip = [];
       });
     });
   }

@@ -136,9 +136,7 @@ module.exports = class Database_Handler {
     }
     return false;
   }
-  async GetUserData() {
-    return "";
-  }
+
   async GetUserId(username) {
     const sql_string = `SELECT * FROM users WHERE users.Username = "${username}"`;
     const rows = await db.all(sql_string);
@@ -206,6 +204,23 @@ WHERE userID = ${user_id};`;
       }
     }
   }
+
+  async GetUserDataFromToken(token_string) {
+    const id = await this.GetUserIDFromToken(token_string);
+
+    const sql_string = `SELECT ID, Permission_Level, Name, Username FROM Users WHERE ID = "${id}"`;
+    const rows = await db.all(sql_string);
+
+    if (rows.length > 1) {
+      throw new Error("Error: Multiple users with same ID.");
+    }
+
+    if (rows.length == 0) {
+      return false;
+    } else {
+      return rows[0];
+    }
+  }
   async GetUserDataFromID(id) {
     const sql_string = `SELECT * FROM users WHERE users.ID = ${id}`;
     const rows = await db.all(sql_string);
@@ -230,7 +245,7 @@ WHERE userID = ${user_id};`;
     }
   }
   async GetFileMeta() {
-    const sql_string = `SELECT fileName, description, timestamp, UserID FROM files`;
+    const sql_string = `SELECT file_ID, fileName, description, timestamp, UserID FROM files`;
     const rows = await db.all(sql_string);
     for (const i in rows) {
       const row = rows[i];
