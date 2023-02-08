@@ -26,7 +26,13 @@ class UiHandler {
           );
           if (log_in_response?.successful) {
             const cookie_string = log_in_response.token.toString();
-            document.cookie = `session_token=${cookie_string}}`;
+
+            const d = new Date();
+            const exdays = 1
+            d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+            let expires = "expires=" + d.toUTCString();
+
+            document.cookie = `session_token=${cookie_string}; ${expires}; path="${window.location.pathname}"`;
             window.location.reload();
           } else {
             // log in auth unsuccessful

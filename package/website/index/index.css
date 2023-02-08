@@ -33,6 +33,7 @@ body {
     position: absolute;
     width: 400px;
     height: 500px;
+    /* min-width: 90vw; */
     /* height: calc(1.375rem + 1.5vw); */
     background: white;
     box-shadow: 4px 6px 4px rgba(0, 0, 0, 0.25);
@@ -190,4 +191,12 @@ input {
 .error_message {
     font-size: 10pt;
     width: 100%;
+}
+
+
+
+@media screen and (max-width: 600px) {
+    .log_in_overlay {
+        min-width: 90vw;
+    }
 }

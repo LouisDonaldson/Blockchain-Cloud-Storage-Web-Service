@@ -243,6 +243,7 @@ const api_website_files_handler = {
                     const url_split = url.split("?");
                     const split = url_split[1].split("=");
                     if (split[0] == "file_id") {
+                      console.log(`Request for File. File ID=${split[1]} from ${user_data.Name}`)
                       return split[1];
                     }
                   }
@@ -281,7 +282,7 @@ const api_website_files_handler = {
       if (split_cookie[0] == "session_token") {
         if (
           await api_data_handler.CheckCookie(
-            split_cookie[1].slice(0, split_cookie[1].length - 1)
+            split_cookie[1]
           )
         ) {
           return true;
@@ -332,7 +333,6 @@ class CompanyDataHandler {
         api_website_files_handler.CheckValidSessionCookie(req.headers?.cookie)
       ) {
         let cookie_header = req.headers.cookie.split("=")[1];
-        cookie_header = cookie_header.slice(0, cookie_header.length - 1);
         const user_data = await this.db_handler.GetUserDataFromToken(
           cookie_header
         );
@@ -367,7 +367,7 @@ class CompanyDataHandler {
       const cookie = _cookie.trim();
       const split_cookie = cookie.split("=", 2);
       if (split_cookie[0] == "session_token") {
-        return split_cookie[1].slice(0, split_cookie[1].length - 1);
+        return split_cookie[1]
       }
     }
   }

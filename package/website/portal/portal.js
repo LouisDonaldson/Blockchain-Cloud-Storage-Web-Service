@@ -34,16 +34,15 @@ class FileHandler {
     for (const i in file_data_entries) {
       view[i] = file_data_entries[i][1];
     }
-    var blob = new Blob([view], {
+    const blob = new Blob([view], {
       type: response.type,
     });
-    var link = document.createElement("a");
+    const link = document.createElement("a");
     // link.target = "_blank";
     link.href = window.URL.createObjectURL(blob);
     link.download = `${response.fileName}`;
     link.click();
-    // window.location.href = href;
-    console.log(href);
+
   }
 }
 
@@ -66,7 +65,7 @@ class ApiHandler {
     } catch {
       const company_data = await this.GetCompanyData();
       this.company_data = company_data;
-      const file_data = await this.GetFileMetaData();
+      // const file_data = await this.GetFileMetaData();
       localStorage.setItem("company_data", JSON.stringify(this.company_data));
       app.ui_handler.UpdateUi(this.company_data);
     }
@@ -125,17 +124,25 @@ class UiHandler {
   constructor() {
     this.InitialiseUI();
     this.UpdateUi();
+    this.displayed_files_string
 
-    // const upload_btn = document.querySelector(".upload_btn");
-    // upload_btn.addEventListener("click", this.OpenModal);
-
-    // this.ui_components = {
-    //   UploadButton: function () {},
-    // };
   }
 
   InitialiseUI() {
     const DisplayHomeContent = () => {
+      // log out functionality
+      const log_out_div = document.querySelector('.log_out_div');
+      log_out_div.addEventListener('click', () => {
+        // document.cookie = "test"
+        document.cookie.split(';').forEach(function (c) {
+          if (document.cookie = c.trim().split('=')[0] == "session_token") {
+            document.cookie = c.trim().split('=')[0] + '=;' + 'expires=Thu, 01 Jan 1970 00:00:00 UTC;';
+          }
+        });
+        window.location.reload()
+      })
+
+
       const folder_view = document.querySelector(".folder_view");
       folder_view.innerHTML = "";
 
@@ -146,9 +153,8 @@ class UiHandler {
           <div class="upload_img_div"></div> 
         </div>
       </div>
-      <div class="home_recent_header">Recent</div>
-      <div class="recent_files_div">
-
+        <div class="home_recent_header">Recent</div>
+        <div class="recent_files_div">
       </div>`;
 
       const home_upload_btn = folder_view.querySelector(".home_upload_btn");
@@ -180,55 +186,92 @@ class UiHandler {
   }
   //updates UI files
   async UpdateFileDisplay(parent) {
+
     // const folder_view = document.querySelector(".folder_view");
-    parent.innerHTML = "";
-    const files = app.api_handler.company_data.files;
-    files.forEach((fileMeta) => {
-      const file_date = new Date(fileMeta.timeStamp);
-      const date_string = `${file_date.toLocaleDateString()} ${file_date.toLocaleTimeString()}`;
+    // parent.innerHTML = "";
+    const recent_file_limit = 5
+    const new_files = JSON.stringify(app.api_handler.company_data.files)
+    if (this.displayed_files != new_files) {
+      parent.innerHTML = "";
+      let files = app.api_handler.company_data.files;
+      this.displayed_files = JSON.stringify(files)
+      files = files.sort((a, b) => {
+        const a_date = new Date(a.timeStamp)
+        const b_date = new Date(b.timeStamp)
 
-      const file_div = document.createElement("div");
-      file_div.classList.add("file_div");
-      file_div.innerHTML = `
-      <div class="file_icon_div"></div>
-      <div class="file_text">
-        <div class="file_left">
-          <div class="file_name_desc">
-            <div class="file_meta_name">
-                ${fileMeta.fileName}
+        return b_date - a_date
+        // console.log(a)
+      })
+
+      let limit_reached = false
+      files.forEach((fileMeta, index) => {
+        if (limit_reached) {
+          return
+        }
+        else if (index < recent_file_limit) {
+          const file_date = new Date(fileMeta.timeStamp);
+          const date_string = `${file_date.toLocaleDateString()} ${file_date.toLocaleTimeString()}`;
+
+          const file_div = document.createElement("div");
+          file_div.classList.add("file_div");
+          file_div.innerHTML = `
+          <div class="file_icon_div"></div>
+          <div class="file_text">
+            <div class="file_left">
+              <div class="file_name_desc">
+                <div class="file_meta_name">
+                    ${fileMeta.fileName}
+                  </div>
+                  <div class="file_meta_desc">
+                    ${fileMeta.description}
+                  </div>
               </div>
-              <div class="file_meta_desc">
-                ${fileMeta.description}
-              </div>
+              <div class="hover_section"></div>
+            </div>
+            <div class="file_right">
+              <div class="additional_meta">Uploaded at: ${date_string} by ${fileMeta.uploaded_by}</div>
+            </div>
           </div>
-          <div class="hover_section"></div>
-        </div>
-        <div class="file_right">
-          <div class="additional_meta">Uploaded at: ${date_string} by ${fileMeta.uploaded_by}</div>
-        </div>
-      </div>
-      `;
-      parent.append(file_div);
+          `;
+          parent.append(file_div);
 
-      const hover_section = file_div.querySelector(".hover_section");
+          const hover_section = file_div.querySelector(".hover_section");
 
-      file_div.addEventListener("mouseenter", () => {
-        hover_section.innerHTML = `
-        <div class="download_button"></div>
+          file_div.addEventListener("mouseenter", () => {
+            hover_section.innerHTML = `
+        ${app.api_handler.company_data.user_data.Permission_Level < 3 ?
+                `<div class="download_button"></div>`
+                : ""}
         <div class="view_button"></div>
         `;
 
-        const download_button = hover_section.querySelector(".download_button");
-        download_button.addEventListener("click", (e) => {
-          // console.log(e);
-          app.file_handler.DownloadFile(fileMeta.file_ID);
-        });
-      });
+            const download_button = hover_section.querySelector(".download_button");
+            if (download_button) {
+              download_button.addEventListener("click", (e) => {
+                // console.log(e);
+                app.file_handler.DownloadFile(fileMeta.file_ID);
+              });
+            }
 
-      file_div.addEventListener("mouseleave", () => {
-        hover_section.innerHTML = "";
+          });
+
+          file_div.addEventListener("mouseleave", () => {
+            hover_section.innerHTML = "";
+          });
+        }
+        else {
+          // add see more files button here
+          const see_more_div = document.createElement("div");
+          // see_more_div.classList.add("");
+          see_more_div.innerHTML = `
+          <div class="more_files_btn">View more files</div>
+          `;
+          parent.append(see_more_div);
+          limit_reached = true
+        }
+
       });
-    });
+    }
   }
   // callback for submit button event listener
   SubmitClickCallback() {
