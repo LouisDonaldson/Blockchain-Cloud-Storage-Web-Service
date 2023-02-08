@@ -228,6 +228,43 @@ const api_website_files_handler = {
           }
         } else {
         }
+      } else if (req.url.includes("/filedata?")) {
+        if (req.headers?.cookie) {
+          if (
+            await api_website_files_handler.CheckValidSessionCookie(
+              req.headers.cookie
+            )
+          ) {
+            const user_data = await api_data_handler.GetUserData(req);
+            if (user_data) {
+              if (user_data.Permission_Level < 3) {
+                const GetFileIDFromURL = (url) => {
+                  if (url.includes("?")) {
+                    const url_split = url.split("?");
+                    const split = url_split[1].split("=");
+                    if (split[0] == "file_id") {
+                      return split[1];
+                    }
+                  }
+
+                  return undefined;
+                };
+
+                // user permitted to download
+                // return file data
+                const file_id = GetFileIDFromURL(req.url);
+                const file_data = await api_data_handler.GetFile(file_id);
+                res.writeHead(200);
+                res.end(JSON.stringify(file_data));
+              } else {
+                Unauthorised_User_Route(req, res);
+              }
+            } else {
+              Unauthorised_User_Route(req, res);
+            }
+            // user_data;
+          }
+        }
       } else {
         default_route_request(req, res);
       }
@@ -364,6 +401,8 @@ class CompanyDataHandler {
         binary_data: file_buffer,
         fileName: file_data.name,
         userID: username,
+        type: file_data.type,
+        size: file_data.size,
         description: file_data.description,
         hash: file_hash.toString(),
         timestamp: file_data.timeStamp,
@@ -385,6 +424,12 @@ class CompanyDataHandler {
       //   })}`
       // );
     }
+  }
+
+  async GetFile(file_id) {
+    const file_data = await this.db_handler.GetFile(file_id);
+    // const parsed_data = JSON.parse(file_data.fileName);
+    return file_data;
   }
 }
 

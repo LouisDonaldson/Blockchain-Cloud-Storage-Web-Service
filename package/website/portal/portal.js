@@ -26,6 +26,24 @@ class FileHandler {
   }
   async DownloadFile(file_id) {
     const response = await app.api_handler.RequestFileData(file_id);
+    const file_byte_arr = JSON.parse(response.file_data);
+    // const buffer = new Uint8Array(file_byte_arr);
+    const buffer = new ArrayBuffer(Object.entries(file_byte_arr).length);
+    const view = new Uint8Array(buffer);
+    const file_data_entries = Object.entries(file_byte_arr);
+    for (const i in file_data_entries) {
+      view[i] = file_data_entries[i][1];
+    }
+    var blob = new Blob([view], {
+      type: response.type,
+    });
+    var link = document.createElement("a");
+    // link.target = "_blank";
+    link.href = window.URL.createObjectURL(blob);
+    link.download = `${response.fileName}`;
+    link.click();
+    // window.location.href = href;
+    console.log(href);
   }
 }
 
@@ -66,12 +84,7 @@ class ApiHandler {
     }
   };
   RequestFileData = async (file_id, user_id) => {
-    const response = await fetch("/filedata", {
-      body: {
-        file_id: file_id,
-        // requesting_user_id: app.,
-      },
-    });
+    const response = await fetch(`/filedata?file_id=${file_id}`);
     if (response.status == 200) {
       const data = await response.json();
       return data;
@@ -246,8 +259,12 @@ class UiHandler {
       app.file_handler
         .CreateBinaryString(file_input.files[0])
         .then((file_binary_string) => {
+          let new_name = file_input_name.value;
+          new_name += `.${file_input.files[0].name.split(".")[1]}`;
           const tranmission_obj = {
-            name: `${file_input_name.value}`,
+            name: `${new_name}`,
+            type: `${file_input.files[0].type}`,
+            size: `${file_input.files[0].size}`,
             description: file_input_desc?.value ?? "",
             binaryString: file_binary_string,
             timeStamp: new Date().toISOString(),

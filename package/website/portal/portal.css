@@ -46,7 +46,8 @@ body {
   width: auto;
 }
 
-.company_name {}
+.company_name {
+}
 
 .header_right_side {
   display: flex;
@@ -305,7 +306,8 @@ input {
 .additional_meta {
   font-size: 8pt;
   color: gray;
-  padding-right: 5px;
+  padding: 0px 5px;
+  text-align: right;
 }
 
 .file_meta_name {
@@ -318,7 +320,8 @@ input {
   font-size: 8pt;
 }
 
-.file_name_desc {}
+.file_name_desc {
+}
 
 .file_icon_div {
   -webkit-mask-image: url(../images/file-earmark-fill.svg);
@@ -334,21 +337,21 @@ input {
   padding: 0px 10px;
 }
 
-.explorer_body_links>ul {
+.explorer_body_links > ul {
   display: flex;
   flex-direction: column;
   padding: 0px;
   width: 100%;
 }
 
-.explorer_body_links>ul>li {
+.explorer_body_links > ul > li {
   list-style: none;
   display: flex;
   width: 100%;
   margin-bottom: 5px;
 }
 
-.explorer_body_links>ul>li:hover {
+.explorer_body_links > ul > li:hover {
   text-decoration: underline;
   cursor: pointer;
 }

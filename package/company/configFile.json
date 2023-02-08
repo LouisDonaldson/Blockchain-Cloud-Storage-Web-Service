@@ -5,9 +5,8 @@
     "username": "admin",
     "password": "admin",
     "name": "Admin",
-    "Permission_Level":"1"
+    "Permission_Level": "1"
   },
   "file_path": "./company-files",
   "num_miners": "1"
-  
 }
