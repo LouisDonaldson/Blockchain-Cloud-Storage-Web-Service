@@ -8,6 +8,17 @@ class App {
     });
     this.user_data;
   }
+
+  LogOut() {
+    document.cookie.split(";").forEach(function (c) {
+      if ((document.cookie = c.trim().split("=")[0] == "session_token")) {
+        document.cookie =
+          c.trim().split("=")[0] +
+          "=;" +
+          "expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+      }
+    });
+  }
 }
 
 class FileHandler {
@@ -42,19 +53,18 @@ class FileHandler {
     link.href = window.URL.createObjectURL(blob);
     link.download = `${response.fileName}`;
     link.click();
-
   }
 }
 
 class ApiHandler {
   constructor() {
     (async () => {
-      this.init(true);
+      await this.init(true);
     })();
     this.data_refresh_interval = 5000;
   }
   // recursive using timeouts
-  init = async (use_storage = false) => {
+  init = async (use_storage = false, initialiseUI = true) => {
     try {
       if (use_storage) {
         this.session_data = JSON.parse(localStorage.getItem("company_data"));
@@ -69,9 +79,14 @@ class ApiHandler {
       this.session_data = file_data;
       localStorage.setItem("company_data", JSON.stringify(this.session_data));
       app.ui_handler.UpdateUi(this.file_data);
+      if (initialiseUI) {
+        app.ui_handler.InitialiseUI();
+      }
       // app.ui_handler.UpdateFileDisplay(document.querySelector('.'))
     }
-    setTimeout(this.init, this.data_refresh_interval);
+    setTimeout(() => {
+      this.init(false, false);
+    }, this.data_refresh_interval);
   };
   GetFileMetaData = async () => {
     const response = await fetch("/fileMeta");
@@ -124,27 +139,22 @@ class ApiHandler {
 
 class UiHandler {
   constructor() {
-    this.displayed_files_string
+    this.displayed_files_string;
     this.InitialiseUI();
     this.UpdateUi();
-
   }
 
   InitialiseUI() {
     // log out functionality
-    const log_out_div = document.querySelector('.log_out_div');
-    log_out_div.addEventListener('click', () => {
+    const log_out_div = document.querySelector(".log_out_div");
+    log_out_div.addEventListener("click", () => {
       // document.cookie = "test"
-      document.cookie.split(';').forEach(function (c) {
-        if (document.cookie = c.trim().split('=')[0] == "session_token") {
-          document.cookie = c.trim().split('=')[0] + '=;' + 'expires=Thu, 01 Jan 1970 00:00:00 UTC;';
-        }
-      });
-      window.location.reload()
-    })
+      app.LogOut();
+      window.location.reload();
+    });
 
     const DisplayHomeContent = () => {
-      this.displayed_files = ""
+      this.displayed_files = "";
       const folder_view = document.querySelector(".folder_view");
       folder_view.innerHTML = "";
 
@@ -165,10 +175,12 @@ class UiHandler {
       const home_upload_btn = folder_view.querySelector(".home_upload_btn");
       home_upload_btn.addEventListener("click", this.OpenModal);
 
-      const file_display_header = folder_view.querySelector('.file_display_header')
-      file_display_header.addEventListener('click', () => {
+      const file_display_header = folder_view.querySelector(
+        ".file_display_header"
+      );
+      file_display_header.addEventListener("click", () => {
         this.UpdateListFileDisplay(recent_files_div);
-      })
+      });
 
       const viewer_header = document.querySelector(".viewer_header");
       viewer_header.textContent = "Home";
@@ -181,7 +193,7 @@ class UiHandler {
     };
 
     const DisplayFilesContent = () => {
-      this.displayed_files = ""
+      this.displayed_files = "";
       const folder_view = document.querySelector(".folder_view");
       folder_view.innerHTML = "";
 
@@ -202,10 +214,12 @@ class UiHandler {
       const home_upload_btn = folder_view.querySelector(".home_upload_btn");
       home_upload_btn.addEventListener("click", this.OpenModal);
 
-      const file_display_header = folder_view.querySelector('.file_display_header')
-      file_display_header.addEventListener('click', () => {
+      const file_display_header = folder_view.querySelector(
+        ".file_display_header"
+      );
+      file_display_header.addEventListener("click", () => {
         this.UpdateListFileDisplay(recent_files_div, false);
-      })
+      });
 
       const viewer_header = document.querySelector(".viewer_header");
       viewer_header.textContent = "Files";
@@ -214,11 +228,14 @@ class UiHandler {
       this.UpdateListFileDisplay(recent_files_div, false);
 
       // auto refresh
-      setInterval(() => this.UpdateListFileDisplay(recent_files_div, false), 2000);
+      setInterval(
+        () => this.UpdateListFileDisplay(recent_files_div, false),
+        2000
+      );
     };
 
     const DisplaySettingsContent = () => {
-      this.displayed_files = ""
+      this.displayed_files = "";
       const folder_view = document.querySelector(".folder_view");
       folder_view.innerHTML = "";
 
@@ -229,7 +246,36 @@ class UiHandler {
       // <div class="home_buttons">
       //   <div class="home_upload_btn" id="home_upload_btn">
       //     <span>Upload</span>
-      //     <div class="upload_img_div"></div> 
+      //     <div class="upload_img_div"></div>
+      //   </div>
+      // </div>
+      //   <div class="home_recent_header">All Files</div>
+      //   <div class="recent_files_div">
+      // </div>`;
+
+      // const home_upload_btn = folder_view.querySelector(".home_upload_btn");
+      // home_upload_btn.addEventListener("click", this.OpenModal);
+
+      // const recent_files_div = folder_view.querySelector(".recent_files_div");
+      // this.UpdateListFileDisplay(recent_files_div, false);
+
+      // // auto refresh
+      // setInterval(() => this.UpdateListFileDisplay(recent_files_div, false), 2000);
+    };
+
+    const DisplayFileRequestContentsContent = () => {
+      this.displayed_files = "";
+      const folder_view = document.querySelector(".folder_view");
+      folder_view.innerHTML = "";
+
+      const viewer_header = document.querySelector(".viewer_header");
+      viewer_header.textContent = "File Requests";
+
+      // folder_view.innerHTML = `
+      // <div class="home_buttons">
+      //   <div class="home_upload_btn" id="home_upload_btn">
+      //     <span>Upload</span>
+      //     <div class="upload_img_div"></div>
       //   </div>
       // </div>
       //   <div class="home_recent_header">All Files</div>
@@ -251,60 +297,81 @@ class UiHandler {
     <ul class="links_ul">
         <li class="link" id="home_link">Home</li>
         <li class="link" id="files_link">Files</li>
-         <li class="link" id="settings_link">Settings</li>
-    </ul>`;
+        <li class="link" id="settings_link">Settings</li>
+    </ul>
+    <div class="link_divider"></div>
+    ${
+      app.api_handler.session_data.user_data?.Permission_Level < 2
+        ? `<ul class="additional_links_ul">
+        <li class="link" id="file_request_link">File Requests</li>
+    </ul>
+    `
+        : ""
+    }
+    `;
 
     const ClearLinkClasses = () => {
-      const li_elements = explorer_links.querySelectorAll('.link')
-      li_elements.forEach(el => el.classList.remove("active"))
-    }
+      const li_elements = explorer_links.querySelectorAll(".link");
+      li_elements.forEach((el) => el.classList.remove("active"));
+    };
 
     const home_link = explorer_links.querySelector("#home_link");
     home_link.addEventListener("click", () => {
-      ClearLinkClasses()
-      home_link.classList.add("active")
-      DisplayHomeContent()
+      ClearLinkClasses();
+      home_link.classList.add("active");
+      DisplayHomeContent();
     });
 
     const files_link = explorer_links.querySelector("#files_link");
     files_link.addEventListener("click", () => {
-      ClearLinkClasses()
-      files_link.classList.add("active")
-      DisplayFilesContent()
+      ClearLinkClasses();
+      files_link.classList.add("active");
+      DisplayFilesContent();
     });
 
     const settings_link = explorer_links.querySelector("#settings_link");
     settings_link.addEventListener("click", () => {
-      ClearLinkClasses()
-      settings_link.classList.add("active")
-      DisplaySettingsContent()
+      ClearLinkClasses();
+      settings_link.classList.add("active");
+      DisplaySettingsContent();
     });
+
+    const file_request_link =
+      explorer_links.querySelector("#file_request_link");
+    if (file_request_link) {
+      file_request_link.addEventListener("click", () => {
+        ClearLinkClasses();
+        file_request_link.classList.add("active");
+        DisplayFileRequestContentsContent();
+      });
+    }
 
     // Home by default
     home_link.click();
   }
   //updates UI files
   async UpdateListFileDisplay(parent, file_limit = true) {
-    const recent_file_limit = 5
-    const new_files = JSON.stringify(app.api_handler.session_data.files)
+    const recent_file_limit = 5;
+    const new_files = JSON.stringify(app.api_handler.session_data.files);
     if (this.displayed_files != new_files) {
       parent.innerHTML = "";
       let files = app.api_handler.session_data.files;
-      this.displayed_files = JSON.stringify(files)
-      files = files.sort((a, b) => {
-        const a_date = new Date(a.timeStamp)
-        const b_date = new Date(b.timeStamp)
+      this.displayed_files = JSON.stringify(files);
+      if (files) {
+        files = files?.sort((a, b) => {
+          const a_date = new Date(a.timeStamp);
+          const b_date = new Date(b.timeStamp);
 
-        return b_date - a_date
-        // console.log(a)
-      })
+          return b_date - a_date;
+          // console.log(a)
+        });
+      }
 
-      let limit_reached = false
-      files.forEach((fileMeta, index) => {
+      let limit_reached = false;
+      files?.forEach((fileMeta, index) => {
         if (limit_reached) {
-          return
-        }
-        else if (index < recent_file_limit || !file_limit) {
+          return;
+        } else if (index < recent_file_limit || !file_limit) {
           const file_date = new Date(fileMeta.timeStamp);
           const date_string = `${file_date.toLocaleDateString()} ${file_date.toLocaleTimeString()}`;
 
@@ -335,38 +402,41 @@ class UiHandler {
 
           file_div.addEventListener("mouseenter", () => {
             hover_section.innerHTML = `
-        ${app.api_handler.session_data.user_data.Permission_Level < 3 ?
-                `<div class="download_button"></div>`
-                : ""}
+        ${
+          app.api_handler.session_data.user_data.Permission_Level < 3
+            ? `<div class="download_button"></div>`
+            : ""
+        }
         <div class="view_button"></div>
         `;
 
-            const download_button = hover_section.querySelector(".download_button");
+            const download_button =
+              hover_section.querySelector(".download_button");
             if (download_button) {
               download_button.addEventListener("click", (e) => {
                 // console.log(e);
                 app.file_handler.DownloadFile(fileMeta.file_ID);
               });
             }
-
           });
 
           file_div.addEventListener("mouseleave", () => {
             hover_section.innerHTML = "";
           });
-        }
-        else {
+        } else {
           // add see more files button here
           const see_more_div = document.createElement("div");
           // see_more_div.classList.add("");
           see_more_div.innerHTML = `
           <div class="more_files_btn">View more files</div>
           `;
-          see_more_div.querySelector('.more_files_btn').addEventListener('click', () => {
-            document.querySelector('#files_link').click()
-          })
+          see_more_div
+            .querySelector(".more_files_btn")
+            .addEventListener("click", () => {
+              document.querySelector("#files_link").click();
+            });
           parent.append(see_more_div);
-          limit_reached = true
+          limit_reached = true;
         }
       });
       // app.ui_handler.files_displayed = true
@@ -402,7 +472,7 @@ class UiHandler {
                 </div>
                 <div class="btn submit_btn">Submit for approval</div>
             </div>
-        </div>`
+        </div>`;
     upload_modal.classList.remove("d-none");
 
     const submit_btn = upload_modal.querySelector(".submit_btn");

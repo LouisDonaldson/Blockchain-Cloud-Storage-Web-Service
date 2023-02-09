@@ -46,7 +46,46 @@ body {
   width: auto;
 }
 
-.company_name {}
+.company_name {
+}
+
+.search_btn {
+  -webkit-mask-image: url(../images/search.svg);
+  mask-image: url(../images//search.svg);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  mask-size: cover;
+  -webkit-mask-size: cover;
+  height: 25px;
+  width: 25px;
+  background-color: #60969b;
+  margin-right: 10px;
+}
+
+.search_btn:hover {
+  background-color: #476380;
+  cursor: pointer;
+}
+
+.input_file_search {
+  background-color: #60969c;
+  padding: 5px 10px;
+  border-radius: 5px;
+  margin-right: 10px;
+  border: solid 1pt;
+  border-color: #476380;
+  font-size: 10pt;
+  width: 150px;
+  color: white;
+}
+
+.input_file_search::placeholder {
+  /* Chrome, Firefox, Opera, Safari 10.1+ */
+  color: #cccccc;
+  opacity: 1; /* Firefox */
+}
 
 .header_right_side {
   display: flex;
@@ -336,7 +375,8 @@ input {
   font-size: 8pt;
 }
 
-.file_name_desc {}
+.file_name_desc {
+}
 
 .file_icon_div {
   -webkit-mask-image: url(../images/file-earmark-fill.svg);
@@ -353,23 +393,36 @@ input {
 .explorer_body_links {
   display: flex;
   padding: 0px 10px;
+  flex-direction: column;
 }
 
-.explorer_body_links>ul {
+.explorer_body_links > ul {
   display: flex;
   flex-direction: column;
   padding: 0px;
   width: 100%;
+  margin: 0px;
 }
 
-.explorer_body_links>ul>li {
+.additional_links_ul {
+  width: -webkit-fill-available !important;
+}
+
+.explorer_body_links > ul > li {
   list-style: none;
   display: flex;
   width: 100%;
   margin-bottom: 5px;
 }
 
-.explorer_body_links>ul>li:hover {
+.link_divider {
+  border-top: solid darkgray 1pt;
+  display: flex;
+  width: 100%;
+  margin: 5px 0px;
+}
+
+.explorer_body_links > ul > li:hover {
   text-decoration: underline;
   cursor: pointer;
 }
@@ -509,8 +562,6 @@ li.active {
   cursor: pointer;
 }
 
-
-
 /* Keep media queries on bottom */
 @media screen and (max-width: 600px) {
   .main_content {
@@ -536,7 +587,7 @@ li.active {
     padding-left: 10px !important;
   }
 
-  .explorer_body_links>ul {
+  .explorer_body_links > ul {
     display: flex;
     flex-direction: row;
     padding: 0px;
@@ -544,7 +595,7 @@ li.active {
     margin: 0px;
   }
 
-  .explorer_body_links>ul>li {
+  .explorer_body_links > ul > li {
     margin-bottom: 0px;
     margin-right: 10px;
   }
@@ -554,7 +605,7 @@ li.active {
   }
 
   #file_name_input {
-    width: 250px
+    width: 250px;
   }
 
   .file_div {
