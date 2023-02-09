@@ -57,17 +57,19 @@ class ApiHandler {
   init = async (use_storage = false) => {
     try {
       if (use_storage) {
-        this.company_data = JSON.parse(localStorage.getItem("company_data"));
-        app.ui_handler.UpdateUi(this.company_data);
+        this.session_data = JSON.parse(localStorage.getItem("company_data"));
+        app.ui_handler.UpdateUi(this.session_data);
       } else {
         throw new Error("Don't use storage to fetch company data.");
       }
     } catch {
-      const company_data = await this.GetCompanyData();
-      this.company_data = company_data;
-      // const file_data = await this.GetFileMetaData();
-      localStorage.setItem("company_data", JSON.stringify(this.company_data));
-      app.ui_handler.UpdateUi(this.company_data);
+      // const company_data = await this.GetCompanyData();
+      // this.session_data = company_data;
+      const file_data = await this.GetFileMetaData();
+      this.session_data = file_data;
+      localStorage.setItem("company_data", JSON.stringify(this.session_data));
+      app.ui_handler.UpdateUi(this.file_data);
+      // app.ui_handler.UpdateFileDisplay(document.querySelector('.'))
     }
     setTimeout(this.init, this.data_refresh_interval);
   };
@@ -97,7 +99,7 @@ class ApiHandler {
   GetCompanyData = async () => {
     try {
       const response = await fetch("/data");
-      if (response.status == 401) {
+      if (response.status != 200) {
         window.location.reload();
       }
       const data = await response.json();
@@ -122,27 +124,27 @@ class ApiHandler {
 
 class UiHandler {
   constructor() {
+    this.displayed_files_string
     this.InitialiseUI();
     this.UpdateUi();
-    this.displayed_files_string
 
   }
 
   InitialiseUI() {
+    // log out functionality
+    const log_out_div = document.querySelector('.log_out_div');
+    log_out_div.addEventListener('click', () => {
+      // document.cookie = "test"
+      document.cookie.split(';').forEach(function (c) {
+        if (document.cookie = c.trim().split('=')[0] == "session_token") {
+          document.cookie = c.trim().split('=')[0] + '=;' + 'expires=Thu, 01 Jan 1970 00:00:00 UTC;';
+        }
+      });
+      window.location.reload()
+    })
+
     const DisplayHomeContent = () => {
-      // log out functionality
-      const log_out_div = document.querySelector('.log_out_div');
-      log_out_div.addEventListener('click', () => {
-        // document.cookie = "test"
-        document.cookie.split(';').forEach(function (c) {
-          if (document.cookie = c.trim().split('=')[0] == "session_token") {
-            document.cookie = c.trim().split('=')[0] + '=;' + 'expires=Thu, 01 Jan 1970 00:00:00 UTC;';
-          }
-        });
-        window.location.reload()
-      })
-
-
+      this.displayed_files = ""
       const folder_view = document.querySelector(".folder_view");
       folder_view.innerHTML = "";
 
@@ -153,47 +155,141 @@ class UiHandler {
           <div class="upload_img_div"></div> 
         </div>
       </div>
-        <div class="home_recent_header">Recent</div>
+        <div class="file_display_header">
+          <div class="home_recent_header">Recent</div>
+          <div class="refresh_btn"></div>
+        </div>
         <div class="recent_files_div">
       </div>`;
 
       const home_upload_btn = folder_view.querySelector(".home_upload_btn");
       home_upload_btn.addEventListener("click", this.OpenModal);
 
+      const file_display_header = folder_view.querySelector('.file_display_header')
+      file_display_header.addEventListener('click', () => {
+        this.UpdateListFileDisplay(recent_files_div);
+      })
+
       const viewer_header = document.querySelector(".viewer_header");
       viewer_header.textContent = "Home";
 
       const recent_files_div = folder_view.querySelector(".recent_files_div");
-      this.UpdateFileDisplay(recent_files_div);
+      this.UpdateListFileDisplay(recent_files_div);
 
       // auto refresh
-      setInterval(() => this.UpdateFileDisplay(recent_files_div), 5000);
+      setInterval(() => this.UpdateListFileDisplay(recent_files_div), 2000);
+    };
+
+    const DisplayFilesContent = () => {
+      this.displayed_files = ""
+      const folder_view = document.querySelector(".folder_view");
+      folder_view.innerHTML = "";
+
+      folder_view.innerHTML = `
+      <div class="home_buttons">
+        <div class="home_upload_btn" id="home_upload_btn">
+          <span>Upload</span>
+          <div class="upload_img_div"></div> 
+        </div>
+      </div>
+        <div class="file_display_header">
+          <div class="home_recent_header">All Files <span class="all_files_num_files_tag">(${app.api_handler.session_data.files.length} files found)</span></div>
+          <div class="refresh_btn"></div>
+        </div>
+        <div class="recent_files_div">
+      </div>`;
+
+      const home_upload_btn = folder_view.querySelector(".home_upload_btn");
+      home_upload_btn.addEventListener("click", this.OpenModal);
+
+      const file_display_header = folder_view.querySelector('.file_display_header')
+      file_display_header.addEventListener('click', () => {
+        this.UpdateListFileDisplay(recent_files_div, false);
+      })
+
+      const viewer_header = document.querySelector(".viewer_header");
+      viewer_header.textContent = "Files";
+
+      const recent_files_div = folder_view.querySelector(".recent_files_div");
+      this.UpdateListFileDisplay(recent_files_div, false);
+
+      // auto refresh
+      setInterval(() => this.UpdateListFileDisplay(recent_files_div, false), 2000);
+    };
+
+    const DisplaySettingsContent = () => {
+      this.displayed_files = ""
+      const folder_view = document.querySelector(".folder_view");
+      folder_view.innerHTML = "";
+
+      const viewer_header = document.querySelector(".viewer_header");
+      viewer_header.textContent = "Settings";
+
+      // folder_view.innerHTML = `
+      // <div class="home_buttons">
+      //   <div class="home_upload_btn" id="home_upload_btn">
+      //     <span>Upload</span>
+      //     <div class="upload_img_div"></div> 
+      //   </div>
+      // </div>
+      //   <div class="home_recent_header">All Files</div>
+      //   <div class="recent_files_div">
+      // </div>`;
+
+      // const home_upload_btn = folder_view.querySelector(".home_upload_btn");
+      // home_upload_btn.addEventListener("click", this.OpenModal);
+
+      // const recent_files_div = folder_view.querySelector(".recent_files_div");
+      // this.UpdateListFileDisplay(recent_files_div, false);
+
+      // // auto refresh
+      // setInterval(() => this.UpdateListFileDisplay(recent_files_div, false), 2000);
     };
 
     const explorer_links = document.querySelector(".explorer_body_links");
     explorer_links.innerHTML = `
-    <ul>
-        <li class="active" id="home_link">Home</li>
-        <li id="files_link">Files</li>
-        <li id="recent_link">Recent</li>
+    <ul class="links_ul">
+        <li class="link" id="home_link">Home</li>
+        <li class="link" id="files_link">Files</li>
+         <li class="link" id="settings_link">Settings</li>
     </ul>`;
 
+    const ClearLinkClasses = () => {
+      const li_elements = explorer_links.querySelectorAll('.link')
+      li_elements.forEach(el => el.classList.remove("active"))
+    }
+
     const home_link = explorer_links.querySelector("#home_link");
-    home_link.addEventListener("click", DisplayHomeContent);
+    home_link.addEventListener("click", () => {
+      ClearLinkClasses()
+      home_link.classList.add("active")
+      DisplayHomeContent()
+    });
+
+    const files_link = explorer_links.querySelector("#files_link");
+    files_link.addEventListener("click", () => {
+      ClearLinkClasses()
+      files_link.classList.add("active")
+      DisplayFilesContent()
+    });
+
+    const settings_link = explorer_links.querySelector("#settings_link");
+    settings_link.addEventListener("click", () => {
+      ClearLinkClasses()
+      settings_link.classList.add("active")
+      DisplaySettingsContent()
+    });
 
     // Home by default
     home_link.click();
   }
   //updates UI files
-  async UpdateFileDisplay(parent) {
-
-    // const folder_view = document.querySelector(".folder_view");
-    // parent.innerHTML = "";
+  async UpdateListFileDisplay(parent, file_limit = true) {
     const recent_file_limit = 5
-    const new_files = JSON.stringify(app.api_handler.company_data.files)
+    const new_files = JSON.stringify(app.api_handler.session_data.files)
     if (this.displayed_files != new_files) {
       parent.innerHTML = "";
-      let files = app.api_handler.company_data.files;
+      let files = app.api_handler.session_data.files;
       this.displayed_files = JSON.stringify(files)
       files = files.sort((a, b) => {
         const a_date = new Date(a.timeStamp)
@@ -208,7 +304,7 @@ class UiHandler {
         if (limit_reached) {
           return
         }
-        else if (index < recent_file_limit) {
+        else if (index < recent_file_limit || !file_limit) {
           const file_date = new Date(fileMeta.timeStamp);
           const date_string = `${file_date.toLocaleDateString()} ${file_date.toLocaleTimeString()}`;
 
@@ -239,7 +335,7 @@ class UiHandler {
 
           file_div.addEventListener("mouseenter", () => {
             hover_section.innerHTML = `
-        ${app.api_handler.company_data.user_data.Permission_Level < 3 ?
+        ${app.api_handler.session_data.user_data.Permission_Level < 3 ?
                 `<div class="download_button"></div>`
                 : ""}
         <div class="view_button"></div>
@@ -266,13 +362,17 @@ class UiHandler {
           see_more_div.innerHTML = `
           <div class="more_files_btn">View more files</div>
           `;
+          see_more_div.querySelector('.more_files_btn').addEventListener('click', () => {
+            document.querySelector('#files_link').click()
+          })
           parent.append(see_more_div);
           limit_reached = true
         }
-
       });
+      // app.ui_handler.files_displayed = true
     }
   }
+
   // callback for submit button event listener
   SubmitClickCallback() {
     app.ui_handler.SubmitClicked();
@@ -280,11 +380,34 @@ class UiHandler {
   //opens modal
   OpenModal() {
     const upload_modal = document.querySelector(".upload_modal");
+    upload_modal.innerHTML = `
+    <div class="modal_div">
+            <div class="close_btn btn-close"></div>
+            <div class="inputs">
+                <div class="file_name_input_div">
+                    <label class="input_name_label">Name:</label>
+                    <div class="input_border">
+                        <input type="text" id="file_name_input" placeholder="Name your file here..."
+                            value="Test File Name">
+                    </div>
+                </div>
+                <div class="file_description_input_div">
+                    <label class="input_name_label">Description:</label>
+                    <textarea id="file_description_input" cols="30" rows="3"
+                        placeholder="Description of file contents (optional)"
+                        ></textarea>
+                </div>
+                <div class="file_name_input_div">
+                    <input type="file" id="file_input">
+                </div>
+                <div class="btn submit_btn">Submit for approval</div>
+            </div>
+        </div>`
     upload_modal.classList.remove("d-none");
 
-    const submit_btn = document.querySelector(".submit_btn");
+    const submit_btn = upload_modal.querySelector(".submit_btn");
 
-    const close_btn = document.querySelector(".close_btn");
+    const close_btn = upload_modal.querySelector(".close_btn");
     close_btn.addEventListener("click", () => {
       app.ui_handler.CloseModal();
     });
@@ -313,7 +436,7 @@ class UiHandler {
             timeStamp: new Date().toISOString(),
           };
           const json_obj = JSON.stringify(tranmission_obj);
-          console.log(json_obj);
+          // console.log(json_obj);
 
           // send data to server
           app.api_handler.UploadFile(json_obj);
@@ -338,7 +461,7 @@ class UiHandler {
       }
     );
   }
-  UpdateUi(company_data = app.api_handler.company_data) {
+  UpdateUi(company_data = app.api_handler.session_data) {
     const company_name_text = document.querySelector("#company_name");
     company_name_text.textContent = company_data?.name ?? "Secure Chain";
     if (company_data?.logo?.data) {

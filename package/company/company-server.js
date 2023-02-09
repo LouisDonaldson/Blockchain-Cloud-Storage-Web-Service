@@ -211,8 +211,8 @@ const api_website_files_handler = {
         } else {
           Unauthorised_User_Route(req, res);
         }
-      } else if (req.url.includes("/data")) {
-        api_data_handler.SendCurrentData(req, res);
+      } else if (req.url.includes("/initial_data")) {
+        api_data_handler.SendInitialData(req, res);
       } else if (req.url.includes("/fileMeta")) {
         if (req.headers?.cookie) {
           if (
@@ -323,6 +323,19 @@ class CompanyDataHandler {
         name: this.config_file.name,
         logo: await fs.readFile(this.config_file.logo_path),
         files: await this.db_handler.GetFileMeta(),
+      })
+    );
+  }
+
+  async SendInitialData(req, res) {
+    // res.end(JSON.stringify(await db_handler.GetConfigFile()))
+    // this.config_file = await this.db_handler.GetConfigFile();
+    res.end(
+      JSON.stringify({
+        // user_data: await this.GetUserData(req),
+        name: this.config_file.name,
+        logo: await fs.readFile(this.config_file.logo_path),
+        // files: await this.db_handler.GetFileMeta(),
       })
     );
   }

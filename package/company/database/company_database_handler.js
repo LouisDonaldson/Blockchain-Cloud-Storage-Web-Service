@@ -3,7 +3,7 @@ const { open } = require("sqlite");
 const fs = require("fs").promises;
 
 // any changes to the configuration of tables means this needs to be set to true to take affect
-const reset_tables = true;
+const reset_tables = false;
 
 let db;
 module.exports = class Database_Handler {
@@ -94,13 +94,15 @@ module.exports = class Database_Handler {
           await db.exec(`
             INSERT INTO users (Username, Password, Name, Permission_Level)
             VALUES ("${config_data.admin_login.username}", "${hash_string}", "${config_data.admin_login.name}", "${config_data.admin_login.Permission_Level}");`);
-          // console.log(response);
+
+          await db.exec(`
+            INSERT INTO users (Username, Password, Name, Permission_Level)
+            VALUES ("admin2", "${hash_string}", "Second Admin", "1");`);
 
           // temporary account // Permission level 2
           await db.exec(`
             INSERT INTO users (Username, Password, Name, Permission_Level)
-            VALUES ("temp", "${hash_string}", "Temporary Account", "3");`);
-          // console.log(response);
+            VALUES ("Viewer", "${hash_string}", "Viewer", "3");`);
         }
       } catch (err) {
         console.error(err);

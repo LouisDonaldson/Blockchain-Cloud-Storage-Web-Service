@@ -254,6 +254,11 @@ input {
   right: 5px;
 }
 
+.all_files_num_files_tag {
+  font-size: 10pt;
+  color: gray;
+}
+
 .folder_view {
   display: flex;
   flex-wrap: wrap;
@@ -335,8 +340,11 @@ input {
 
 .file_icon_div {
   -webkit-mask-image: url(../images/file-earmark-fill.svg);
+  mask-image: url(../images/file-earmark-fill.svg);
   -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
   -webkit-mask-position: center;
+  mask-position: center;
   height: 30px;
   width: 30px;
   background-color: #60969b;
@@ -371,6 +379,30 @@ li.active {
   text-decoration: underline;
 }
 
+.file_display_header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+}
+
+.refresh_btn {
+  background-color: #60969b;
+  width: 25px;
+  height: 20px;
+  /* margin-left: 5px; */
+  -webkit-mask-image: url(../images/arrow-clockwise.svg);
+  mask-image: url(../images/arrow-clockwise.svg);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+}
+
+.refresh_btn:hover {
+  background-color: #476380;
+  cursor: pointer;
+}
+
 .home_buttons {
   display: flex;
   padding: 10px 0px;
@@ -403,8 +435,11 @@ li.active {
   height: 20px;
   /* margin-left: 5px; */
   -webkit-mask-image: url(../images/cloud-plus-fill.svg);
+  mask-image: url(../images/cloud-plus-fill.svg);
   -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
   -webkit-mask-position: center;
+  mask-position: center;
 }
 
 .hover_section {
@@ -417,9 +452,13 @@ li.active {
   height: 20px;
   margin-left: 10px;
   -webkit-mask-image: url(../images/cloud-arrow-down-fill.svg);
+  mask-image: url(../images/cloud-arrow-down-fill.svg);
   -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
   -webkit-mask-position: center;
+  mask-position: center;
   -webkit-mask-size: cover;
+  mask-size: cover;
   animation: fade-in 0.25s ease-in forwards;
 }
 
