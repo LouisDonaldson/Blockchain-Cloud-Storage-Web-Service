@@ -289,7 +289,7 @@ input {
   border: solid 1pt lightgray;
   border-left: none;
   border-right: none;
-  padding: 5px 0px;
+  /* padding: 5px 0px; */
   margin-bottom: 10px;
   width: 100%;
 }
@@ -555,5 +555,9 @@ li.active {
 
   #file_name_input {
     width: 250px
+  }
+
+  .file_div {
+    padding: 5px 0px;
   }
 }
