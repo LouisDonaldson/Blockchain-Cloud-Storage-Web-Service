@@ -3,3 +3,5 @@
 package/node_modules/
 .DS_Store
 package/company/database/company-database.db
+.DS_Store
+package/company/database/company-database.db

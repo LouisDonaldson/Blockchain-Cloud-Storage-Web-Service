@@ -17,6 +17,7 @@ const web_server_address = `localhost:3001`;
 const database_handler = require("./database/company_database_handler.js");
 const encryption_handler = require("../encryption_handler");
 const BlockchainHandler = require("./BlockchainHandler.js");
+
 // const miner = require("../blockchain/miner");
 // const { Worker } = require("node:worker_threads");
 // const miner = new Worker("../blockchain/miner");
@@ -243,7 +244,9 @@ const api_website_files_handler = {
                     const url_split = url.split("?");
                     const split = url_split[1].split("=");
                     if (split[0] == "file_id") {
-                      console.log(`Request for File. File ID=${split[1]} from ${user_data.Name}`)
+                      console.log(
+                        `Request for File. File ID = ${split[1]} from ${user_data.Name}`
+                      );
                       return split[1];
                     }
                   }
@@ -255,6 +258,7 @@ const api_website_files_handler = {
                 // return file data
                 const file_id = GetFileIDFromURL(req.url);
                 const file_data = await api_data_handler.GetFile(file_id);
+                console.log("File received");
                 res.writeHead(200);
                 res.end(JSON.stringify(file_data));
               } else {
@@ -280,11 +284,7 @@ const api_website_files_handler = {
       const cookie = _cookie.trim();
       const split_cookie = cookie.split("=", 2);
       if (split_cookie[0] == "session_token") {
-        if (
-          await api_data_handler.CheckCookie(
-            split_cookie[1]
-          )
-        ) {
+        if (await api_data_handler.CheckCookie(split_cookie[1])) {
           return true;
         } else {
           return false;
@@ -380,7 +380,7 @@ class CompanyDataHandler {
       const cookie = _cookie.trim();
       const split_cookie = cookie.split("=", 2);
       if (split_cookie[0] == "session_token") {
-        return split_cookie[1]
+        return split_cookie[1];
       }
     }
   }
@@ -389,16 +389,38 @@ class CompanyDataHandler {
     return await this.db_handler.CheckToken(cookie_string);
   }
 
-  async HandleFileUpload(data_obj_json, token_string) {
+  async HandleFileUpload(data_obj_json, token_string, file_name) {
     console.log("Uploading data to database.");
     const data_obj = JSON.parse(data_obj_json);
     const file_data = JSON.parse(JSON.parse(data_obj.file));
     const dateTime = data_obj.dateTime;
+
     // data_obj
 
     // file name = obj.name
     // file data = obj.binaryString
     let file_buffer = file_data.binaryString;
+
+    const buffer = new ArrayBuffer(Object.entries(file_buffer).length);
+    const view = new Uint8Array(buffer);
+    const file_data_entries = Object.entries(file_buffer);
+    for (const i in file_data_entries) {
+      view[i] = file_data_entries[i][1];
+    }
+
+    await fs.writeFile(
+      `${this.config_file.file_path}/${file_data.name}`,
+      buffer,
+      (err) => {
+        if (err) {
+          console.error(err);
+        }
+        // file written successfully
+      }
+    );
+    // fs.createWriteStream(file_data.name).write(buffer);
+
+    // const buffer = Buffer.from(file_buffer);
 
     const username = await this.db_handler.GetUserIDFromToken(
       await this.GetSessionTokenFromString(token_string)
@@ -419,6 +441,7 @@ class CompanyDataHandler {
         description: file_data.description,
         hash: file_hash.toString(),
         timestamp: file_data.timeStamp,
+        path: `${this.config_file.file_path}/${file_data.name}`,
       })
     ) {
       console.log(
