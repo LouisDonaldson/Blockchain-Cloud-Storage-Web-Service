@@ -11,7 +11,8 @@ let ping = false;
 const ip = require("ip");
 
 const http = require("http");
-const fs = require("fs").promises;
+const fs_promises = require("fs").promises;
+const fs = require("fs");
 const axios = require("axios");
 const web_server_address = `localhost:3001`;
 const database_handler = require("./database/company_database_handler.js");
@@ -321,7 +322,7 @@ class CompanyDataHandler {
       JSON.stringify({
         user_data: await this.GetUserData(req),
         name: this.config_file.name,
-        logo: await fs.readFile(this.config_file.logo_path),
+        logo: await fs_promises.readFile(this.config_file.logo_path),
         files: await this.db_handler.GetFileMeta(),
       })
     );
@@ -334,7 +335,7 @@ class CompanyDataHandler {
       JSON.stringify({
         // user_data: await this.GetUserData(req),
         name: this.config_file.name,
-        logo: await fs.readFile(this.config_file.logo_path),
+        logo: await fs_promises.readFile(this.config_file.logo_path),
         // files: await this.db_handler.GetFileMeta(),
       })
     );
@@ -408,17 +409,20 @@ class CompanyDataHandler {
       view[i] = file_data_entries[i][1];
     }
 
-    await fs.writeFile(
-      `${this.config_file.file_path}/${file_data.name}`,
-      buffer,
-      (err) => {
-        if (err) {
-          console.error(err);
-        }
-        // file written successfully
-      }
-    );
-    // fs.createWriteStream(file_data.name).write(buffer);
+    // await fs.writeFile(
+    //   `${this.config_file.file_path}/${file_data.name}`,
+    //   buffer,
+    //   (err) => {
+    //     if (err) {
+    //       console.error(err);
+    //     }
+    //     // file written successfully
+    //   }
+    // );
+
+    // fs_promises
+    //   .createWriteStream(`${this.config_file.file_path}/${file_data.name}`)
+    //   .write(buffer);
 
     // const buffer = Buffer.from(file_buffer);
 
