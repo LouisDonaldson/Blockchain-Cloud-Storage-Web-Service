@@ -6,6 +6,24 @@ deals with client interaction as well as well as routes data to and from the blo
 Sits behind the company gateway server
 */
 
+const { Worker } = require("worker_threads");
+/*
+
+const express = require("express");
+const { Worker } = require("worker_threads");
+...
+app.get("/blocking", async (req, res) => {
+  const worker = new Worker("./worker.js");
+  worker.on("message", (data) => {
+    res.status(200).send(`result is ${data}`);
+  });
+  worker.on("error", (msg) => {
+    res.status(404).send(`An error occurred: ${msg}`);
+  });
+});
+
+*/
+
 let ping = false;
 
 const ip = require("ip");
@@ -401,6 +419,7 @@ class CompanyDataHandler {
     // file name = obj.name
     // file data = obj.binaryString
     let file_buffer = file_data.binaryString;
+    // const file_buffer_string = file_buffer.toString();
 
     const buffer = new ArrayBuffer(Object.entries(file_buffer).length);
     const view = new Uint8Array(buffer);
@@ -409,22 +428,26 @@ class CompanyDataHandler {
       view[i] = file_data_entries[i][1];
     }
 
-    // await fs.writeFile(
-    //   `${this.config_file.file_path}/${file_data.name}`,
-    //   buffer,
-    //   (err) => {
-    //     if (err) {
-    //       console.error(err);
-    //     }
-    //     // file written successfully
-    //   }
-    // );
+    // write file to file system
+    // creating JSON obj to store the file in file system
+    // id: file_id
+    // binary_data: [buffer obj]
 
-    // fs_promises
-    //   .createWriteStream(`${this.config_file.file_path}/${file_data.name}`)
-    //   .write(buffer);
+    const fs_name = `${this.config_file.file_path}/${
+      (Math.random() * 10000) | 0
+    }.JSON`;
+    const fs_data = JSON.stringify({
+      data: file_buffer,
+    });
 
-    // const buffer = Buffer.from(file_buffer);
+    fs.writeFile(fs_name, fs_data, (err) => {
+      if (err) {
+        console.error(err);
+      } else {
+        console.log("Data written to file system successfully.");
+      }
+      // file written successfully
+    });
 
     const username = await this.db_handler.GetUserIDFromToken(
       await this.GetSessionTokenFromString(token_string)
@@ -436,17 +459,20 @@ class CompanyDataHandler {
     // console.log(file_hash.toString());
 
     if (
-      await this.db_handler.UploadFile({
-        binary_data: file_buffer,
-        fileName: file_data.name,
-        userID: username,
-        type: file_data.type,
-        size: file_data.size,
-        description: file_data.description,
-        hash: file_hash.toString(),
-        timestamp: file_data.timeStamp,
-        path: `${this.config_file.file_path}/${file_data.name}`,
-      })
+      await this.db_handler.UploadFile(
+        {
+          binary_data: file_buffer,
+          fileName: file_data.name,
+          userID: username,
+          type: file_data.type,
+          size: file_data.size,
+          description: file_data.description,
+          hash: file_hash.toString(),
+          timestamp: file_data.timeStamp,
+          path: `${this.config_file.file_path}/${file_data.name}`,
+        },
+        `${fs_name}`
+      )
     ) {
       console.log(
         "Data successfully uploaded.\nGenerating transaction for miner..."

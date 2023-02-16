@@ -16,7 +16,7 @@ module.exports = class Database_Handler {
       try {
         await db.exec(` 
         DROP TABLE users;`);
-      } catch { }
+      } catch {}
 
       await db.exec(` 
       CREATE TABLE "users" (
@@ -34,7 +34,7 @@ module.exports = class Database_Handler {
       try {
         await db.exec(` 
         DROP TABLE session_tokens;`);
-      } catch { }
+      } catch {}
 
       try {
         await db.exec(` 
@@ -50,7 +50,7 @@ module.exports = class Database_Handler {
       try {
         await db.exec(` 
         DROP TABLE files;`);
-      } catch { }
+      } catch {}
 
       try {
         await db.exec(` 
@@ -60,7 +60,7 @@ module.exports = class Database_Handler {
         "type" TEXT NOT NULL,
         "size" INTEGER NOT NULL,
         "userID"	INTEGER NOT NULL,
-        "file_data"	BLOB NOT NULL,
+        "filePath"	TEXT NOT NULL,
         "description" TEXT,
         "timeStamp" TEXT NOT NULL,
       
@@ -234,14 +234,15 @@ WHERE userID = ${user_id};`;
       throw new Error("Incorrect user data pulled from DB");
     }
   }
-  async UploadFile(upload_data) {
+  async UploadFile(upload_data, file_path) {
     // const file_json = JSON.stringify(upload_data.binary_data)
     const file_buffer = Buffer.from(JSON.stringify(upload_data.binary_data));
     const binary_string = file_buffer.toString();
-    const sql_string = `INSERT INTO files (UserID, fileName, type, size, file_data, description, timestamp)
-      VALUES (${upload_data.userID}, "${upload_data.fileName}", "${upload_data.type}", ${upload_data.size}, '${binary_string}', "${upload_data.description}", "${upload_data.timestamp}");`;
+    const sql_string = `INSERT INTO files (UserID, fileName, type, size, filePath, description, timestamp)
+      VALUES (${upload_data.userID}, "${upload_data.fileName}", "${upload_data.type}", ${upload_data.size}, "${file_path}", "${upload_data.description}", "${upload_data.timestamp}");`;
     try {
       await db.exec(sql_string);
+
       return true;
     } catch (err) {
       err;
@@ -259,11 +260,18 @@ WHERE userID = ${user_id};`;
     return rows;
   }
   async GetFile(file_id) {
-    const sql_string = `SELECT file_data, fileName, type FROM files where file_ID="${file_id}"`;
+    const sql_string = `SELECT filePath, fileName, type FROM files where file_ID="${file_id}"`;
     const rows = await db.all(sql_string);
     if (rows.length > 1) {
       throw new Error("Multiple files with same file ID present");
     }
-    return rows[0];
+
+    const file_path = rows[0].filePath;
+    const file_json = JSON.parse((await fs.readFile(file_path)).toString());
+    return {
+      fileName: rows[0].fileName,
+      file_data: file_json.data,
+    };
+    // return rows[0];
   }
 };

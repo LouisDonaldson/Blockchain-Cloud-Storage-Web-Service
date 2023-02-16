@@ -37,7 +37,7 @@ class FileHandler {
   }
   async DownloadFile(file_id) {
     const response = await app.api_handler.RequestFileData(file_id);
-    const file_byte_arr = JSON.parse(response.file_data);
+    const file_byte_arr = response.file_data;
     // const buffer = new Uint8Array(file_byte_arr);
     const buffer = new ArrayBuffer(Object.entries(file_byte_arr).length);
     const view = new Uint8Array(buffer);
