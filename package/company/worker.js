@@ -1,12 +1,16 @@
+console.log("Worker spawned");
+
+const { Worker, isMainThread, parentPort } = require("node:worker_threads");
+
 // Company Server
 /*
-Contains the main business logic of the company. Handles requests to the database, 
+Contains the main business logic of the company. Handles requests to the database,
 deals with client interaction as well as well as routes data to and from the blockchain miner
 
 Sits behind the company gateway server
 */
 
-const { Worker } = require("node:worker_threads");
+// const { Worker } = require("worker_threads");
 /*
 
 const express = require("express");
@@ -14,7 +18,6 @@ const { Worker } = require("worker_threads");
 ...
 app.get("/blocking", async (req, res) => {
   const worker = new Worker("./worker.js");
-  worker.postMessage([data])
   worker.on("message", (data) => {
     res.status(200).send(`result is ${data}`);
   });
@@ -41,24 +44,33 @@ const BlockchainHandler = require("./BlockchainHandler.js");
 // const miner = require("../blockchain/miner");
 // const { Worker } = require("node:worker_threads");
 // const miner = new Worker("../blockchain/miner");
-let blockchain_handler;
+// let blockchain_handler;
 
 //#region Global variables
-const port = 3000;
-const original_ping_interval = 5000;
-let ping_interval = 5000;
-let api_data_handler;
+// const port = 3000;
+// const original_ping_interval = 5000;
+// let ping_interval = 5000;
+// let api_data_handler;
 let machine_address = ip.address();
 //#endregion
 
-let worker;
-worker = new Worker(__dirname + "/worker.js");
-worker.on("error", (msg) => {
-  console.log(`An error occurred: ${msg}`);
+parentPort.on("message", (message) => {
+  //   parentPort.postMessage(message);
+  console.log("Operation received by worker script.");
+  switch (message.message) {
+    case "File upload":
+      api_data_handler.HandleFileUpload(message.data.data, message.data.cookie);
+      break;
+  }
 });
 
+// worker.on("error", (msg) => {
+//   res.status(404).send(`An error occurred: ${msg}`);
+// });
+
+//#region code
 const server_handler = async (req, res) => {
-  // const _worker = new worker.Worker(__dirname + "/worker.js");
+  const worker = new Worker("./worker.js");
   console.log(
     `Incoming request for: ${req.url} (${req.connection.remoteAddress})`
   );
@@ -203,34 +215,18 @@ const api_website_files_handler = {
             let incomingData = "";
             console.log("Incoming file transmission.");
 
-            // const message = {
-            //   message: "incoming file",
-            //   data: {
-            //     req: req,
-            //     res: res,
-            //   },
-            // };
-            // worker.postMessage(message);
-
-            req.on("data", async (chunk) => {
+            req.on("data", (chunk) => {
               incomingData += chunk.toString(); // convert Buffer to string
             });
-            req.on("end", async () => {
+            req.on("end", () => {
               // handle response here
               console.log("File data read. No errors.");
               res.writeHead(200);
               res.end();
-              worker.postMessage({
-                message: "File upload",
-                data: {
-                  data: JSON.stringify(incomingData),
-                  cookie: req.headers.cookie,
-                },
-              });
-              // api_data_handler.HandleFileUpload(
-              //   incomingData,
-              //   req.headers.cookie
-              // );
+              api_data_handler.HandleFileUpload(
+                incomingData,
+                req.headers.cookie
+              );
             });
           } else {
             // cookie unauthorised
@@ -343,17 +339,17 @@ class CompanyDataHandler {
     this.session_tokens = [];
     (async () => {
       this.config_file = await this.db_handler.GetConfigFile();
-      this.blockchain_handler = new BlockchainHandler(
-        this.config_file.num_miners,
-        machine_address,
-        port
-      );
-      this.blockchain_handler.InitialiseConnection().catch((err) => {
-        console.error(
-          "Error when intialising blockchain connection: " + err.message
-        );
-      });
-      blockchain_handler = this.blockchain_handler;
+      //   this.blockchain_handler = new BlockchainHandler(
+      //     this.config_file.num_miners,
+      //     machine_address,
+      //     port
+      //   );
+      //   this.blockchain_handler.InitialiseConnection().catch((err) => {
+      //     console.error(
+      //       "Error when intialising blockchain connection: " + err.message
+      //     );
+      //   });
+      //   blockchain_handler = this.blockchain_handler;
     })();
   }
   // what gets sent back to client every time it makes a request // only on portal page
@@ -464,7 +460,9 @@ class CompanyDataHandler {
       data: file_buffer,
     });
 
-    fs.writeFile(fs_name, fs_data, (err) => {
+    console.log("Preparing to write file to file system.");
+
+    await fs.writeFile(fs_name, fs_data, (err) => {
       if (err) {
         console.error(err);
       } else {
@@ -523,94 +521,96 @@ class CompanyDataHandler {
   }
 }
 
-function GetServerToken() {
-  return new Promise((resolve, reject) => {
-    axios(`http://${web_server_address}/init/token`, {})
-      .then((response) => {
-        const token = response?.data?.auth_token ?? undefined;
-        if (token != undefined) {
-          resolve(token);
-        } else {
-          reject("Token not present in response.");
-        }
-      })
-      .catch((err) => {
-        console.error(err);
-      });
-  });
-}
+// function GetServerToken() {
+//   return new Promise((resolve, reject) => {
+//     axios(`http://${web_server_address}/init/token`, {})
+//       .then((response) => {
+//         const token = response?.data?.auth_token ?? undefined;
+//         if (token != undefined) {
+//           resolve(token);
+//         } else {
+//           reject("Token not present in response.");
+//         }
+//       })
+//       .catch((err) => {
+//         console.error(err);
+//       });
+//   });
+// }
 
-async function PingWebServer() {
-  return new Promise((resolve, reject) => {
-    axios(`http://${web_server_address}/ping`)
-      .then((response) => {
-        if (response.status == 200) {
-          resolve(true);
-        } else {
-          resolve(false);
-        }
-      })
-      .catch((err) => {
-        reject(err);
-      });
-  });
-}
+// async function PingWebServer() {
+//   return new Promise((resolve, reject) => {
+//     axios(`http://${web_server_address}/ping`)
+//       .then((response) => {
+//         if (response.status == 200) {
+//           resolve(true);
+//         } else {
+//           resolve(false);
+//         }
+//       })
+//       .catch((err) => {
+//         reject(err);
+//       });
+//   });
+// }
 
 (async function () {
   api_data_handler = new CompanyDataHandler();
-  console.log(
-    `Company-proxy deployed.\nCompany ID set to '1' by default. Variable is 'company_id'.`
-  );
+  //   console.log(
+  //     `Company-proxy deployed.\nCompany ID set to '1' by default. Variable is 'company_id'.`
+  //   );
 
-  // Ping web-server to make sure it's up
-  console.log("Pinging gateway...");
-  try {
-    if (PingWebServer()) {
-      console.log("Response from gateway.");
-    }
-  } catch (err) {
-    console.log("No response from gateway...");
-    throw new Error("gateway not active");
-  }
+  //   // Ping web-server to make sure it's up
+  //   console.log("Pinging gateway...");
+  //   try {
+  //     if (PingWebServer()) {
+  //       console.log("Response from gateway.");
+  //     }
+  //   } catch (err) {
+  //     console.log("No response from gateway...");
+  //     throw new Error("gateway not active");
+  //   }
 
-  try {
-    api_website_files_handler.server_token = await GetServerToken();
-    console.log("Auth token received");
-  } catch (err) {
-    throw new Error(`Auth token wasn't retrieved.`);
-  }
+  //   try {
+  //     api_website_files_handler.server_token = await GetServerToken();
+  //     console.log("Auth token received");
+  //   } catch (err) {
+  //     throw new Error(`Auth token wasn't retrieved.`);
+  //   }
 
-  console.log("Starting HTTP service...");
-  const server = await http
-    .createServer(async (req, res) => {
-      // console.log(server)
-      server_handler(req, res);
-    })
-    .listen(port);
-  console.log("Company server HTTP service running on port " + port);
+  // //   console.log("Starting HTTP service...");
+  // //   const server = await http
+  // //     .createServer(async (req, res) => {
+  // //       // console.log(server)
+  // //       server_handler(req, res);
+  // //     })
+  // //     .listen(port);
+  // //   console.log("Company server HTTP service running on port " + port);
 
-  if (ping) {
-    console.log("Starting ping intervals to proxy.");
-    PingIntervals(ping_interval);
-  }
+  //   if (ping) {
+  //     console.log("Starting ping intervals to proxy.");
+  //     PingIntervals(ping_interval);
+  //   }
 })();
 
-function PingIntervals(time) {
-  setTimeout(async () => {
-    if (ping) {
-      try {
-        const active = await PingWebServer();
-        if (active) {
-          console.log("Ping successful.");
-          ping_interval = original_ping_interval;
-          PingIntervals(ping_interval);
-        }
-      } catch (err) {
-        console.log("Ping failed...");
-        ping_interval = ping_interval + 5000;
-        console.log(`Retrying in '${ping_interval / 1000}' seconds.`);
-        PingIntervals(ping_interval);
-      }
-    }
-  }, time);
-}
+// function PingIntervals(time) {
+//   setTimeout(async () => {
+//     if (ping) {
+//       try {
+//         const active = await PingWebServer();
+//         if (active) {
+//           console.log("Ping successful.");
+//           ping_interval = original_ping_interval;
+//           PingIntervals(ping_interval);
+//         }
+//       } catch (err) {
+//         console.log("Ping failed...");
+//         ping_interval = ping_interval + 5000;
+//         console.log(`Retrying in '${ping_interval / 1000}' seconds.`);
+//         PingIntervals(ping_interval);
+//       }
+//     }
+//   }, time);
+// }
+
+//#endregion
