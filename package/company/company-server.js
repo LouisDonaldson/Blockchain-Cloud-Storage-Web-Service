@@ -220,6 +220,8 @@ const api_website_files_handler = {
               console.log("File data read. No errors.");
               res.writeHead(200);
               res.end();
+              // worker = new Worker(__dirname + "/worker.js");
+
               worker.postMessage({
                 message: "File upload",
                 data: {
