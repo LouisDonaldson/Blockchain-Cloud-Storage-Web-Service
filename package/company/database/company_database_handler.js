@@ -10,7 +10,6 @@ let db;
 module.exports = class Database_Handler {
   constructor(GetHash, offline_dev = false) {
     this.GetHash = GetHash;
-    // this.GetTempConfigJSON();
     this.offline_dev = offline_dev;
 
     const CreateUsersTable = async () => {
