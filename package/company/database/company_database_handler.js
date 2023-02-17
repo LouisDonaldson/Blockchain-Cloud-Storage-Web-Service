@@ -267,10 +267,11 @@ WHERE userID = ${user_id};`;
     }
 
     const file_path = rows[0].filePath;
-    const file_json = JSON.parse((await fs.readFile(file_path)).toString());
+    const file_data = await fs.readFile(file_path);
+    // const file_json = JSON.parse((await fs.readFile(file_path)).toString());
     return {
       fileName: rows[0].fileName,
-      file_data: file_json.data,
+      file_data: file_data,
     };
     // return rows[0];
   }

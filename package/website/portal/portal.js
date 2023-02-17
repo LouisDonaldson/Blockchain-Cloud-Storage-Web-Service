@@ -129,11 +129,18 @@ class ApiHandler {
       file: JSON.stringify(json_obj),
       dateTime: new Date().toLocaleString(),
     };
+
+    // let formData = new FormData();
+    // let photo = document.getElementById("file_input").files[0];
+
+    // formData.append("file", photo);
+    // fetch("/file", { method: "POST", body: formData });
+
     const response = await fetch("/file", {
       method: "POST",
       body: JSON.stringify(body),
     });
-    response;
+    // response;
   };
 }
 

@@ -308,6 +308,8 @@ input {
 
 .recent_files_div {
   width: 100%;
+  overflow-y: auto;
+  max-height: 400px;
 }
 
 .file_div {

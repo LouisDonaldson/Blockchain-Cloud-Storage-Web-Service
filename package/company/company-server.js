@@ -51,11 +51,11 @@ let api_data_handler;
 let machine_address = ip.address();
 //#endregion
 
-let worker;
-worker = new Worker(__dirname + "/worker.js");
-worker.on("error", (msg) => {
-  console.log(`An error occurred: ${msg}`);
-});
+// let worker;
+// worker = new Worker(__dirname + "/worker.js");
+// worker.on("error", (msg) => {
+//   console.log(`An error occurred: ${msg}`);
+// });
 
 const server_handler = async (req, res) => {
   // const _worker = new worker.Worker(__dirname + "/worker.js");
@@ -220,7 +220,13 @@ const api_website_files_handler = {
               console.log("File data read. No errors.");
               res.writeHead(200);
               res.end();
-              // worker = new Worker(__dirname + "/worker.js");
+
+              //#region Worker code
+              let worker;
+              worker = new Worker(__dirname + "/worker.js");
+              worker.on("error", (msg) => {
+                console.log(`An error occurred: ${msg}`);
+              });
 
               worker.postMessage({
                 message: "File upload",
@@ -229,6 +235,11 @@ const api_website_files_handler = {
                   cookie: req.headers.cookie,
                 },
               });
+              //#endregion
+
+              //temp const multipart = require('parse-multipart-data');
+              // console.log(incomingData);
+
               // api_data_handler.HandleFileUpload(
               //   incomingData,
               //   req.headers.cookie
@@ -303,7 +314,9 @@ const api_website_files_handler = {
                 // return file data
                 const file_id = GetFileIDFromURL(req.url);
                 const file_data = await api_data_handler.GetFile(file_id);
-                console.log("File received");
+                console.log(
+                  "File received from system.\nReturning file to Client."
+                );
                 res.writeHead(200);
                 res.end(JSON.stringify(file_data));
               } else {
@@ -442,31 +455,26 @@ class CompanyDataHandler {
 
     // data_obj
 
-    // file name = obj.name
-    // file data = obj.binaryString
     let file_buffer = file_data.binaryString;
-    // const file_buffer_string = file_buffer.toString();
 
-    const buffer = new ArrayBuffer(Object.entries(file_buffer).length);
-    const view = new Uint8Array(buffer);
     const file_data_entries = Object.entries(file_buffer);
+    const array = [];
+
     for (const i in file_data_entries) {
-      view[i] = file_data_entries[i][1];
+      // view[i] = file_data_entries[i][1];
+      array[i] = file_data_entries[i][1];
     }
 
+    const fs_buffer = Buffer.from(array);
+
     // write file to file system
-    // creating JSON obj to store the file in file system
-    // id: file_id
-    // binary_data: [buffer obj]
 
-    const fs_name = `${this.config_file.file_path}/${
-      (Math.random() * 10000) | 0
-    }.JSON`;
-    const fs_data = JSON.stringify({
-      data: file_buffer,
-    });
+    const fs_name = `${this.config_file.file_path}/${file_data.name}`;
+    // const fs_data = JSON.stringify({
+    //   data: file_buffer,
+    // });
 
-    fs.writeFile(fs_name, fs_data, (err) => {
+    fs.writeFile(fs_name, fs_buffer, (err) => {
       if (err) {
         console.error(err);
       } else {
