@@ -38,14 +38,13 @@ class FileHandler {
   async DownloadFile(file_id) {
     const response = await app.api_handler.RequestFileData(file_id);
     const file_byte_arr = response.file_data;
-    // const buffer = new Uint8Array(file_byte_arr);
-    const buffer = new ArrayBuffer(Object.entries(file_byte_arr).length);
+    const buffer = new ArrayBuffer(Object.entries(file_byte_arr.data).length);
     const view = new Uint8Array(buffer);
-    const file_data_entries = Object.entries(file_byte_arr);
+    const file_data_entries = Object.entries(file_byte_arr.data);
     for (const i in file_data_entries) {
       view[i] = file_data_entries[i][1];
     }
-    const blob = new Blob([file_byte_arr.data], {
+    const blob = new Blob([buffer], {
       type: response.type,
     });
     const link = document.createElement("a");
