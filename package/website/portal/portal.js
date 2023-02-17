@@ -45,7 +45,7 @@ class FileHandler {
     for (const i in file_data_entries) {
       view[i] = file_data_entries[i][1];
     }
-    const blob = new Blob([view], {
+    const blob = new Blob([file_byte_arr.data], {
       type: response.type,
     });
     const link = document.createElement("a");
@@ -140,6 +140,8 @@ class ApiHandler {
       method: "POST",
       body: JSON.stringify(body),
     });
+
+    window.location.reload();
     // response;
   };
 }

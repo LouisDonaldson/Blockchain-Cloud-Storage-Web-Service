@@ -186,7 +186,7 @@ try {
       // file name = obj.name
       // file data = obj.binaryString
       let file_buffer = file_data.binaryString;
-
+      // console.log(file_buffer);
       const file_data_entries = Object.entries(file_buffer);
       const array = [];
 

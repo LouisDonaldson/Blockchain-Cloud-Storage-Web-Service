@@ -1,6 +1,7 @@
 const sqlite3 = require("sqlite3");
 const { open } = require("sqlite");
 const fs = require("fs").promises;
+const _fs = require("fs");
 
 // any changes to the configuration of tables means this needs to be set to true to take affect
 const reset_tables = false;
@@ -267,11 +268,13 @@ WHERE userID = ${user_id};`;
     }
 
     const file_path = rows[0].filePath;
-    const file_data = await fs.readFile(file_path);
+    const file_data = _fs.readFileSync(file_path);
+    console.log(file_data);
     // const file_json = JSON.parse((await fs.readFile(file_path)).toString());
     return {
       fileName: rows[0].fileName,
       file_data: file_data,
+      type: rows[0].type,
     };
     // return rows[0];
   }
