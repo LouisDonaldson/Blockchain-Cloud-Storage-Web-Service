@@ -268,7 +268,14 @@ WHERE userID = ${user_id};`;
     }
 
     const file_path = rows[0].filePath;
-    const file_data = _fs.readFileSync(file_path);
+    const file_data = await fs.readFile(file_path);
+
+    // const file = await fs.open(file_path);
+
+    // for await (const chunk of file.readableWebStream()) console.log(chunk);
+
+    // await file.close();
+
     console.log(file_data);
     // const file_json = JSON.parse((await fs.readFile(file_path)).toString());
     return {
