@@ -237,13 +237,6 @@ const api_website_files_handler = {
               });
               //#endregion
 
-              //temp const multipart = require('parse-multipart-data');
-              // console.log(incomingData);
-
-              // api_data_handler.HandleFileUpload(
-              //   incomingData,
-              //   req.headers.cookie
-              // );
             });
           } else {
             // cookie unauthorised
@@ -447,6 +440,7 @@ class CompanyDataHandler {
     return await this.db_handler.CheckToken(cookie_string);
   }
 
+  // look on worker.js for file upload
   async HandleFileUpload(data_obj_json, token_string, file_name) {
     console.log("Uploading data to database.");
     const data_obj = JSON.parse(data_obj_json);
@@ -503,7 +497,7 @@ class CompanyDataHandler {
           description: file_data.description,
           hash: file_hash.toString(),
           timestamp: file_data.timeStamp,
-          path: `${this.config_file.file_path}/${file_data.name}`,
+          path: `${fs_name}`,
         },
         `${fs_name}`
       )
@@ -526,6 +520,7 @@ class CompanyDataHandler {
     }
   }
 
+  // look on worker.js for file download
   async GetFile(file_id) {
     const file_data = await this.db_handler.GetFile(file_id);
     // const parsed_data = JSON.parse(file_data.fileName);

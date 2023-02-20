@@ -2,6 +2,7 @@ const sqlite3 = require("sqlite3");
 const { open } = require("sqlite");
 const fs = require("fs").promises;
 const _fs = require("fs");
+const path = require('path');
 
 // any changes to the configuration of tables means this needs to be set to true to take affect
 const reset_tables = false;
@@ -16,7 +17,7 @@ module.exports = class Database_Handler {
       try {
         await db.exec(` 
         DROP TABLE users;`);
-      } catch {}
+      } catch { }
 
       await db.exec(` 
       CREATE TABLE "users" (
@@ -34,7 +35,7 @@ module.exports = class Database_Handler {
       try {
         await db.exec(` 
         DROP TABLE session_tokens;`);
-      } catch {}
+      } catch { }
 
       try {
         await db.exec(` 
@@ -50,7 +51,7 @@ module.exports = class Database_Handler {
       try {
         await db.exec(` 
         DROP TABLE files;`);
-      } catch {}
+      } catch { }
 
       try {
         await db.exec(` 
@@ -69,6 +70,18 @@ module.exports = class Database_Handler {
         err;
       }
     };
+
+    const CreateCompanyFilesDir = async (dir_path) => {
+      try {
+        await fs.rm(path.join(__dirname, dir_path), { force: true })
+      }
+      catch (err) {
+        console.error(err)
+      }
+
+      await fs.mkdir(path.join(__dirname, dir_path))
+      console.log("Company files directory created.")
+    }
     console.log("Database handler created.");
     (async () => {
       // open the database
@@ -85,6 +98,10 @@ module.exports = class Database_Handler {
           await CreateUsersTable();
           await CreateSessionTokensTable();
           await CreateFilesTable();
+
+          await CreateCompanyFilesDir(config_data.file_path);
+
+
 
           // Add dummy data here
           const password_hash = await GetHash(config_data.admin_login.password);
@@ -275,7 +292,7 @@ WHERE userID = ${user_id};`;
 
     // await file.close();
 
-    console.log(file_data);
+    // console.log(file_data);
     // const file_json = JSON.parse((await fs.readFile(file_path)).toString());
     return {
       fileName: rows[0].fileName,

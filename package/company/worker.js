@@ -52,7 +52,7 @@ parentPort.once("message", (message) => {
   switch (message.message) {
     case "File upload":
       api_data_handler.HandleFileUpload(message.data.data, message.data.cookie);
-      setTimeout(() => {}, 5000);
+      // setTimeout(() => { }, 5000);
       break;
   }
 });
@@ -199,9 +199,8 @@ try {
       this.config_file = await this.db_handler.GetConfigFile();
 
       // write file to file system
-      const fs_name = `${this.config_file.file_path}/${
-        (Math.random() * 10000) | 0
-      }_${file_data.name}`;
+      const fs_name = `${__dirname}/database/${this.config_file.file_path}/${(Math.random() * 10000) | 0
+        }_${file_data.name}`;
 
       fs.writeFile(fs_name, fs_buffer, (err) => {
         if (err) {
