@@ -37,11 +37,13 @@ const web_server_address = `localhost:3001`;
 const database_handler = require("./database/company_database_handler.js");
 const encryption_handler = require("../encryption_handler");
 const BlockchainHandler = require("./BlockchainHandler.js");
+const WorkerHandler = new require("./WorkerHandler.js");
 
 // const miner = require("../blockchain/miner");
 // const { Worker } = require("node:worker_threads");
 // const miner = new Worker("../blockchain/miner");
 let blockchain_handler;
+let worker_handler;
 
 //#region Global variables
 const port = 3000;
@@ -236,7 +238,6 @@ const api_website_files_handler = {
                 },
               });
               //#endregion
-
             });
           } else {
             // cookie unauthorised
@@ -562,6 +563,7 @@ async function PingWebServer() {
 }
 
 (async function () {
+  worker_handler = new WorkerHandler();
   api_data_handler = new CompanyDataHandler();
   console.log(
     `Company-proxy deployed.\nCompany ID set to '1' by default. Variable is 'company_id'.`
