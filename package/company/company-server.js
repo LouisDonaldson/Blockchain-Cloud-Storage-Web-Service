@@ -224,11 +224,7 @@ const api_website_files_handler = {
               res.end();
 
               //#region Worker code
-              let worker;
-              worker = new Worker(__dirname + "/worker.js");
-              worker.on("error", (msg) => {
-                console.log(`An error occurred: ${msg}`);
-              });
+              let worker = worker_handler.ActivateWorker();
 
               worker.postMessage({
                 message: "File upload",
@@ -306,13 +302,33 @@ const api_website_files_handler = {
 
                 // user permitted to download
                 // return file data
+                let worker = worker_handler.ActivateWorker();
+
+                worker.postMessage({
+                  message: "File download",
+                  data: {
+                    request_url: req.url,
+                    // data: JSON.stringify(incomingData),
+                    // cookie: req.headers.cookie,
+                  },
+                });
+
+                worker.on("message", (message) => {
+                  console.log(
+                    "File received from system.\nReturning file to Client."
+                  );
+                  res.writeHead(200);
+                  res.end(JSON.stringify(file_data));
+                });
+
                 const file_id = GetFileIDFromURL(req.url);
                 const file_data = await api_data_handler.GetFile(file_id);
-                console.log(
-                  "File received from system.\nReturning file to Client."
-                );
-                res.writeHead(200);
-                res.end(JSON.stringify(file_data));
+
+                // console.log(
+                //   "File received from system.\nReturning file to Client."
+                // );
+                // res.writeHead(200);
+                // res.end(JSON.stringify(file_data));
               } else {
                 Unauthorised_User_Route(req, res);
               }

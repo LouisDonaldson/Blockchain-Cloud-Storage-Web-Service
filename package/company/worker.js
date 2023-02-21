@@ -54,6 +54,12 @@ parentPort.once("message", (message) => {
       api_data_handler.HandleFileUpload(message.data.data, message.data.cookie);
       // setTimeout(() => { }, 5000);
       break;
+    case "File download":
+      const file_id = GetFileIDFromURL(req.url);
+      api_data_handler.GetFile(file_id).then((file_data) => {
+        parentPort.postMessage(file_data);
+      });
+      break;
   }
 });
 try {
@@ -199,8 +205,9 @@ try {
       this.config_file = await this.db_handler.GetConfigFile();
 
       // write file to file system
-      const fs_name = `${__dirname}/database/${this.config_file.file_path}/${(Math.random() * 10000) | 0
-        }_${file_data.name}`;
+      const fs_name = `${__dirname}/database/${this.config_file.file_path}/${
+        (Math.random() * 10000) | 0
+      }_${file_data.name}`;
 
       fs.writeFile(fs_name, fs_buffer, (err) => {
         if (err) {
