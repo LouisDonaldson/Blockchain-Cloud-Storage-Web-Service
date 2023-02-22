@@ -26,7 +26,13 @@ class UiHandler {
           );
           if (log_in_response?.successful) {
             const cookie_string = log_in_response.token.toString();
-            document.cookie = `session_token=${cookie_string}}`;
+
+            const d = new Date();
+            const hours = 2
+            d.setTime(d.getTime() + (hours * 60 * 60 * 1000));
+            let expires = "expires=" + d.toUTCString();
+
+            document.cookie = `session_token=${cookie_string}; ${expires}; path="${window.location.pathname}"`;
             window.location.reload();
           } else {
             // log in auth unsuccessful
@@ -62,7 +68,7 @@ class UiHandler {
     this.UpdateUi();
   }
 
-  UpdateUi(company_data = app.api_handler.company_data) {
+  UpdateUi(company_data = app.api_handler.session_data) {
     const company_name_text = document.querySelector("#company_name");
     company_name_text.textContent = company_data?.name ?? "Secure Chain";
     if (company_data?.logo?.data) {
@@ -89,7 +95,7 @@ class ApiHandler {
   }
   async GetCompanyData() {
     try {
-      const response = await fetch("/data");
+      const response = await fetch("/initial_data");
       const data = await response.json();
       return data;
     } catch (err) {

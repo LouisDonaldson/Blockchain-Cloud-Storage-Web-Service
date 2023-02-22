@@ -1,30 +1,27 @@
 const sqlite3 = require("sqlite3");
 const { open } = require("sqlite");
 const fs = require("fs").promises;
+const _fs = require("fs");
+const path = require("path");
 
-/*
-to-do: migrate log in checking over to DB. Session tokens should be stored in DB
-table cols = username, session_token
-
-everytime /data is called get user data from db including name
-*/
+// any changes to the configuration of tables means this needs to be set to true to take affect
+const reset_tables = false;
 
 let db;
 module.exports = class Database_Handler {
-  constructor(GetHash, offline_dev = false) {
+  constructor(GetHash) {
     this.GetHash = GetHash;
-    // this.GetTempConfigJSON();
-    this.offline_dev = offline_dev;
 
     const CreateUsersTable = async () => {
       try {
         await db.exec(` 
         DROP TABLE users;`);
-      } catch {}
+      } catch { }
 
       await db.exec(` 
       CREATE TABLE "users" (
       "ID"	INTEGER UNIQUE,
+      "Permission_Level" INTEGER NOT NULL,
       "Username"	varchar(50) NOT NULL UNIQUE,
       "Password"	varchar(50) NOT NULL,
       "Name"	varchar(50) NOT NULL,
@@ -37,7 +34,7 @@ module.exports = class Database_Handler {
       try {
         await db.exec(` 
         DROP TABLE session_tokens;`);
-      } catch {}
+      } catch { }
 
       try {
         await db.exec(` 
@@ -53,21 +50,36 @@ module.exports = class Database_Handler {
       try {
         await db.exec(` 
         DROP TABLE files;`);
-      } catch {}
+      } catch { }
 
       try {
         await db.exec(` 
       CREATE TABLE "files" (
         "file_ID"	INTEGER UNIQUE,
-        "fileName" TEXT,
-      "userID"	INTEGER,
-      "file_data"	BLOB NOT NULL,
-      "description" TEXT,
+        "fileName" TEXT NOT NULL,
+        "type" TEXT NOT NULL,
+        "size" INTEGER NOT NULL,
+        "userID"	INTEGER NOT NULL,
+        "filePath"	TEXT NOT NULL,
+        "description" TEXT,
+        "timeStamp" TEXT NOT NULL,
+        "authorised" BOOL NOT NULL,
       
       PRIMARY KEY("file_ID" AUTOINCREMENT));`);
       } catch (err) {
         err;
       }
+    };
+
+    const CreateCompanyFilesDir = async (dir_path) => {
+      try {
+        await fs.rmdir(path.join(__dirname, dir_path), { recursive: true });
+      } catch (err) {
+        console.error(err);
+      }
+
+      await fs.mkdir(path.join(__dirname, dir_path));
+      console.log("Company files directory created.");
     };
     console.log("Database handler created.");
     (async () => {
@@ -78,20 +90,34 @@ module.exports = class Database_Handler {
       });
       console.log("Database connected...");
       try {
-        // drops table then creates new one
-        await CreateUsersTable();
-        await CreateSessionTokensTable();
-        await CreateFilesTable();
-
         const config_data = await this.GetConfigFile();
 
-        // Add dummy data here
-        const password_hash = await GetHash(config_data.admin_login.password);
-        const hash_string = password_hash.toString();
-        await db.exec(`
-        INSERT INTO users (Username, Password, Name)
-        VALUES ("${config_data.admin_login.username}", "${hash_string}", "${config_data.admin_login.name}");`);
-        // console.log(response);
+        if (reset_tables) {
+          // drops table then creates new one
+          await CreateUsersTable();
+          await CreateSessionTokensTable();
+          await CreateFilesTable();
+
+          await CreateCompanyFilesDir(config_data.file_path);
+
+          // Add dummy data here
+          const password_hash = await GetHash(config_data.admin_login.password);
+          const hash_string = password_hash.toString();
+
+          // admin has top level permissions
+          await db.exec(`
+            INSERT INTO users (Username, Password, Name, Permission_Level)
+            VALUES ("${config_data.admin_login.username}", "${hash_string}", "${config_data.admin_login.name}", "${config_data.admin_login.Permission_Level}");`);
+
+          await db.exec(`
+            INSERT INTO users (Username, Password, Name, Permission_Level)
+            VALUES ("admin2", "${hash_string}", "Second Admin", "1");`);
+
+          // temporary account // Permission level 2
+          await db.exec(`
+            INSERT INTO users (Username, Password, Name, Permission_Level)
+            VALUES ("Viewer", "${hash_string}", "Viewer", "3");`);
+        }
       } catch (err) {
         console.error(err);
       }
@@ -100,7 +126,13 @@ module.exports = class Database_Handler {
     })();
   }
   async GetConfigFile() {
-    const contents = await fs.readFile("company/configFile.json");
+    // non batch file
+    const contents = await fs.readFile("./company/configFile.json");
+
+    // non batch file
+    // const contents = await fs.readFile("./configFile.json");
+
+
     const json = contents.toString();
     return JSON.parse(json);
   }
@@ -128,9 +160,7 @@ module.exports = class Database_Handler {
     }
     return false;
   }
-  async GetUserData() {
-    return "";
-  }
+
   async GetUserId(username) {
     const sql_string = `SELECT * FROM users WHERE users.Username = "${username}"`;
     const rows = await db.all(sql_string);
@@ -198,6 +228,23 @@ WHERE userID = ${user_id};`;
       }
     }
   }
+
+  async GetUserDataFromToken(token_string) {
+    const id = await this.GetUserIDFromToken(token_string);
+
+    const sql_string = `SELECT ID, Permission_Level, Name, Username FROM Users WHERE ID = "${id}"`;
+    const rows = await db.all(sql_string);
+
+    if (rows.length > 1) {
+      throw new Error("Error: Multiple users with same ID.");
+    }
+
+    if (rows.length == 0) {
+      return false;
+    } else {
+      return rows[0];
+    }
+  }
   async GetUserDataFromID(id) {
     const sql_string = `SELECT * FROM users WHERE users.ID = ${id}`;
     const rows = await db.all(sql_string);
@@ -207,14 +254,15 @@ WHERE userID = ${user_id};`;
       throw new Error("Incorrect user data pulled from DB");
     }
   }
-  async UploadFile(upload_data) {
+  async UploadFile(upload_data, file_path) {
     // const file_json = JSON.stringify(upload_data.binary_data)
     const file_buffer = Buffer.from(JSON.stringify(upload_data.binary_data));
     const binary_string = file_buffer.toString();
-    const sql_string = `INSERT INTO files (UserID, fileName, file_data, description)
-      VALUES (${upload_data.userID}, "${upload_data.fileName}", '${binary_string}', "${upload_data.description}");`;
+    const sql_string = `INSERT INTO files (UserID, fileName, type, size, filePath, description, timestamp, authorised)
+      VALUES (${upload_data.userID}, "${upload_data.fileName}", "${upload_data.type}", ${upload_data.size}, "${file_path}", "${upload_data.description}", "${upload_data.timestamp}", false);`;
     try {
       await db.exec(sql_string);
+
       return true;
     } catch (err) {
       err;
@@ -222,8 +270,38 @@ WHERE userID = ${user_id};`;
     }
   }
   async GetFileMeta() {
-    const sql_string = `SELECT fileName, description FROM files`;
+    const sql_string = `SELECT file_ID, fileName, type, description, timestamp, UserID, authorised FROM files`;
     const rows = await db.all(sql_string);
+    for (const i in rows) {
+      const row = rows[i];
+      const user_data = await this.GetUserDataFromID(row.userID);
+      rows[i].uploaded_by = user_data.Name;
+    }
     return rows;
+  }
+  async GetFile(file_id) {
+    const sql_string = `SELECT filePath, fileName, type FROM files where file_ID="${file_id}"`;
+    const rows = await db.all(sql_string);
+    if (rows.length > 1) {
+      throw new Error("Multiple files with same file ID present");
+    }
+
+    const file_path = rows[0].filePath;
+    const file_data = await fs.readFile(file_path);
+
+    // const file = await fs.open(file_path);
+
+    // for await (const chunk of file.readableWebStream()) console.log(chunk);
+
+    // await file.close();
+
+    // console.log(file_data);
+    // const file_json = JSON.parse((await fs.readFile(file_path)).toString());
+    return {
+      fileName: rows[0].fileName,
+      file_data: file_data,
+      type: rows[0].type,
+    };
+    // return rows[0];
   }
 };

@@ -3,178 +3,195 @@
     src: url(./font/Poppins-Regular.ttf);
 } */
 
-:root{
-    --primary-colour: rgb(33, 33, 35);
-    --secondary-colour: rgb(139, 202, 218);
-    --background-colour: white;
-    --font-contrast-colour: rgb(25, 25, 25);
-}   
+:root {
+  --primary-colour: rgb(33, 33, 35);
+  --secondary-colour: rgb(139, 202, 218);
+  --background-colour: white;
+  --font-contrast-colour: rgb(25, 25, 25);
+}
 
-html{
-    font-family: Arial, Helvetica, sans-serif;
+html {
+  font-family: Arial, Helvetica, sans-serif;
 }
 
 body {
-    font-family: "Poppins" !important;
+  font-family: "Poppins" !important;
 }
 
-#main_body{
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(180deg, #60969B 0%, rgba(96, 150, 155, 0) 100%), #476380;
-    box-shadow: inset 0px 0px 36px 17px rgba(0, 0, 0, 0.25);
-    display: flex;
-    justify-content: center;
-    align-items: center;
+#main_body {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(180deg, #60969b 0%, rgba(96, 150, 155, 0) 100%),
+    #476380;
+  box-shadow: inset 0px 0px 36px 17px rgba(0, 0, 0, 0.25);
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-.log_in_overlay{
-    position: absolute;
-    width: 400px;
-    height: 500px;
-    /* height: calc(1.375rem + 1.5vw); */
-    background: white;
-    box-shadow: 4px 6px 4px rgba(0, 0, 0, 0.25);
+.log_in_overlay {
+  position: absolute;
+  width: 400px;
+  height: 500px;
+  /* min-width: 90vw; */
+  /* height: calc(1.375rem + 1.5vw); */
+  background: white;
+  box-shadow: 4px 6px 4px rgba(0, 0, 0, 0.25);
 
-    padding: 70px;
+  padding: 70px;
 }
 
-.inner_overlay{
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+.inner_overlay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
-.site_logo_alignment_div{
-    display: flex;
-    width: 100%;
-    justify-content: flex-start;
-    margin-bottom: 20px;
+.site_logo_alignment_div {
+  display: flex;
+  width: 100%;
+  justify-content: flex-start;
+  margin-bottom: 20px;
 }
 
-.site_logo
-{
-    height: 30px;
-    width: auto;
+.site_logo {
+  height: 30px;
+  width: auto;
 }
 
-.company_logo_img{
-    height: auto;
-    width: 80px;
+.company_logo_img {
+  height: auto;
+  width: 80px;
 }
 
-.company_name
-{
-    font-size: 14pt;
-    margin-top: 5px;
+.company_name {
+  font-size: 14pt;
+  margin-top: 5px;
 }
 
-.company_logo_name_div{
-    margin-bottom: 20px;
+.company_logo_name_div {
+  margin-bottom: 20px;
 }
 
-.log_in_div{
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-    position: relative;
-    width: 100%;
-    margin-bottom: 20px;
+.log_in_div {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  position: relative;
+  width: 100%;
+  /* margin-bottom: 20px; */
 }
 
 input {
   all: unset;
 }
 
-.form_input_div{
-    border-bottom: 1pt darkgrey solid;
-    padding-bottom: 5px;
-    margin-bottom: 5px;
-    display: flex;
-    flex-direction: column;
-    width: 100%;
+.form_input_div {
+  border-bottom: 1pt darkgrey solid;
+  padding-bottom: 5px;
+  margin-bottom: 5px;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
 }
 
-.log_in_form{
-    width: 100%;
+.log_in_form {
+  width: 100%;
 }
 
-.input_label{
-    font-size: 12pt;
+.input_label {
+  font-size: 12pt;
 }
 
-.log_in_input{
-    border: none;
-    font-size: 10pt;
+.log_in_input {
+  border: none;
+  font-size: 10pt;
 }
 
-.password_div{
-    display: flex;
-    justify-content: space-between;
+.password_div {
+  display: flex;
+  justify-content: space-between;
 }
 
-
-.show_password_btn{
-    background-color: #60969B;
-    width: 20px;
-    height: 20px;
-    background-size: cover;
+.show_password_btn {
+  background-color: #60969b;
+  width: 20px;
+  height: 20px;
+  background-size: cover;
 }
 
-.show_password_btn:hover{
-    background-color:#476380;
+.show_password_btn:hover {
+  background-color: #476380;
 }
 
-.show_password_btn{
-    -webkit-mask-image: url(../images/eye-fill.svg);
-    mask-image: url(../images/eye-fill.svg);
-    -webkit-mask-repeat: no-repeat;
-    mask-repeat: no-repeat;
-    -webkit-mask-size: cover;
-    -webkit-mask-position: 50%;
-    transition: 0.1s;
-
+.show_password_btn {
+  -webkit-mask-image: url(../images/eye-fill.svg);
+  mask-image: url(../images/eye-fill.svg);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: cover;
+  -webkit-mask-position: 50%;
+  transition: 0.1s;
 }
 
-.show_password_btn.close_eye{
-    -webkit-mask-image: url(../images/eye-slash-fill.svg) !important;
-    mask-image: url(../images/eye-slash-fill.svg) !important;
-    transition: 0.1s;
+.show_password_btn.close_eye {
+  -webkit-mask-image: url(../images/eye-slash-fill.svg) !important;
+  mask-image: url(../images/eye-slash-fill.svg) !important;
+  transition: 0.1s;
 }
 
-.log_in_btn_div{
-    display: flex;
-    width: 100%;
+.log_in_btn_div {
+  display: flex;
+  width: 100%;
 }
 
-.log_in_btn{
-    position: relative;
-    width: 100%;
-    height: 50px;
-    background-color: #60969B;
-    display: flex;
-    justify-content: center;
-    text-align: center;
-    align-items: center;
-    color:white;
-    transition: 0.5s;
-    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.25);
-    border: none;
-
+.log_in_btn {
+  position: relative;
+  width: 100%;
+  height: 50px;
+  background-color: #60969b;
+  display: flex;
+  justify-content: center;
+  text-align: center;
+  align-items: center;
+  color: white;
+  transition: 0.5s;
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.25);
+  border: none;
 }
 
-.log_in_btn:hover{
-    background-color: #476380;
-    transition: 0.5s;
-    cursor: pointer;
-    border: none;
+.log_in_btn:hover {
+  background-color: #476380;
+  transition: 0.5s;
+  cursor: pointer;
+  border: none;
 }
 
-.error_message{
-        font-size: 10pt;
-        width: 100%;
+.create_new_account_div {
+  text-decoration: underline;
+  margin: 10px 0px 15px 0px;
+  color: #60969b;
+  font-size: 10pt;
+  /* transition: 0.25s; */
+  display: inline-flex;
 }
 
+.create_new_account_div:hover {
+  color: #476380;
+  /* transition: 0.25s; */
+  cursor: pointer;
+}
+
+.error_message {
+  font-size: 10pt;
+  width: 100%;
+}
+
+@media screen and (max-width: 600px) {
+  .log_in_overlay {
+    max-width: 90vw;
+  }
+}

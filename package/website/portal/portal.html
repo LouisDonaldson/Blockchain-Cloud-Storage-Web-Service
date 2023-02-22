@@ -23,13 +23,15 @@
                 <div class="file_name_input_div">
                     <label class="input_name_label">Name:</label>
                     <div class="input_border">
-                        <input type="text" id="file_name_input" placeholder="Name your file here..." value="This is the name">
+                        <input type="text" id="file_name_input" placeholder="Name your file here..."
+                            value="This is the name">
                     </div>
                 </div>
                 <div class="file_description_input_div">
                     <label class="input_name_label">Description:</label>
                     <textarea id="file_description_input" cols="30" rows="3"
-                        placeholder="Description of file contents (optional)" value="This is the description"></textarea>
+                        placeholder="Description of file contents (optional)"
+                        value="This is the description"></textarea>
                 </div>
                 <div class="file_name_input_div">
                     <input type="file" id="file_input">
@@ -49,6 +51,11 @@
                 </div>
             </div>
             <div class="header_right_side">
+                <div id="search_bar" class="collapse">
+                    <input type="text" id="search_btn" class="input_file_search" placeholder="Search for files...">
+                </div>
+                <div class="search_btn" data-bs-toggle="collapse" data-bs-target="#search_bar"></div>
+                <div class="log_out_div">Log out</div>
                 <div class="secure_chain_logo_div">
                     <img src="../images/logo.svg" class="secure_chain_logo" alt="">
                 </div>
@@ -57,21 +64,20 @@
         <div class="main_content">
             <div class="file_explorer">
                 <div class="file_explorer_inner">
-                    <div class="explorer_header">
-                        File Explorer
+                    <div class="explorer_body_links">
+
                     </div>
                 </div>
             </div>
             <div class="file_viewer">
                 <div class="file_viewer_inner">
                     <div class="viewer_header">
-                        Folder name
                     </div>
                     <div class="folder_view"></div>
                 </div>
             </div>
         </div>
-        <div class="upload_btn">Upload</div>
+        <!-- <div class="upload_btn">Upload</div> -->
     </div>
 </body>
 

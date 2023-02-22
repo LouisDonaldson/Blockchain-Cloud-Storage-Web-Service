@@ -6,28 +6,61 @@ deals with client interaction as well as well as routes data to and from the blo
 Sits behind the company gateway server
 */
 
+const { Worker } = require("node:worker_threads");
+/*
+
+const express = require("express");
+const { Worker } = require("worker_threads");
+...
+app.get("/blocking", async (req, res) => {
+  const worker = new Worker("./worker.js");
+  worker.postMessage([data])
+  worker.on("message", (data) => {
+    res.status(200).send(`result is ${data}`);
+  });
+  worker.on("error", (msg) => {
+    res.status(404).send(`An error occurred: ${msg}`);
+  });
+});
+
+*/
+
 let ping = false;
 
+const ip = require("ip");
+
 const http = require("http");
-const fs = require("fs").promises;
+const fs_promises = require("fs").promises;
+const fs = require("fs");
 const axios = require("axios");
 const web_server_address = `localhost:3001`;
 const database_handler = require("./database/company_database_handler.js");
 const encryption_handler = require("../encryption_handler");
 const BlockchainHandler = require("./BlockchainHandler.js");
+const WorkerHandler = new require("./WorkerHandler.js");
+
 // const miner = require("../blockchain/miner");
 // const { Worker } = require("node:worker_threads");
 // const miner = new Worker("../blockchain/miner");
-const blockchain_handler = new BlockchainHandler();
+let blockchain_handler;
+let worker_handler;
 
 //#region Global variables
 const port = 3000;
 const original_ping_interval = 5000;
 let ping_interval = 5000;
 let api_data_handler;
+let machine_address = ip.address();
 //#endregion
 
+// let worker;
+// worker = new Worker(__dirname + "/worker.js");
+// worker.on("error", (msg) => {
+//   console.log(`An error occurred: ${msg}`);
+// });
+
 const server_handler = async (req, res) => {
+  // const _worker = new worker.Worker(__dirname + "/worker.js");
   console.log(
     `Incoming request for: ${req.url} (${req.connection.remoteAddress})`
   );
@@ -132,6 +165,13 @@ const api_website_files_handler = {
         res.end();
       }
     };
+
+    const Unauthorised_User_Route = async (req, res) => {
+      res.end(
+        `<a href="/">Unauthorised. Click to go to the homepage and log in.</a>`
+      );
+    };
+
     if (check_auth) {
       if (req.url == "/") {
         if (req.headers?.cookie) {
@@ -165,18 +205,35 @@ const api_website_files_handler = {
             let incomingData = "";
             console.log("Incoming file transmission.");
 
-            req.on("data", (chunk) => {
+            // const message = {
+            //   message: "incoming file",
+            //   data: {
+            //     req: req,
+            //     res: res,
+            //   },
+            // };
+            // worker.postMessage(message);
+
+            req.on("data", async (chunk) => {
               incomingData += chunk.toString(); // convert Buffer to string
             });
-            req.on("end", () => {
+            req.on("end", async () => {
               // handle response here
               console.log("File data read. No errors.");
               res.writeHead(200);
               res.end();
-              api_data_handler.HandleFileUpload(
-                incomingData,
-                req.headers.cookie
-              );
+
+              //#region Worker code
+              worker_handler.ActivateWorker({
+                message: "File upload",
+                data: {
+                  data: JSON.stringify(incomingData),
+                  cookie: req.headers.cookie,
+                },
+              });
+
+
+              //#endregion
             });
           } else {
             // cookie unauthorised
@@ -187,8 +244,22 @@ const api_website_files_handler = {
           res.writeHead(404);
           res.end();
         }
-      } else if (req.url.includes("/data")) {
-        api_data_handler.SendCurrentData(req, res);
+      } else if (req.url == "/portal") {
+        if (req.headers?.cookie) {
+          if (
+            await api_website_files_handler.CheckValidSessionCookie(
+              req.headers.cookie
+            )
+          ) {
+            default_route_request(req, res);
+          } else {
+            Unauthorised_User_Route(req, res);
+          }
+        } else {
+          Unauthorised_User_Route(req, res);
+        }
+      } else if (req.url.includes("/initial_data")) {
+        api_data_handler.SendInitialData(req, res);
       } else if (req.url.includes("/fileMeta")) {
         if (req.headers?.cookie) {
           if (
@@ -204,6 +275,71 @@ const api_website_files_handler = {
           }
         } else {
         }
+      } else if (req.url.includes("/filedata?")) {
+        if (req.headers?.cookie) {
+          if (
+            await api_website_files_handler.CheckValidSessionCookie(
+              req.headers.cookie
+            )
+          ) {
+            let worker = worker_handler.ActivateWorker({
+              message: "File download",
+              data: {
+                request_url: req.url,
+                cookie: req.headers?.cookie,
+              },
+            });
+
+            worker.once("message", (message) => {
+              if (message.message == "Successful") {
+                console.log(
+                  "File received from system.\nReturning file to Client."
+                );
+                res.writeHead(200);
+                res.end(message.data);
+              } else {
+                Unauthorised_User_Route(req, res);
+              }
+            });
+
+            // const user_data = await api_data_handler.GetUserData(req);
+            // if (user_data) {
+            //   if (user_data.Permission_Level < 3) {
+            //     const GetFileIDFromURL = (url) => {
+            //       if (url.includes("?")) {
+            //         const url_split = url.split("?");
+            //         const split = url_split[1].split("=");
+            //         if (split[0] == "file_id") {
+            //           console.log(
+            //             `Request for File. File ID = ${split[1]} from ${user_data.Name}`
+            //           );
+            //           return split[1];
+            //         }
+            //       }
+
+            //       return undefined;
+            //     };
+
+            //     // user permitted to download
+            //     // return file data
+
+            //     const file_id = GetFileIDFromURL(req.url);
+            //     const file_data = await api_data_handler.GetFile(file_id);
+
+            //     // console.log(
+            //     //   "File received from system.\nReturning file to Client."
+            //     // );
+            //     // res.writeHead(200);
+            //     // res.end(JSON.stringify(file_data));
+            //   } else {
+            //     Unauthorised_User_Route(req, res);
+            //   }
+            // } else {
+            //   Unauthorised_User_Route(req, res);
+            // }
+            // user_data;
+          }
+        }
       } else {
         default_route_request(req, res);
       }
@@ -218,11 +354,7 @@ const api_website_files_handler = {
       const cookie = _cookie.trim();
       const split_cookie = cookie.split("=", 2);
       if (split_cookie[0] == "session_token") {
-        if (
-          await api_data_handler.CheckCookie(
-            split_cookie[1].slice(0, split_cookie[1].length - 1)
-          )
-        ) {
+        if (await api_data_handler.CheckCookie(split_cookie[1])) {
           return true;
         } else {
           return false;
@@ -238,21 +370,70 @@ class CompanyDataHandler {
     this.session_tokens = [];
     (async () => {
       this.config_file = await this.db_handler.GetConfigFile();
+      this.blockchain_handler = new BlockchainHandler(
+        this.config_file.num_miners,
+        machine_address,
+        port
+      );
+      this.blockchain_handler.InitialiseConnection().catch((err) => {
+        console.error(
+          "Error when intialising blockchain connection: " + err.message
+        );
+      });
+      blockchain_handler = this.blockchain_handler;
     })();
   }
   // what gets sent back to client every time it makes a request // only on portal page
   async SendCurrentData(req, res) {
     // res.end(JSON.stringify(await db_handler.GetConfigFile()))
     // this.config_file = await this.db_handler.GetConfigFile();
+    const user_data = await this.GetUserData(req);
+    let files = await this.db_handler.GetFileMeta();
+    if (user_data.Permission_Level != 1) {
+      files = files.filter((file) => {
+        if (file.authorised == 1) {
+          return file;
+        }
+      });
+    }
+
     res.end(
       JSON.stringify({
-        user_data: this.db_handler.GetUserData(req),
+        user_data: user_data,
         name: this.config_file.name,
-        logo: await fs.readFile(this.config_file.logo_path),
-        files: await this.db_handler.GetFileMeta(),
+        logo: await fs_promises.readFile(this.config_file.logo_path),
+        files: files,
       })
     );
   }
+
+  async SendInitialData(req, res) {
+    // res.end(JSON.stringify(await db_handler.GetConfigFile()))
+    // this.config_file = await this.db_handler.GetConfigFile();
+    res.end(
+      JSON.stringify({
+        // user_data: await this.GetUserData(req),
+        name: this.config_file.name,
+        logo: await fs_promises.readFile(this.config_file.logo_path),
+        // files: await this.db_handler.GetFileMeta(),
+      })
+    );
+  }
+
+  async GetUserData(req) {
+    if (req.headers?.cookie) {
+      if (
+        api_website_files_handler.CheckValidSessionCookie(req.headers?.cookie)
+      ) {
+        let cookie_header = req.headers.cookie.split("=")[1];
+        const user_data = await this.db_handler.GetUserDataFromToken(
+          cookie_header
+        );
+        return user_data;
+      }
+    }
+  }
+
   async CheckAuth(username, password) {
     // check authentication
     //#region Temp
@@ -279,21 +460,51 @@ class CompanyDataHandler {
       const cookie = _cookie.trim();
       const split_cookie = cookie.split("=", 2);
       if (split_cookie[0] == "session_token") {
-        return split_cookie[1].slice(0, split_cookie[1].length - 1);
+        return split_cookie[1];
       }
     }
   }
+
   async CheckCookie(cookie_string) {
     return await this.db_handler.CheckToken(cookie_string);
   }
-  async HandleFileUpload(data_obj_json, token_string) {
+
+  // look on worker.js for file upload
+  async HandleFileUpload(data_obj_json, token_string, file_name) {
     console.log("Uploading data to database.");
     const data_obj = JSON.parse(data_obj_json);
+    const file_data = JSON.parse(JSON.parse(data_obj.file));
+    const dateTime = data_obj.dateTime;
+
     // data_obj
 
-    // file name = obj.name
-    // file data = obj.binaryString
-    let file_buffer = data_obj.binaryString;
+    let file_buffer = file_data.binaryString;
+
+    const file_data_entries = Object.entries(file_buffer);
+    const array = [];
+
+    for (const i in file_data_entries) {
+      // view[i] = file_data_entries[i][1];
+      array[i] = file_data_entries[i][1];
+    }
+
+    const fs_buffer = Buffer.from(array);
+
+    // write file to file system
+
+    const fs_name = `${this.config_file.file_path}/${file_data.name}`;
+    // const fs_data = JSON.stringify({
+    //   data: file_buffer,
+    // });
+
+    fs.writeFile(fs_name, fs_buffer, (err) => {
+      if (err) {
+        console.error(err);
+      } else {
+        console.log("Data written to file system successfully.");
+      }
+      // file written successfully
+    });
 
     const username = await this.db_handler.GetUserIDFromToken(
       await this.GetSessionTokenFromString(token_string)
@@ -305,13 +516,20 @@ class CompanyDataHandler {
     // console.log(file_hash.toString());
 
     if (
-      await this.db_handler.UploadFile({
-        binary_data: file_buffer,
-        fileName: data_obj.name,
-        userID: username,
-        description: data_obj.description,
-        hash: file_hash.toString(),
-      })
+      await this.db_handler.UploadFile(
+        {
+          binary_data: file_buffer,
+          fileName: file_data.name,
+          userID: username,
+          type: file_data.type,
+          size: file_data.size,
+          description: file_data.description,
+          hash: file_hash.toString(),
+          timestamp: file_data.timeStamp,
+          path: `${fs_name}`,
+        },
+        `${fs_name}`
+      )
     ) {
       console.log(
         "Data successfully uploaded.\nGenerating transaction for miner..."
@@ -329,6 +547,13 @@ class CompanyDataHandler {
       //   })}`
       // );
     }
+  }
+
+  // look on worker.js for file download
+  async GetFile(file_id) {
+    const file_data = await this.db_handler.GetFile(file_id);
+    // const parsed_data = JSON.parse(file_data.fileName);
+    return file_data;
   }
 }
 
@@ -366,6 +591,7 @@ async function PingWebServer() {
 }
 
 (async function () {
+  worker_handler = new WorkerHandler();
   api_data_handler = new CompanyDataHandler();
   console.log(
     `Company-proxy deployed.\nCompany ID set to '1' by default. Variable is 'company_id'.`
@@ -390,8 +616,9 @@ async function PingWebServer() {
   }
 
   console.log("Starting HTTP service...");
-  const server = http
+  const server = await http
     .createServer(async (req, res) => {
+      // console.log(server)
       server_handler(req, res);
     })
     .listen(port);

@@ -3,3 +3,10 @@
 package/node_modules/
 .DS_Store
 package/company/database/company-database.db
+.DS_Store
+package/company/database/company-database.db
+package/company/database/company-database.db
+package/company-files/
+/.NET Load Testing/LoadTester/LoadTester/obj/Debug
+/.NET Load Testing/LoadTester/LoadTester/Properties
+/.NET Load Testing/LoadTester/.vs/LoadTester/v16
