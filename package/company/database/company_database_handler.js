@@ -9,9 +9,8 @@ const reset_tables = false;
 
 let db;
 module.exports = class Database_Handler {
-  constructor(GetHash, offline_dev = false) {
+  constructor(GetHash) {
     this.GetHash = GetHash;
-    this.offline_dev = offline_dev;
 
     const CreateUsersTable = async () => {
       try {
@@ -64,6 +63,7 @@ module.exports = class Database_Handler {
         "filePath"	TEXT NOT NULL,
         "description" TEXT,
         "timeStamp" TEXT NOT NULL,
+        "authorised" BOOL NOT NULL,
       
       PRIMARY KEY("file_ID" AUTOINCREMENT));`);
       } catch (err) {
@@ -73,7 +73,7 @@ module.exports = class Database_Handler {
 
     const CreateCompanyFilesDir = async (dir_path) => {
       try {
-        await fs.rm(path.join(__dirname, dir_path), { force: true });
+        await fs.rmdir(path.join(__dirname, dir_path), { recursive: true });
       } catch (err) {
         console.error(err);
       }
@@ -252,8 +252,8 @@ WHERE userID = ${user_id};`;
     // const file_json = JSON.stringify(upload_data.binary_data)
     const file_buffer = Buffer.from(JSON.stringify(upload_data.binary_data));
     const binary_string = file_buffer.toString();
-    const sql_string = `INSERT INTO files (UserID, fileName, type, size, filePath, description, timestamp)
-      VALUES (${upload_data.userID}, "${upload_data.fileName}", "${upload_data.type}", ${upload_data.size}, "${file_path}", "${upload_data.description}", "${upload_data.timestamp}");`;
+    const sql_string = `INSERT INTO files (UserID, fileName, type, size, filePath, description, timestamp, authorised)
+      VALUES (${upload_data.userID}, "${upload_data.fileName}", "${upload_data.type}", ${upload_data.size}, "${file_path}", "${upload_data.description}", "${upload_data.timestamp}", false);`;
     try {
       await db.exec(sql_string);
 
@@ -264,7 +264,7 @@ WHERE userID = ${user_id};`;
     }
   }
   async GetFileMeta() {
-    const sql_string = `SELECT file_ID, fileName, type, description, timestamp, UserID FROM files`;
+    const sql_string = `SELECT file_ID, fileName, type, description, timestamp, UserID, authorised FROM files`;
     const rows = await db.all(sql_string);
     for (const i in rows) {
       const row = rows[i];

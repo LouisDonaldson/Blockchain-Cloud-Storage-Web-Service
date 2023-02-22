@@ -365,6 +365,8 @@ class UiHandler {
       parent.innerHTML = "";
       let files = app.api_handler.session_data.files;
       this.displayed_files = JSON.stringify(files);
+
+      // sort files by datetime
       if (files) {
         files = files?.sort((a, b) => {
           const a_date = new Date(a.timeStamp);
@@ -376,6 +378,8 @@ class UiHandler {
       }
 
       let limit_reached = false;
+
+      // display files
       files?.forEach((fileMeta, index) => {
         if (limit_reached) {
           return;
@@ -397,10 +401,25 @@ class UiHandler {
                     ${fileMeta.description}
                   </div>
               </div>
+              ${
+                app.api_handler.session_data.user_data.Permission_Level < 2
+                  ? `
+              <div class="auth_icon ${
+                fileMeta.authorised == 0
+                  ? `false`
+                  : fileMeta.authorised == 1
+                  ? "true"
+                  : ""
+              }"></div>`
+                  : ""
+              }
+              
               <div class="hover_section"></div>
             </div>
             <div class="file_right">
-              <div class="additional_meta">Uploaded at: ${date_string} by ${fileMeta.uploaded_by}</div>
+              <div class="additional_meta">Uploaded at: ${date_string} by ${
+            fileMeta.uploaded_by
+          }</div>
             </div>
           </div>
           `;

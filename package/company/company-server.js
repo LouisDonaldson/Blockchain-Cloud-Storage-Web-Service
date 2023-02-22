@@ -282,59 +282,65 @@ const api_website_files_handler = {
               req.headers.cookie
             )
           ) {
-            const user_data = await api_data_handler.GetUserData(req);
-            if (user_data) {
-              if (user_data.Permission_Level < 3) {
-                const GetFileIDFromURL = (url) => {
-                  if (url.includes("?")) {
-                    const url_split = url.split("?");
-                    const split = url_split[1].split("=");
-                    if (split[0] == "file_id") {
-                      console.log(
-                        `Request for File. File ID = ${split[1]} from ${user_data.Name}`
-                      );
-                      return split[1];
-                    }
-                  }
+            let worker = worker_handler.ActivateWorker();
 
-                  return undefined;
-                };
+            worker.postMessage({
+              message: "File download",
+              data: {
+                request_url: req.url,
+                cookie: req.headers?.cookie,
+                // data: JSON.stringify(incomingData),
+                // cookie: req.headers.cookie,
+              },
+            });
 
-                // user permitted to download
-                // return file data
-                let worker = worker_handler.ActivateWorker();
-
-                worker.postMessage({
-                  message: "File download",
-                  data: {
-                    request_url: req.url,
-                    // data: JSON.stringify(incomingData),
-                    // cookie: req.headers.cookie,
-                  },
-                });
-
-                worker.on("message", (message) => {
-                  console.log(
-                    "File received from system.\nReturning file to Client."
-                  );
-                  res.writeHead(200);
-                  res.end(JSON.stringify(file_data));
-                });
-
-                const file_id = GetFileIDFromURL(req.url);
-                const file_data = await api_data_handler.GetFile(file_id);
-
-                // console.log(
-                //   "File received from system.\nReturning file to Client."
-                // );
-                // res.writeHead(200);
-                // res.end(JSON.stringify(file_data));
+            worker.once("message", (message) => {
+              if (message.message == "Successful") {
+                console.log(
+                  "File received from system.\nReturning file to Client."
+                );
+                res.writeHead(200);
+                res.end(message.data);
               } else {
                 Unauthorised_User_Route(req, res);
               }
-            } else {
-              Unauthorised_User_Route(req, res);
-            }
+            });
+
+            // const user_data = await api_data_handler.GetUserData(req);
+            // if (user_data) {
+            //   if (user_data.Permission_Level < 3) {
+            //     const GetFileIDFromURL = (url) => {
+            //       if (url.includes("?")) {
+            //         const url_split = url.split("?");
+            //         const split = url_split[1].split("=");
+            //         if (split[0] == "file_id") {
+            //           console.log(
+            //             `Request for File. File ID = ${split[1]} from ${user_data.Name}`
+            //           );
+            //           return split[1];
+            //         }
+            //       }
+
+            //       return undefined;
+            //     };
+
+            //     // user permitted to download
+            //     // return file data
+
+            //     const file_id = GetFileIDFromURL(req.url);
+            //     const file_data = await api_data_handler.GetFile(file_id);
+
+            //     // console.log(
+            //     //   "File received from system.\nReturning file to Client."
+            //     // );
+            //     // res.writeHead(200);
+            //     // res.end(JSON.stringify(file_data));
+            //   } else {
+            //     Unauthorised_User_Route(req, res);
+            //   }
+            // } else {
+            //   Unauthorised_User_Route(req, res);
+            // }
             // user_data;
           }
         }
@@ -385,12 +391,22 @@ class CompanyDataHandler {
   async SendCurrentData(req, res) {
     // res.end(JSON.stringify(await db_handler.GetConfigFile()))
     // this.config_file = await this.db_handler.GetConfigFile();
+    const user_data = await this.GetUserData(req);
+    let files = await this.db_handler.GetFileMeta();
+    if (user_data.Permission_Level != 1) {
+      files = files.filter((file) => {
+        if (file.authorised == 1) {
+          return file;
+        }
+      });
+    }
+
     res.end(
       JSON.stringify({
-        user_data: await this.GetUserData(req),
+        user_data: user_data,
         name: this.config_file.name,
         logo: await fs_promises.readFile(this.config_file.logo_path),
-        files: await this.db_handler.GetFileMeta(),
+        files: files,
       })
     );
   }

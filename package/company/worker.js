@@ -46,6 +46,24 @@ const encryption_handler = require("../encryption_handler");
 // let api_data_handler;
 //#endregion
 
+const api_website_files_handler = {
+  CheckValidSessionCookie: async function (cookie_header) {
+    const cookies = cookie_header.split(";");
+    // parse cookies
+    for (const _cookie of cookies) {
+      const cookie = _cookie.trim();
+      const split_cookie = cookie.split("=", 2);
+      if (split_cookie[0] == "session_token") {
+        if (await api_data_handler.CheckCookie(split_cookie[1])) {
+          return true;
+        } else {
+          return false;
+        }
+      }
+    }
+  },
+};
+
 parentPort.once("message", (message) => {
   //   parentPort.postMessage(message);
   console.log("Operation received by worker script.");
@@ -55,10 +73,42 @@ parentPort.once("message", (message) => {
       // setTimeout(() => { }, 5000);
       break;
     case "File download":
-      const file_id = GetFileIDFromURL(req.url);
-      api_data_handler.GetFile(file_id).then((file_data) => {
-        parentPort.postMessage(file_data);
-      });
+      let user_data;
+      const GetFileIDFromURL = (url) => {
+        if (url.includes("?")) {
+          const url_split = url.split("?");
+          const split = url_split[1].split("=");
+          if (split[0] == "file_id") {
+            console.log(
+              `Request for File. File ID = ${split[1]} from ${user_data.Name}`
+            );
+            return split[1];
+          }
+        }
+
+        return undefined;
+      };
+      api_data_handler
+        .GetUserData({ headers: { cookie: message.data.cookie } })
+        .then((_user_data) => {
+          if (_user_data) {
+            if (_user_data.Permission_Level < 3) {
+              user_data = _user_data;
+              const file_id = GetFileIDFromURL(message.data.request_url);
+              api_data_handler.GetFile(file_id).then((file_data) => {
+                parentPort.postMessage({
+                  message: "Successful",
+                  data: JSON.stringify(file_data),
+                });
+              });
+            } else {
+              parentPort.postMessage({ message: "Unauthorised User" });
+            }
+          } else {
+            parentPort.postMessage({ message: "Unauthorised User" });
+          }
+        });
+
       break;
   }
 });
@@ -68,41 +118,13 @@ try {
   // });
 
   //#region code
-  const api_website_files_handler = {
-    CheckValidSessionCookie: async function (cookie_header) {
-      const cookies = cookie_header.split(";");
-      // parse cookies
-      for (const _cookie of cookies) {
-        const cookie = _cookie.trim();
-        const split_cookie = cookie.split("=", 2);
-        if (split_cookie[0] == "session_token") {
-          if (await api_data_handler.CheckCookie(split_cookie[1])) {
-            return true;
-          } else {
-            return false;
-          }
-        }
-      }
-    },
-  };
 
   class CompanyDataHandler {
     constructor() {
-      this.db_handler = new database_handler(encryption_handler.GetHash);
+      this.db_handler = new database_handler(encryption_handler.GetHash, false);
       this.session_tokens = [];
       (async () => {
         this.config_file = await this.db_handler.GetConfigFile();
-        //   this.blockchain_handler = new BlockchainHandler(
-        //     this.config_file.num_miners,
-        //     machine_address,
-        //     port
-        //   );
-        //   this.blockchain_handler.InitialiseConnection().catch((err) => {
-        //     console.error(
-        //       "Error when intialising blockchain connection: " + err.message
-        //     );
-        //   });
-        //   blockchain_handler = this.blockchain_handler;
       })();
     }
     // what gets sent back to client every time it makes a request // only on portal page

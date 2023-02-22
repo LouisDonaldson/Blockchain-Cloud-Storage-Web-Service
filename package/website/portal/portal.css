@@ -370,7 +370,7 @@ input {
 .file_meta_name {
   font-size: 10pt;
   font-weight: bold;
-  margin-right: 10px;
+  /* margin-right: 10px; */
 }
 
 .file_meta_desc {
@@ -390,6 +390,30 @@ input {
   height: 30px;
   width: 30px;
   background-color: #60969b;
+}
+
+.auth_icon {
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  mask-size: cover;
+  -webkit-mask-size: cover;
+
+  height: 30px;
+  width: 30px;
+}
+
+.auth_icon.true {
+  -webkit-mask-image: url(../images/check.svg);
+  mask-image: url(../images/check.svg);
+  background-color: #2dd50f;
+}
+
+.auth_icon.false {
+  -webkit-mask-image: url(../images/exclamation.svg);
+  mask-image: url(../images/exclamation.svg);
+  background-color: #d12c2c;
 }
 
 .explorer_body_links {
@@ -505,7 +529,7 @@ li.active {
   background-color: #476380;
   width: 20px;
   height: 20px;
-  margin-left: 10px;
+  margin-left: 0px;
   -webkit-mask-image: url(../images/cloud-arrow-down-fill.svg);
   mask-image: url(../images/cloud-arrow-down-fill.svg);
   -webkit-mask-repeat: no-repeat;
