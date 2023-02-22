@@ -224,15 +224,15 @@ const api_website_files_handler = {
               res.end();
 
               //#region Worker code
-              let worker = worker_handler.ActivateWorker();
-
-              worker.postMessage({
+              worker_handler.ActivateWorker({
                 message: "File upload",
                 data: {
                   data: JSON.stringify(incomingData),
                   cookie: req.headers.cookie,
                 },
               });
+
+
               //#endregion
             });
           } else {
@@ -282,15 +282,11 @@ const api_website_files_handler = {
               req.headers.cookie
             )
           ) {
-            let worker = worker_handler.ActivateWorker();
-
-            worker.postMessage({
+            let worker = worker_handler.ActivateWorker({
               message: "File download",
               data: {
                 request_url: req.url,
                 cookie: req.headers?.cookie,
-                // data: JSON.stringify(incomingData),
-                // cookie: req.headers.cookie,
               },
             });
 
