@@ -8,22 +8,20 @@ module.exports = class WorkerHandler {
         setTimeout(resolve, timeout);
       });
     };
-
   }
   ActivateWorker = (message) => {
     const thread = this.worker_pool.GetWorker();
 
-    thread.on("message", (msg) => {
+    thread.once("message", (msg) => {
       if (msg.message == "Error") {
         console.log(`An error occurred: ${msg}`);
-        this.ActivateWorker(message)
+        this.ActivateWorker(message);
       }
     });
     if (message) {
-      thread.postMessage(message)
-    }
-    else {
-      throw new Error("Thread message not present...")
+      thread.postMessage(message);
+    } else {
+      throw new Error("Thread message not present...");
     }
 
     return thread;
@@ -45,7 +43,7 @@ class ThreadPool {
             this.CreateNewWorker();
           }
         }
-      }, 500)
+      }, 500);
     })();
   }
   CreateNewWorker = (force = false) => {
@@ -60,6 +58,7 @@ class ThreadPool {
       }
     }
   };
+  // instead of removing thread from pool then creating a new one, just resuse one once finished executing
   GetWorker = () => {
     const thread_found = false;
     while (!thread_found) {
@@ -78,6 +77,6 @@ class ThreadPool {
 
 const Sleep = async (timeout = 500) => {
   return new Promise((resolve, reject) => {
-    setTimeout(resolve, timeout)
-  })
-}
+    setTimeout(resolve, timeout);
+  });
+};
