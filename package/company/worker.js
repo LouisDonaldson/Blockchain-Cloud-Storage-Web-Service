@@ -69,13 +69,16 @@ try {
     },
   };
 
-  parentPort.once("message", (message) => {
+  parentPort.on("message", (message) => {
     //   parentPort.postMessage(message);
     console.log("Operation received by worker script.");
     switch (message.message) {
       case "File upload":
         api_data_handler.HandleFileUpload(message.data.data, message.data.cookie);
         // setTimeout(() => { }, 5000);
+        parentPort.postMessage({
+          message: "Successful",
+        });
         break;
       case "File download":
         let user_data;
