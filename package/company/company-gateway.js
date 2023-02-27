@@ -27,7 +27,7 @@ const port = 3001;
 
 // only cache HTML, CSS and JS. Dynamic data does not require caching.
 let cache_counter = 0;
-const cache_deletion_timer = 10000
+const cache_deletion_timer = 60000
 let cache = {};
 
 function CheckCache(key) {

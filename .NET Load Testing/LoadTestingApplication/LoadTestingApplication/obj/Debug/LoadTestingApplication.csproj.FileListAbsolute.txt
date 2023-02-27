@@ -6,3 +6,10 @@
 \\adir.hull.ac.uk\home\633\633103\GitHub\Blockchain-Cloud-Storage-Web-Service\.NET Load Testing\LoadTestingApplication\LoadTestingApplication\obj\Debug\LoadTestingApplication.csproj.CoreCompileInputs.cache
 \\adir.hull.ac.uk\home\633\633103\GitHub\Blockchain-Cloud-Storage-Web-Service\.NET Load Testing\LoadTestingApplication\LoadTestingApplication\obj\Debug\LoadTestingApplication.exe
 \\adir.hull.ac.uk\home\633\633103\GitHub\Blockchain-Cloud-Storage-Web-Service\.NET Load Testing\LoadTestingApplication\LoadTestingApplication\obj\Debug\LoadTestingApplication.pdb
+C:\Users\Louis\Documents\GitHub\Blockchain-Cloud-Storage-Web-Service\.NET Load Testing\LoadTestingApplication\LoadTestingApplication\bin\Debug\LoadTestingApplication.exe.config
+C:\Users\Louis\Documents\GitHub\Blockchain-Cloud-Storage-Web-Service\.NET Load Testing\LoadTestingApplication\LoadTestingApplication\bin\Debug\LoadTestingApplication.exe
+C:\Users\Louis\Documents\GitHub\Blockchain-Cloud-Storage-Web-Service\.NET Load Testing\LoadTestingApplication\LoadTestingApplication\bin\Debug\LoadTestingApplication.pdb
+C:\Users\Louis\Documents\GitHub\Blockchain-Cloud-Storage-Web-Service\.NET Load Testing\LoadTestingApplication\LoadTestingApplication\obj\Debug\LoadTestingApplication.csproj.AssemblyReference.cache
+C:\Users\Louis\Documents\GitHub\Blockchain-Cloud-Storage-Web-Service\.NET Load Testing\LoadTestingApplication\LoadTestingApplication\obj\Debug\LoadTestingApplication.csproj.CoreCompileInputs.cache
+C:\Users\Louis\Documents\GitHub\Blockchain-Cloud-Storage-Web-Service\.NET Load Testing\LoadTestingApplication\LoadTestingApplication\obj\Debug\LoadTestingApplication.exe
+C:\Users\Louis\Documents\GitHub\Blockchain-Cloud-Storage-Web-Service\.NET Load Testing\LoadTestingApplication\LoadTestingApplication\obj\Debug\LoadTestingApplication.pdb
