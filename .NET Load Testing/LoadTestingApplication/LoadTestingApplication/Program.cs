@@ -34,7 +34,7 @@ namespace LoadTestingApplication
             {
                 Thread thread = new Thread(new ThreadStart(async () =>
                 {
-                    await MakeRequest("/");
+                    await MakeRequest("/", default);
 
                 }));
                 thread.Start();
@@ -48,7 +48,7 @@ namespace LoadTestingApplication
 
         }
 
-        async Task MakeRequest(string url, string[] headers;)
+        async Task MakeRequest(string url, string[,] headers)
         {
             Thread.Sleep(50);
             // Call asynchronous network methods in a try/catch block to handle exceptions.
