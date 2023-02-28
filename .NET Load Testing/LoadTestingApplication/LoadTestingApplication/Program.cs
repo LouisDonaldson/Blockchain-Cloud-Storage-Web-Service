@@ -38,10 +38,6 @@ namespace LoadTestingApplication
 
                 }));
                 thread.Start();
-
-
-
-
             }
             Console.WriteLine("\nPress any key...");
             Console.ReadKey();
