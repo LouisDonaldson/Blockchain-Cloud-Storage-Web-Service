@@ -1,5 +1,4 @@
-
-console.log("Worker spawned");
+// console.log("Worker spawned");
 
 const { Worker, isMainThread, parentPort } = require("node:worker_threads");
 
@@ -35,7 +34,6 @@ try {
   });
   
   */
-
 
   // const axios = require("axios");
 
@@ -74,7 +72,10 @@ try {
     console.log("Operation received by worker script.");
     switch (message.message) {
       case "File upload":
-        api_data_handler.HandleFileUpload(message.data.data, message.data.cookie);
+        api_data_handler.HandleFileUpload(
+          message.data.data,
+          message.data.cookie
+        );
         // setTimeout(() => { }, 5000);
         parentPort.postMessage({
           message: "Successful",
@@ -129,7 +130,10 @@ try {
 
     class CompanyDataHandler {
       constructor() {
-        this.db_handler = new database_handler(encryption_handler.GetHash, false);
+        this.db_handler = new database_handler(
+          encryption_handler.GetHash,
+          false
+        );
         this.session_tokens = [];
         (async () => {
           this.config_file = await this.db_handler.GetConfigFile();
@@ -165,7 +169,9 @@ try {
       async GetUserData(req) {
         if (req.headers?.cookie) {
           if (
-            api_website_files_handler.CheckValidSessionCookie(req.headers?.cookie)
+            api_website_files_handler.CheckValidSessionCookie(
+              req.headers?.cookie
+            )
           ) {
             let cookie_header = req.headers.cookie.split("=")[1];
             const user_data = await this.db_handler.GetUserDataFromToken(
@@ -235,8 +241,9 @@ try {
         this.config_file = await this.db_handler.GetConfigFile();
 
         // write file to file system
-        const fs_name = `${__dirname}/database/${this.config_file.file_path}/${(Math.random() * 10000) | 0
-          }_${file_data.name}`;
+        const fs_name = `${__dirname}/database/${this.config_file.file_path}/${
+          (Math.random() * 10000) | 0
+        }_${file_data.name}`;
 
         fs.writeFile(fs_name, fs_buffer, (err) => {
           if (err) {
@@ -306,9 +313,7 @@ try {
 
   //#endregion
   //
+} catch (err) {
+  console.error(err);
+  parentPort.postMessage({ message: "Error", error: err });
 }
-catch (err) {
-  console.error(err)
-  parentPort.postMessage({ message: "Error", error: err })
-}
-

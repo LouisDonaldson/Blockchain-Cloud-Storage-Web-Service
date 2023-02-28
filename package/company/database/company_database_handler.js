@@ -16,7 +16,7 @@ module.exports = class Database_Handler {
       try {
         await db.exec(` 
         DROP TABLE users;`);
-      } catch { }
+      } catch {}
 
       await db.exec(` 
       CREATE TABLE "users" (
@@ -34,7 +34,7 @@ module.exports = class Database_Handler {
       try {
         await db.exec(` 
         DROP TABLE session_tokens;`);
-      } catch { }
+      } catch {}
 
       try {
         await db.exec(` 
@@ -50,7 +50,7 @@ module.exports = class Database_Handler {
       try {
         await db.exec(` 
         DROP TABLE files;`);
-      } catch { }
+      } catch {}
 
       try {
         await db.exec(` 
@@ -81,14 +81,14 @@ module.exports = class Database_Handler {
       await fs.mkdir(path.join(__dirname, dir_path));
       console.log("Company files directory created.");
     };
-    console.log("Database handler created.");
+    // console.log("Database handler created.");
     (async () => {
       // open the database
       db = await open({
         filename: `./company/database/company-database.db`,
         driver: sqlite3.Database,
       });
-      console.log("Database connected...");
+      // console.log("Database connected...");
       try {
         const config_data = await this.GetConfigFile();
 
