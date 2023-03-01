@@ -17,7 +17,7 @@ module.exports = class Database_Handler {
       try {
         await db.exec(` 
         DROP TABLE users;`);
-      } catch {}
+      } catch { }
 
       await db.exec(` 
       CREATE TABLE "users" (
@@ -36,7 +36,7 @@ module.exports = class Database_Handler {
       try {
         await db.exec(` 
         DROP TABLE session_tokens;`);
-      } catch {}
+      } catch { }
 
       try {
         await db.exec(` 
@@ -52,7 +52,7 @@ module.exports = class Database_Handler {
       try {
         await db.exec(` 
         DROP TABLE files;`);
-      } catch {}
+      } catch { }
 
       try {
         await db.exec(` 
@@ -112,11 +112,9 @@ module.exports = class Database_Handler {
             // admin has top level permissions
             await db.exec(`
             INSERT INTO users (Username, Password, Name, Permission_Level, Shared_Key)
-            VALUES ("${config_data.admin_login.username}", "${hash_string}", "${
-              config_data.admin_login.name
-            }", "${
-              config_data.admin_login.Permission_Level
-            }", "${GenerateRandomToken(hash_string)}");`);
+            VALUES ("${config_data.admin_login.username}", "${hash_string}", "${config_data.admin_login.name
+              }", "${config_data.admin_login.Permission_Level
+              }", "${GenerateRandomToken(hash_string)}");`);
 
             await db.exec(`
             INSERT INTO users (Username, Password, Name, Permission_Level, Shared_Key)
@@ -319,10 +317,14 @@ module.exports = class Database_Handler {
   }
 
   async RegisterUser(name, username, password) {
-    const sql_string = `INSERT INTO users (Permission_Level, Username, Password, Name)
+    const sql_string = `INSERT INTO users (Permission_Level, Username, Password, Name, Shared_Key)
       VALUES ("3", "${username}", "${await this.GetHash(
       password
-    )}", "${name}");`;
+    )}", "${name}", "${this.GenerateRandomToken(
+      await this.GetHash(
+        password
+      )
+    )}");`;
     try {
       await db.exec(sql_string);
       return 200;

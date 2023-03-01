@@ -240,14 +240,14 @@ class ApiHandler {
     try {
       this.company_data = JSON.parse(localStorage.getItem("company_data"));
       app.ui_handler.UpdateUi(this.company_data);
-    } catch {}
+    } catch { }
     this.company_data = await this.GetCompanyData();
     localStorage.setItem("company_data", JSON.stringify(this.company_data));
     app.ui_handler.UpdateUi(this.company_data);
   }
   async GetCompanyData() {
     try {
-      const response = await fetch("/initial_data");
+      const response = await fetch("/company_data");
       const data = await response.json();
       return data;
     } catch (err) {
@@ -266,7 +266,7 @@ class ApiHandler {
       const data = await response.json();
       console.log(response.headers);
       return data;
-    } catch (err) {}
+    } catch (err) { }
   }
   async Register(name, username, password) {
     // if registration is successful, return 200
@@ -284,7 +284,7 @@ class ApiHandler {
       const data = await response.json();
       console.log(response.headers);
       return data;
-    } catch (err) {}
+    } catch (err) { }
 
     return "Not implemented";
   }

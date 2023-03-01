@@ -304,7 +304,15 @@ const api_website_files_handler = {
           }
         } else {
         }
-      } else if (req.url.includes("/initial")) {
+      } else if (req.url.includes('/company_data')) {
+        const body = {
+          name: api_data_handler.config_file.name,
+          logo: await fs_promises.readFile(api_data_handler.config_file.logo_path),
+        }
+        res.writeHead(200)
+        res.end(JSON.stringify(body))
+      }
+      else if (req.url.includes("/initial")) {
         if (req.headers?.cookie) {
           if (
             await api_website_files_handler.CheckValidSessionCookie(
