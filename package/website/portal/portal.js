@@ -3,6 +3,8 @@ class App {
     this.data_retrieval_refresh_rate = 5000;
     this.file_handler = new FileHandler();
     this.api_handler = new ApiHandler();
+    this.encrpytion_handler = new EncrpytionHandler();
+    // console.log(this.encrpytion_handler.GenerateKey().toString());
     window.addEventListener("DOMContentLoaded", () => {
       this.ui_handler = new UiHandler();
     });
@@ -55,10 +57,23 @@ class FileHandler {
   }
 }
 
+class EncrpytionHandler {
+  // CryptoJS
+  async GenerateKey() {
+    // const iv = CryptoJS.randomBytes(128);
+    // return iv.toString(16);
+    var buf = new Uint8Array(128);
+    // populates buffer array with random numbers
+    buf = window.crypto.getRandomValues(buf);
+    // converts random nums to hex
+    return [...buf].map((x) => x.toString(16).padStart(2, "0")).join("");
+  }
+}
+
 class ApiHandler {
   constructor() {
     (async () => {
-      await this.init(true);
+      await this.init(false);
     })();
     this.data_refresh_interval = 5000;
   }
@@ -66,26 +81,56 @@ class ApiHandler {
   init = async (use_storage = false, initialiseUI = true) => {
     try {
       if (use_storage) {
-        this.session_data = JSON.parse(localStorage.getItem("company_data"));
-        app.ui_handler.UpdateUi(this.session_data);
+        this.company_data = JSON.parse(localStorage.getItem("company_data"));
+        app.ui_handler.UpdateCompanyDataUi(this.session_data);
       } else {
         throw new Error("Don't use storage to fetch company data.");
       }
     } catch {
       // const company_data = await this.GetCompanyData();
       // this.session_data = company_data;
-      const file_data = await this.GetFileMetaData();
-      this.session_data = file_data;
-      localStorage.setItem("company_data", JSON.stringify(this.session_data));
-      app.ui_handler.UpdateUi(this.file_data);
+      // const file_data = await this.GetFileMetaData();
+      const file_data = await this.InitialData();
+
+      this.company_data = {
+        company_name: file_data.name,
+        company_logo: file_data.logo,
+      };
+
+      (this.user_data = file_data.user_data),
+        (this.fileMeta = file_data.files),
+        // company data = name and logo
+        localStorage.setItem("company_data", JSON.stringify(this.company_data));
+
+      // user_data = user related data
+      localStorage.setItem("user_data", JSON.stringify(this.user_data));
+
+      // files = company files
+      localStorage.setItem("fileMeta", JSON.stringify(this.fileMeta));
+
+      app.ui_handler.UpdateCompanyDataUi(this.company_data);
       if (initialiseUI) {
         app.ui_handler.InitialiseUI();
       }
       // app.ui_handler.UpdateFileDisplay(document.querySelector('.'))
     }
-    setTimeout(() => {
-      this.init(false, false);
+    setInterval(async () => {
+      const file_data = await this.GetFileMetaData();
+      this.fileMeta = file_data.files;
+      localStorage.setItem("fileMeta", JSON.stringify(this.fileMeta));
+      // app.ui_handler.UpdateCompanyDataUi(this.file_data);
     }, this.data_refresh_interval);
+  };
+  InitialData = async () => {
+    const response = await fetch("/initial");
+    if (response.status == 200) {
+      const data = await response.json();
+      return data;
+    } else {
+      if (response.status == 401) {
+        window.location.reload();
+      } else return [];
+    }
   };
   GetFileMetaData = async () => {
     const response = await fetch("/fileMeta");
@@ -148,8 +193,8 @@ class ApiHandler {
 class UiHandler {
   constructor() {
     this.displayed_files_string;
-    this.InitialiseUI();
-    this.UpdateUi();
+    // this.InitialiseUI();
+    // this.UpdateCompanyDataUi();
   }
 
   InitialiseUI() {
@@ -309,7 +354,7 @@ class UiHandler {
     </ul>
     <div class="link_divider"></div>
     ${
-      app.api_handler.session_data.user_data?.Permission_Level < 2
+      app.api_handler.user_data?.Permission_Level < 2
         ? `<ul class="additional_links_ul">
         <li class="link" id="file_request_link">File Requests</li>
     </ul>
@@ -360,10 +405,10 @@ class UiHandler {
   //updates UI files
   async UpdateListFileDisplay(parent, file_limit = true) {
     const recent_file_limit = 5;
-    const new_files = JSON.stringify(app.api_handler.session_data.files);
+    const new_files = JSON.stringify(app.api_handler.fileMeta);
     if (this.displayed_files != new_files) {
       parent.innerHTML = "";
-      let files = app.api_handler.session_data.files;
+      let files = app.api_handler.fileMeta;
       this.displayed_files = JSON.stringify(files);
 
       // sort files by datetime
@@ -402,7 +447,7 @@ class UiHandler {
                   </div>
               </div>
               ${
-                app.api_handler.session_data.user_data.Permission_Level < 2
+                app.api_handler.user_data.Permission_Level < 2
                   ? `
               <div class="auth_icon ${
                 fileMeta.authorised == 0
@@ -430,7 +475,7 @@ class UiHandler {
           file_div.addEventListener("mouseenter", () => {
             hover_section.innerHTML = `
         ${
-          app.api_handler.session_data.user_data.Permission_Level < 3
+          app.api_handler.user_data.Permission_Level < 3
             ? `<div class="download_button"></div>`
             : ""
         }
@@ -558,12 +603,13 @@ class UiHandler {
       }
     );
   }
-  UpdateUi(company_data = app.api_handler.session_data) {
+  UpdateCompanyDataUi(company_data = app.api_handler.company_data) {
     const company_name_text = document.querySelector("#company_name");
-    company_name_text.textContent = company_data?.name ?? "Secure Chain";
-    if (company_data?.logo?.data) {
+    company_name_text.textContent =
+      company_data?.company_name ?? "Secure Chain";
+    if (company_data?.company_logo?.data) {
       let blob = new Blob([
-        new Uint8Array([...company_data?.logo?.data]).buffer,
+        new Uint8Array([...company_data?.company_logo?.data]).buffer,
       ]);
       document.querySelector(".navbar_logo").src = URL.createObjectURL(blob);
     }

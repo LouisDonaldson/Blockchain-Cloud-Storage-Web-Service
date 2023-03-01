@@ -5,7 +5,7 @@ const _fs = require("fs");
 const path = require("path");
 
 // any changes to the configuration of tables means this needs to be set to true to take affect
-const reset_tables = true;
+const reset_tables = false;
 
 let db;
 module.exports = class Database_Handler {
@@ -245,7 +245,7 @@ module.exports = class Database_Handler {
   async GetUserDataFromToken(token_string) {
     const id = await this.GetUserIDFromToken(token_string);
 
-    const sql_string = `SELECT ID, Permission_Level, Name, Username FROM Users WHERE ID = "${id}"`;
+    const sql_string = `SELECT ID, Permission_Level, Name, Username, Shared_Key FROM Users WHERE ID = "${id}"`;
     const rows = await db.all(sql_string);
 
     if (rows.length > 1) {

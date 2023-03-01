@@ -38,6 +38,7 @@ const database_handler = require("./database/company_database_handler.js");
 const encryption_handler = require("../encryption_handler");
 const BlockchainHandler = require("./BlockchainHandler.js");
 const WorkerHandler = new require("./WorkerHandler.js");
+const crypto = require("crypto-js");
 
 // const miner = require("../blockchain/miner");
 // const { Worker } = require("node:worker_threads");
@@ -288,9 +289,22 @@ const api_website_files_handler = {
         } else {
           Unauthorised_User_Route(req, res);
         }
-      } else if (req.url.includes("/initial_data")) {
-        api_data_handler.SendInitialData(req, res);
       } else if (req.url.includes("/fileMeta")) {
+        if (req.headers?.cookie) {
+          if (
+            await api_website_files_handler.CheckValidSessionCookie(
+              req.headers.cookie
+            )
+          ) {
+            api_data_handler.SendFileMetaData(req, res);
+          } else {
+            // cookie not authed
+            res.writeHead(401);
+            res.end();
+          }
+        } else {
+        }
+      } else if (req.url.includes("/initial")) {
         if (req.headers?.cookie) {
           if (
             await api_website_files_handler.CheckValidSessionCookie(
@@ -435,6 +449,26 @@ class CompanyDataHandler {
         user_data: user_data,
         name: this.config_file.name,
         logo: await fs_promises.readFile(this.config_file.logo_path),
+        files: files,
+      })
+    );
+  }
+
+  async SendFileMetaData(req, res) {
+    // res.end(JSON.stringify(await db_handler.GetConfigFile()))
+    // this.config_file = await this.db_handler.GetConfigFile();
+    const user_data = await this.GetUserData(req);
+    let files = await this.db_handler.GetFileMeta();
+    if (user_data.Permission_Level != 1) {
+      files = files.filter((file) => {
+        if (file.authorised == 1) {
+          return file;
+        }
+      });
+    }
+
+    res.end(
+      JSON.stringify({
         files: files,
       })
     );

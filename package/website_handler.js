@@ -73,6 +73,17 @@ module.exports = {
         .catch((err) => {
           throw err;
         });
+    } else if (req.url == "/client_encrpytion_handler.js") {
+      fs.readFile(__dirname + `/website/portal/client_encrpytion_handler.js`)
+        .then((contents) => {
+          res.writeHead(200, {
+            "Content-type": "text/javascript",
+          });
+          res.end(contents);
+        })
+        .catch((err) => {
+          throw err;
+        });
     }
     //#endregion
     //#region Misc
