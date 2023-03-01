@@ -190,8 +190,68 @@ input {
   width: 100%;
 }
 
+.modal_pop_up {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+  position: absolute;
+  /* background-color: #47638062; */
+}
+
+.inner_modal_overlay {
+  position: absolute;
+  width: 400px;
+  height: 500px;
+  /* min-width: 90vw; */
+  /* height: calc(1.375rem + 1.5vw); */
+  background: white;
+  box-shadow: 4px 6px 4px rgba(0, 0, 0, 0.25);
+  padding: 70px;
+}
+
+.modal_title {
+  font-size: 16pt;
+  margin-bottom: 10px;
+}
+
+.register_form_input_div {
+  border-bottom: 1pt darkgrey solid;
+  padding-bottom: 5px;
+  margin-bottom: 5px;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.register_btn_div {
+  display: flex;
+  width: 100%;
+}
+
+.register_btn {
+  position: relative;
+  width: 100%;
+  height: 50px;
+  background-color: #60969b;
+  display: flex;
+  justify-content: center;
+  text-align: center;
+  align-items: center;
+  color: white;
+  transition: 0.5s;
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.25);
+  border: none;
+  margin-top: 10px;
+}
+
 @media screen and (max-width: 600px) {
   .log_in_overlay {
+    max-width: 90vw;
+  }
+
+  .inner_modal_overlay {
     max-width: 90vw;
   }
 }

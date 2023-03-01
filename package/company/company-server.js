@@ -103,6 +103,37 @@ const server_handler = async (req, res) => {
       res.writeHead(404, "Username and/or password not present in headers");
       res.end();
     }
+  } else if (req.url.includes("/register")) {
+    // user has requested to register an account
+    if (
+      req.headers?.name != undefined &&
+      req.headers?.username != undefined &&
+      req.headers?.password != undefined
+    ) {
+      const name = req.headers?.name;
+      const username = req.headers?.username;
+      const password = req.headers?.password;
+
+      const response = await api_data_handler.RegisterUser(
+        name,
+        username,
+        password
+      );
+      if (response == 200) {
+        res.writeHead(200);
+        res.end("200");
+      } else {
+        res.writeHead(404);
+        res.end(JSON.stringify(response));
+      }
+    } else {
+      res.writeHead(404);
+      res.end(
+        JSON.stringify({
+          message: "Name, username or password not present in headers.",
+        })
+      );
+    }
   } else {
     api_website_files_handler.HandleRequest(req, res);
   }
@@ -231,7 +262,6 @@ const api_website_files_handler = {
                   cookie: req.headers.cookie,
                 },
               });
-
 
               //#endregion
             });
@@ -554,6 +584,23 @@ class CompanyDataHandler {
     const file_data = await this.db_handler.GetFile(file_id);
     // const parsed_data = JSON.parse(file_data.fileName);
     return file_data;
+  }
+
+  async RegisterUser(name, username, password) {
+    try {
+      const response = await this.db_handler.RegisterUser(
+        name,
+        username,
+        password
+      );
+
+      return response;
+    } catch (err) {
+      return {
+        Message: "Error when registering user.",
+        Error: err,
+      };
+    }
   }
 }
 

@@ -1,7 +1,7 @@
 const { Worker, isMainThread, parentPort } = require("node:worker_threads");
 
 module.exports = class WorkerHandler {
-  constructor(threads_num = 100) {
+  constructor(threads_num = 5) {
     this.worker_pool = new ThreadPool(threads_num);
     const Sleep = (timeout = 250) => {
       return new Promise((resolve, reject) => {
@@ -16,8 +16,7 @@ module.exports = class WorkerHandler {
       if (msg.message == "Error") {
         console.log(`An error occurred: ${msg}`);
         this.ActivateWorker(message);
-      }
-      else {
+      } else {
         if (msg.message == "Successful") {
           thread.in_use = false;
         }

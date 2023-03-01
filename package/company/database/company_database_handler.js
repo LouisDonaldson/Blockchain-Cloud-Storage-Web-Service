@@ -303,4 +303,25 @@ WHERE userID = ${user_id};`;
     };
     // return rows[0];
   }
+
+  async RegisterUser(name, username, password) {
+    const sql_string = `INSERT INTO users (Permission_Level, Username, Password, Name)
+      VALUES ("3", "${username}", "${await this.GetHash(
+      password
+    )}", "${name}");`;
+    try {
+      await db.exec(sql_string);
+      return 200;
+    } catch (err) {
+      err;
+      if (
+        err.message ==
+        "SQLITE_CONSTRAINT: UNIQUE constraint failed: users.Username"
+      ) {
+        return {
+          message: "Username already exists.",
+        };
+      }
+    }
+  }
 };
