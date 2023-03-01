@@ -396,7 +396,10 @@ const api_website_files_handler = {
 
 class CompanyDataHandler {
   constructor() {
-    this.db_handler = new database_handler(encryption_handler.GetHash);
+    this.db_handler = new database_handler(
+      encryption_handler.GetHash,
+      encryption_handler.GenerateRandomToken
+    );
     this.session_tokens = [];
     (async () => {
       this.config_file = await this.db_handler.GetConfigFile();

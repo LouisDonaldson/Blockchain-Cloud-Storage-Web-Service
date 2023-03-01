@@ -132,7 +132,8 @@ try {
       constructor() {
         this.db_handler = new database_handler(
           encryption_handler.GetHash,
-          false
+          encryption_handler.GenerateRandomToken,
+          true
         );
         this.session_tokens = [];
         (async () => {

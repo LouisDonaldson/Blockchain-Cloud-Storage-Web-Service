@@ -5,12 +5,13 @@ const _fs = require("fs");
 const path = require("path");
 
 // any changes to the configuration of tables means this needs to be set to true to take affect
-const reset_tables = false;
+const reset_tables = true;
 
 let db;
 module.exports = class Database_Handler {
-  constructor(GetHash) {
+  constructor(GetHash, GenerateRandomToken, from_worker = false) {
     this.GetHash = GetHash;
+    this.GenerateRandomToken = GenerateRandomToken;
 
     const CreateUsersTable = async () => {
       try {
@@ -25,6 +26,7 @@ module.exports = class Database_Handler {
       "Username"	varchar(50) NOT NULL UNIQUE,
       "Password"	varchar(50) NOT NULL,
       "Name"	varchar(50) NOT NULL,
+      "Shared_Key" TEXT NOT NULL,
 
       PRIMARY KEY("ID" AUTOINCREMENT)
         );`);
@@ -93,30 +95,42 @@ module.exports = class Database_Handler {
         const config_data = await this.GetConfigFile();
 
         if (reset_tables) {
-          // drops table then creates new one
-          await CreateUsersTable();
-          await CreateSessionTokensTable();
-          await CreateFilesTable();
+          if (!from_worker) {
+            // drops table then creates new one
+            await CreateUsersTable();
+            await CreateSessionTokensTable();
+            await CreateFilesTable();
 
-          await CreateCompanyFilesDir(config_data.file_path);
+            await CreateCompanyFilesDir(config_data.file_path);
 
-          // Add dummy data here
-          const password_hash = await GetHash(config_data.admin_login.password);
-          const hash_string = password_hash.toString();
+            // Add dummy data here
+            const password_hash = await GetHash(
+              config_data.admin_login.password
+            );
+            const hash_string = password_hash.toString();
 
-          // admin has top level permissions
-          await db.exec(`
-            INSERT INTO users (Username, Password, Name, Permission_Level)
-            VALUES ("${config_data.admin_login.username}", "${hash_string}", "${config_data.admin_login.name}", "${config_data.admin_login.Permission_Level}");`);
+            // admin has top level permissions
+            await db.exec(`
+            INSERT INTO users (Username, Password, Name, Permission_Level, Shared_Key)
+            VALUES ("${config_data.admin_login.username}", "${hash_string}", "${
+              config_data.admin_login.name
+            }", "${
+              config_data.admin_login.Permission_Level
+            }", "${GenerateRandomToken(hash_string)}");`);
 
-          await db.exec(`
-            INSERT INTO users (Username, Password, Name, Permission_Level)
-            VALUES ("admin2", "${hash_string}", "Second Admin", "1");`);
+            await db.exec(`
+            INSERT INTO users (Username, Password, Name, Permission_Level, Shared_Key)
+            VALUES ("admin2", "${hash_string}", "Second Admin", "1", "${GenerateRandomToken(
+              hash_string
+            )}");`);
 
-          // temporary account // Permission level 2
-          await db.exec(`
-            INSERT INTO users (Username, Password, Name, Permission_Level)
-            VALUES ("Viewer", "${hash_string}", "Viewer", "3");`);
+            // temporary account // Permission level 2
+            await db.exec(`
+            INSERT INTO users (Username, Password, Name, Permission_Level, Shared_Key)
+            VALUES ("Viewer", "${hash_string}", "Viewer", "3", "${GenerateRandomToken(
+              hash_string
+            )}");`);
+          }
         }
       } catch (err) {
         console.error(err);
@@ -182,8 +196,8 @@ module.exports = class Database_Handler {
         err.message.includes("SQLITE_CONSTRAINT: UNIQUE constraint failed:")
       ) {
         const new_sql_string = `UPDATE session_tokens
-SET Session_token = '${session_token}'
-WHERE userID = ${user_id};`;
+        SET Session_token = '${session_token}'
+        WHERE userID = ${user_id};`;
         await db.exec(new_sql_string);
       }
     }
