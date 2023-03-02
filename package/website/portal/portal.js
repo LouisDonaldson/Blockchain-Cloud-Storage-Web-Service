@@ -24,7 +24,7 @@ class App {
 }
 
 class FileHandler {
-  CreateBinaryString(file) {
+  CreateBufferArray(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = function () {
@@ -32,7 +32,10 @@ class FileHandler {
           array = new Uint8Array(arrayBuffer);
         // binaryString = String.fromCharCode.apply(null, array);
 
-        resolve(array);
+        // encrypt the buffer here
+        const encrypted_string = app.encrpytion_handler.Encrypt(array);
+
+        resolve(encrypted_string);
       };
       reader.readAsArrayBuffer(file);
     });
@@ -67,6 +70,25 @@ class EncrpytionHandler {
     buf = window.crypto.getRandomValues(buf);
     // converts random nums to hex
     return [...buf].map((x) => x.toString(16).padStart(2, "0")).join("");
+  }
+
+  async Encrypt(buffer) {
+    const user_data = JSON.parse(localStorage.getItem("user_data"));
+
+    // key used to encrypt data
+    var shared_key = user_data.Shared_Key;
+
+    // encrypted = encrypted data
+    var encrypted = CryptoJS.AES.encrypt(
+      JSON.stringify(buffer.toString()),
+      shared_key
+    );
+
+    return encrypted.toString();
+
+    // responsible for successfully decrypting data
+    // var bytes = CryptoJS.AES.decrypt(encrypted, shared_key);
+    // var decryptedData = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
   }
 }
 
@@ -258,7 +280,7 @@ class UiHandler {
         </div>
       </div>
         <div class="file_display_header">
-          <div class="home_recent_header">All Files <span class="all_files_num_files_tag">(${app.api_handler.session_data.files.length} files found)</span></div>
+          <div class="home_recent_header">All Files <span class="all_files_num_files_tag">(${app.api_handler.fileMeta.length} files found)</span></div>
           <div class="refresh_btn"></div>
         </div>
         <div class="recent_files_div">
@@ -447,6 +469,7 @@ class UiHandler {
                   </div>
               </div>
               ${
+                /*
                 app.api_handler.user_data.Permission_Level < 2
                   ? `
               <div class="auth_icon ${
@@ -457,6 +480,15 @@ class UiHandler {
                   : ""
               }"></div>`
                   : ""
+            */
+                `
+              <div class="auth_icon ${
+                fileMeta.authorised == 0
+                  ? `false`
+                  : fileMeta.authorised == 1
+                  ? "true"
+                  : ""
+              }"></div>`
               }
               
               <div class="hover_section"></div>
@@ -565,8 +597,8 @@ class UiHandler {
     const file_input_desc = document.querySelector("#file_description_input");
     if (file_input.files.length > 0) {
       app.file_handler
-        .CreateBinaryString(file_input.files[0])
-        .then((file_binary_string) => {
+        .CreateBufferArray(file_input.files[0])
+        .then((file_buffer) => {
           let new_name = file_input_name.value;
           new_name += `.${file_input.files[0].name.split(".")[1]}`;
           const tranmission_obj = {
@@ -574,7 +606,7 @@ class UiHandler {
             type: `${file_input.files[0].type}`,
             size: `${file_input.files[0].size}`,
             description: file_input_desc?.value ?? "",
-            binaryString: file_binary_string,
+            binaryString: file_buffer,
             timeStamp: new Date().toISOString(),
           };
           const json_obj = JSON.stringify(tranmission_obj);

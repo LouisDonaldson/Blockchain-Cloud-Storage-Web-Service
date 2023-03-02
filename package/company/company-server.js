@@ -304,15 +304,16 @@ const api_website_files_handler = {
           }
         } else {
         }
-      } else if (req.url.includes('/company_data')) {
+      } else if (req.url.includes("/company_data")) {
         const body = {
           name: api_data_handler.config_file.name,
-          logo: await fs_promises.readFile(api_data_handler.config_file.logo_path),
-        }
-        res.writeHead(200)
-        res.end(JSON.stringify(body))
-      }
-      else if (req.url.includes("/initial")) {
+          logo: await fs_promises.readFile(
+            api_data_handler.config_file.logo_path
+          ),
+        };
+        res.writeHead(200);
+        res.end(JSON.stringify(body));
+      } else if (req.url.includes("/initial")) {
         if (req.headers?.cookie) {
           if (
             await api_website_files_handler.CheckValidSessionCookie(
@@ -446,7 +447,7 @@ class CompanyDataHandler {
     let files = await this.db_handler.GetFileMeta();
     if (user_data.Permission_Level != 1) {
       files = files.filter((file) => {
-        if (file.authorised == 1) {
+        if (file.authorised == 1 || file.userID == user_data.ID) {
           return file;
         }
       });
@@ -469,7 +470,7 @@ class CompanyDataHandler {
     let files = await this.db_handler.GetFileMeta();
     if (user_data.Permission_Level != 1) {
       files = files.filter((file) => {
-        if (file.authorised == 1) {
+        if (file.authorised == 1 || file.userID == user_data.ID) {
           return file;
         }
       });
@@ -483,8 +484,6 @@ class CompanyDataHandler {
   }
 
   async SendInitialData(req, res) {
-    // res.end(JSON.stringify(await db_handler.GetConfigFile()))
-    // this.config_file = await this.db_handler.GetConfigFile();
     res.end(
       JSON.stringify({
         // user_data: await this.GetUserData(req),
