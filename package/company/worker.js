@@ -202,6 +202,7 @@ try {
         }
         //#endregion
       }
+
       async GetSessionTokenFromString(cookie_string) {
         const cookies = cookie_string.split(";");
         // parse cookies

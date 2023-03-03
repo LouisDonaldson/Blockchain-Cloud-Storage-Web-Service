@@ -49,7 +49,8 @@ class FileHandler {
     for (const i in file_data_entries) {
       view[i] = file_data_entries[i][1];
     }
-    const blob = new Blob([buffer], {
+    var new_buffer = await app.encrpytion_handler.Decrypt(view);
+    const blob = new Blob([new_buffer], {
       type: response.type,
     });
     const link = document.createElement("a");
@@ -89,6 +90,29 @@ class EncrpytionHandler {
     // responsible for successfully decrypting data
     // var bytes = CryptoJS.AES.decrypt(encrypted, shared_key);
     // var decryptedData = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
+  }
+
+  async Decrypt(buffer) {
+    const user_data = JSON.parse(localStorage.getItem("user_data"));
+
+    // key used to encrypt data
+    var shared_key = user_data.Shared_Key;
+
+    console.log(buffer.toString());
+
+    // responsible for successfully decrypting data
+    var bytes = CryptoJS.AES.decrypt(buffer.toString(), shared_key);
+    console.log(bytes.toString());
+    var decryptedData = JSON.parse(bytes.toString(CryptoJS.enc.Base64));
+
+    // const new_buffer = new ArrayBuffer(bytes.length);
+    // var view = new Uint8Array(new_buffer);
+    // var file_data_entries = bytes;
+    // for (const i in file_data_entries) {
+    //   view[i] = file_data_entries[i][1];
+    // }
+
+    return decryptedData;
   }
 }
 
