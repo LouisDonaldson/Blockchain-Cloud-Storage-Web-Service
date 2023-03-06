@@ -33,7 +33,7 @@ class FileHandler {
         // binaryString = String.fromCharCode.apply(null, array);
 
         // encrypt the buffer here
-        const encrypted_string = app.encrpytion_handler.Encrypt(array);
+        const encrypted_string = app.encrpytion_handler.EncryptFile(array);
 
         resolve(encrypted_string);
       };
@@ -43,14 +43,18 @@ class FileHandler {
   async DownloadFile(file_id) {
     const response = await app.api_handler.RequestFileData(file_id);
     const file_byte_arr = response.file_data;
-    const buffer = new ArrayBuffer(Object.entries(file_byte_arr.data).length);
+
+    var new_buffer = await app.encrpytion_handler.DecryptFile(
+      file_byte_arr.data
+    );
+    const buf_arr = new_buffer.split(",");
+    const buffer = new ArrayBuffer(buf_arr.length);
     const view = new Uint8Array(buffer);
-    const file_data_entries = Object.entries(file_byte_arr.data);
-    for (const i in file_data_entries) {
-      view[i] = file_data_entries[i][1];
+    for (const i in buf_arr) {
+      view[i] = buf_arr[i];
     }
-    var new_buffer = await app.encrpytion_handler.Decrypt(view);
-    const blob = new Blob([new_buffer], {
+
+    const blob = new Blob([buffer], {
       type: response.type,
     });
     const link = document.createElement("a");
@@ -73,7 +77,7 @@ class EncrpytionHandler {
     return [...buf].map((x) => x.toString(16).padStart(2, "0")).join("");
   }
 
-  async Encrypt(buffer) {
+  async EncryptFile(buffer) {
     const user_data = JSON.parse(localStorage.getItem("user_data"));
 
     // key used to encrypt data
@@ -85,25 +89,43 @@ class EncrpytionHandler {
       shared_key
     );
 
-    return encrypted.toString();
+    const encrypted_key = await this.EncryptKey(shared_key);
+    return { data: encrypted.toString(), encrypted_key: encrypted_key };
 
     // responsible for successfully decrypting data
     // var bytes = CryptoJS.AES.decrypt(encrypted, shared_key);
     // var decryptedData = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
   }
 
-  async Decrypt(buffer) {
+  async EncryptKey(key) {
+    const file_password = prompt(
+      "Enter password that you want to encrypt the file with:"
+    );
+
+    var encrypted_key = key;
+    return encrypted_key;
+  }
+
+  async DecryptKey(encrypted_key) {
+    const file_password = prompt("Enter password used to encrpyt the file:");
+  }
+
+  async DecryptFile(buffer) {
     const user_data = JSON.parse(localStorage.getItem("user_data"));
 
     // key used to encrypt data
     var shared_key = user_data.Shared_Key;
 
-    console.log(buffer.toString());
+    let data_string = "";
+
+    for (const char in buffer) {
+      data_string += String.fromCharCode(buffer[char]);
+    }
 
     // responsible for successfully decrypting data
-    var bytes = CryptoJS.AES.decrypt(buffer.toString(), shared_key);
-    console.log(bytes.toString());
-    var decryptedData = JSON.parse(bytes.toString(CryptoJS.enc.Base64));
+    var bytes = CryptoJS.AES.decrypt(data_string, shared_key);
+
+    var decryptedData = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
 
     // const new_buffer = new ArrayBuffer(bytes.length);
     // var view = new Uint8Array(new_buffer);
@@ -622,7 +644,7 @@ class UiHandler {
     if (file_input.files.length > 0) {
       app.file_handler
         .CreateBufferArray(file_input.files[0])
-        .then((file_buffer) => {
+        .then((key_and_buffer) => {
           let new_name = file_input_name.value;
           new_name += `.${file_input.files[0].name.split(".")[1]}`;
           const tranmission_obj = {
@@ -630,7 +652,8 @@ class UiHandler {
             type: `${file_input.files[0].type}`,
             size: `${file_input.files[0].size}`,
             description: file_input_desc?.value ?? "",
-            binaryString: file_buffer,
+            binaryString: key_and_buffer.data,
+            encrypted_key: key_and_buffer.encrypted_key,
             timeStamp: new Date().toISOString(),
           };
           const json_obj = JSON.stringify(tranmission_obj);

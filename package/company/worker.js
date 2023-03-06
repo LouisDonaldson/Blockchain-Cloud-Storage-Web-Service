@@ -231,14 +231,14 @@ try {
         // file data = obj.binaryString
         let file_buffer = file_data.binaryString;
         // console.log(file_buffer);
-        const file_data_entries = Object.entries(file_buffer);
-        const array = [];
+        // const file_data_entries = Object.entries(file_buffer);
+        // const array = [];
 
-        for (const i in file_data_entries) {
-          array[i] = file_data_entries[i][1];
-        }
+        // for (const i in file_data_entries) {
+        //   array[i] = file_data_entries[i][1];
+        // }
 
-        const fs_buffer = Buffer.from(array);
+        // const fs_buffer = Buffer.from(array);
 
         this.config_file = await this.db_handler.GetConfigFile();
 
@@ -247,7 +247,7 @@ try {
           (Math.random() * 10000) | 0
         }_${file_data.name}`;
 
-        fs.writeFile(fs_name, fs_buffer, (err) => {
+        fs.writeFile(fs_name, file_buffer, (err) => {
           if (err) {
             console.error(err);
           } else {
@@ -277,6 +277,7 @@ try {
               hash: file_hash.toString(),
               timestamp: file_data.timeStamp,
               path: `${fs_name}`,
+              key: file_data.encrypted_key,
             },
             `${fs_name}`
           )

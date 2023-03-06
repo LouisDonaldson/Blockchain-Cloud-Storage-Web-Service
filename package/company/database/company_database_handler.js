@@ -83,6 +83,22 @@ module.exports = class Database_Handler {
       await fs.mkdir(path.join(__dirname, dir_path));
       console.log("Company files directory created.");
     };
+
+    const CreateKeyFileRelationTable = async () => {
+      try {
+        await db.exec(` 
+        DROP TABLE keyFileRelation;`);
+      } catch {}
+
+      await db.exec(` 
+      CREATE TABLE "keyFileRelation" (
+      "ID"	INTEGER UNIQUE,
+      "file_id" INTEGER UNIQUE,
+      "encrypted_key" TEXT,
+
+      PRIMARY KEY("ID" AUTOINCREMENT)
+        );`);
+    };
     // console.log("Database handler created.");
     (async () => {
       // open the database
@@ -100,6 +116,7 @@ module.exports = class Database_Handler {
             await CreateUsersTable();
             await CreateSessionTokensTable();
             await CreateFilesTable();
+            await CreateKeyFileRelationTable();
 
             await CreateCompanyFilesDir(config_data.file_path);
 
@@ -270,17 +287,45 @@ module.exports = class Database_Handler {
   async UploadFile(upload_data, file_path) {
     // const file_json = JSON.stringify(upload_data.binary_data)
     const file_buffer = Buffer.from(JSON.stringify(upload_data.binary_data));
-    const binary_string = file_buffer.toString();
     const sql_string = `INSERT INTO files (UserID, fileName, type, size, filePath, description, timestamp, authorised)
       VALUES (${upload_data.userID}, "${upload_data.fileName}", "${upload_data.type}", ${upload_data.size}, "${file_path}", "${upload_data.description}", "${upload_data.timestamp}", false);`;
     try {
       await db.exec(sql_string);
-
+      await this.AddKeyFileRelation({
+        user_id: upload_data.userID,
+        path: upload_data.path,
+        key: upload_data.key,
+      });
       return true;
     } catch (err) {
       err;
       return false;
     }
+  }
+  async AddKeyFileRelation(upload_data) {
+    const sql_string = `SELECT file_ID FROM files WHERE filePath = "${upload_data.path}" AND files.userID = "${upload_data.user_id}"`;
+    const rows = await db.all(sql_string);
+
+    if (rows.length > 1) {
+      throw new Error("Multiple files of the same path.");
+    }
+
+    const sql_string_two = `INSERT INTO keyFileRelation (file_id, encrypted_key)
+      VALUES ("${rows[0].file_ID}", "${upload_data.key}");`;
+    try {
+      await db.exec(sql_string_two);
+      // return 200;
+    } catch (err) {
+      err;
+    }
+    return true;
+
+    // for (const i in rows) {
+    //   const row = rows[i];
+    //   // const user_data = await this.GetUserDataFromID(row.userID);
+    //   // rows[i].uploaded_by = user_data.Name;
+    // }
+    // return rows;
   }
   async GetFileMeta() {
     const sql_string = `SELECT file_ID, fileName, type, description, timestamp, UserID, authorised FROM files`;

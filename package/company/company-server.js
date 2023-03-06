@@ -354,43 +354,6 @@ const api_website_files_handler = {
                 Unauthorised_User_Route(req, res);
               }
             });
-
-            // const user_data = await api_data_handler.GetUserData(req);
-            // if (user_data) {
-            //   if (user_data.Permission_Level < 3) {
-            //     const GetFileIDFromURL = (url) => {
-            //       if (url.includes("?")) {
-            //         const url_split = url.split("?");
-            //         const split = url_split[1].split("=");
-            //         if (split[0] == "file_id") {
-            //           console.log(
-            //             `Request for File. File ID = ${split[1]} from ${user_data.Name}`
-            //           );
-            //           return split[1];
-            //         }
-            //       }
-
-            //       return undefined;
-            //     };
-
-            //     // user permitted to download
-            //     // return file data
-
-            //     const file_id = GetFileIDFromURL(req.url);
-            //     const file_data = await api_data_handler.GetFile(file_id);
-
-            //     // console.log(
-            //     //   "File received from system.\nReturning file to Client."
-            //     // );
-            //     // res.writeHead(200);
-            //     // res.end(JSON.stringify(file_data));
-            //   } else {
-            //     Unauthorised_User_Route(req, res);
-            //   }
-            // } else {
-            //   Unauthorised_User_Route(req, res);
-            // }
-            // user_data;
           }
         }
       } else {
