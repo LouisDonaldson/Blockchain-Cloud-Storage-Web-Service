@@ -3,6 +3,7 @@ const { open } = require("sqlite");
 const fs = require("fs").promises;
 const _fs = require("fs");
 const path = require("path");
+const CryptoJS = require("crypto-js")
 
 // any changes to the configuration of tables means this needs to be set to true to take affect
 const reset_tables = false;
@@ -93,7 +94,7 @@ module.exports = class Database_Handler {
       await db.exec(` 
       CREATE TABLE "keyFileRelation" (
       "ID"	INTEGER UNIQUE NOT NULL,
-      "file_id" INTEGER UNIQUE NOT NULL,
+      "file_id" INTEGER NOT NULL,
       "user_id" INTEGER NOT NULL,
       "encrypted_key" TEXT NOT NULL,
 
@@ -257,7 +258,6 @@ module.exports = class Database_Handler {
       }
     }
   }
-
   async GetUserDataFromToken(token_string) {
     const id = await this.GetUserIDFromToken(token_string);
 
@@ -290,11 +290,37 @@ module.exports = class Database_Handler {
       VALUES (${upload_data.userID}, "${upload_data.fileName}", "${upload_data.type}", ${upload_data.size}, "${file_path}", "${upload_data.description}", "${upload_data.timestamp}", false);`;
     try {
       await db.exec(sql_string);
+
+      //initial owner of file's key
       await this.AddKeyFileRelation({
-        user_id: upload_data.userID,
+        uploader_user_id: upload_data.userID,
+        new_user: upload_data.userID,
         path: upload_data.path,
         key: upload_data.key,
       });
+
+      // decrypt key then re-encrypt with different user's public keys
+      const user_data = await this.GetUserDataFromID(upload_data.userID)
+      const decryption_key = user_data.Public_Key
+
+      var bytes = CryptoJS.AES.decrypt(upload_data.key, decryption_key);
+      var decrypted_key = bytes.toString(CryptoJS.enc.Utf8);
+
+      for (const user_id of upload_data.share_with_user_ids) {
+        const _user_data = await this.GetUserDataFromID(user_id)
+        const encrypted = CryptoJS.AES.encrypt(
+          decrypted_key,
+          _user_data.Public_Key
+        );
+
+        var new_encrypted_key = encrypted.toString();
+        this.AddKeyFileRelation({
+          uploader_user_id: upload_data.userID,
+          new_user: user_id,
+          path: upload_data.path,
+          key: new_encrypted_key,
+        });
+      }
       return true;
     } catch (err) {
       err;
@@ -302,7 +328,7 @@ module.exports = class Database_Handler {
     }
   }
   async AddKeyFileRelation(upload_data) {
-    const sql_string = `SELECT file_ID FROM files WHERE filePath = "${upload_data.path}" AND files.userID = "${upload_data.user_id}"`;
+    const sql_string = `SELECT file_ID FROM files WHERE filePath = "${upload_data.path}" AND files.userID = "${upload_data.uploader_user_id}"`;
     const rows = await db.all(sql_string);
 
     if (rows.length > 1) {
@@ -310,7 +336,7 @@ module.exports = class Database_Handler {
     }
 
     const sql_string_two = `INSERT INTO keyFileRelation (file_id, encrypted_key, user_id)
-      VALUES ("${rows[0].file_ID}", "${upload_data.key}", "${upload_data.user_id}");`;
+      VALUES ("${rows[0].file_ID}", "${upload_data.key}", "${upload_data.new_user}");`;
     try {
       await db.exec(sql_string_two);
       // return 200;
@@ -412,5 +438,14 @@ module.exports = class Database_Handler {
     const sql_string = `SELECT Name, ID FROM Users`;
     const rows = await db.all(sql_string);
     return rows
+  }
+  async GetFileKeyFromUserID(file_id, user_id) {
+    const sql_string = `SELECT encrypted_key FROM keyFileRelation where file_ID="${file_id}" AND user_id = "${user_id}"`;
+    const rows = await db.all(sql_string);
+    if (rows.length > 1) {
+      throw new Error("Multiple encryption keys for a single file and user.")
+    }
+
+    return rows[0]
   }
 };

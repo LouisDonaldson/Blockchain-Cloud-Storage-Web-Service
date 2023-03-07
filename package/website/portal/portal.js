@@ -45,7 +45,7 @@ class FileHandler {
     const file_byte_arr = response.file_data;
     var new_buffer;
     try {
-      new_buffer = await app.encrpytion_handler.DecryptFile(file_byte_arr.data);
+      new_buffer = await app.encrpytion_handler.DecryptFile(file_byte_arr.data, response.key_for_user.encrypted_key);
       const buf_arr = new_buffer.split(",");
       const buffer = new ArrayBuffer(buf_arr.length);
       const view = new Uint8Array(buffer);
@@ -115,16 +115,21 @@ class EncrpytionHandler {
     return encrypted_key;
   }
 
-  async DecryptKey(encrypted_key) {
-    const file_password = prompt("Enter password used to encrpyt the file:");
+  async DecryptKey(encrypted_key, public_key) {
+    // decrypt encrypted key with public key
+    var bytes = CryptoJS.AES.decrypt(encrypted_key, public_key);
+
+    var decryptedData = bytes.toString(CryptoJS.enc.Utf8);
+    return decryptedData
   }
 
-  async DecryptFile(buffer) {
+  async DecryptFile(buffer, encrypted_key) {
     const user_data = JSON.parse(localStorage.getItem("user_data"));
 
-    // key used to encrypt data
+    // key used to encrypt the encrypted shared key
     var public_key = user_data.Public_Key;
 
+    const decryption_key = await this.DecryptKey(encrypted_key, public_key)
     let data_string = "";
 
     for (const char in buffer) {
@@ -132,16 +137,9 @@ class EncrpytionHandler {
     }
 
     // responsible for successfully decrypting data
-    var bytes = CryptoJS.AES.decrypt(data_string, public_key);
+    var bytes = CryptoJS.AES.decrypt(data_string, decryption_key);
 
     var decryptedData = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
-
-    // const new_buffer = new ArrayBuffer(bytes.length);
-    // var view = new Uint8Array(new_buffer);
-    // var file_data_entries = bytes;
-    // for (const i in file_data_entries) {
-    //   view[i] = file_data_entries[i][1];
-    // }
 
     return decryptedData;
   }

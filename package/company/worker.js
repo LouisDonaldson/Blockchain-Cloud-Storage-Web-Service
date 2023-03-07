@@ -104,7 +104,7 @@ try {
               if (_user_data.Permission_Level < 3) {
                 user_data = _user_data;
                 const file_id = GetFileIDFromURL(message.data.request_url);
-                api_data_handler.GetFile(file_id).then((file_data) => {
+                api_data_handler.GetFile(file_id, _user_data).then((file_data) => {
                   parentPort.postMessage({
                     message: "Successful",
                     data: JSON.stringify(file_data),
@@ -243,9 +243,8 @@ try {
         this.config_file = await this.db_handler.GetConfigFile();
 
         // write file to file system
-        const fs_name = `${__dirname}/database/${this.config_file.file_path}/${
-          (Math.random() * 10000) | 0
-        }_${file_data.name}`;
+        const fs_name = `${__dirname}/database/${this.config_file.file_path}/${(Math.random() * 10000) | 0
+          }_${file_data.name}`;
 
         fs.writeFile(fs_name, file_buffer, (err) => {
           if (err) {
@@ -278,6 +277,7 @@ try {
               timestamp: file_data.timeStamp,
               path: `${fs_name}`,
               key: file_data.encrypted_key,
+              share_with_user_ids: file_data.share_with_user_ids
             },
             `${fs_name}`
           )
@@ -298,8 +298,9 @@ try {
         }
       }
 
-      async GetFile(file_id) {
+      async GetFile(file_id, user_data) {
         const file_data = await this.db_handler.GetFile(file_id);
+        file_data.key_for_user = await this.db_handler.GetFileKeyFromUserID(file_id, user_data.ID);
         // const parsed_data = JSON.parse(file_data.fileName);
         return file_data;
       }
