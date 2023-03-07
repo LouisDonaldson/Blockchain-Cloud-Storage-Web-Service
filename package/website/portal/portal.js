@@ -80,10 +80,13 @@ class EncrpytionHandler {
   }
 
   async EncryptFile(buffer) {
-    const user_data = JSON.parse(localStorage.getItem("user_data"));
 
-    // key used to encrypt data
-    var shared_key = user_data.Shared_Key;
+
+    // generate new key for encryption
+    const shared_key = await this.GenerateKey()
+
+    // key used to encrypt new key
+
 
     // encrypted = encrypted data
     var encrypted = CryptoJS.AES.encrypt(
@@ -99,12 +102,16 @@ class EncrpytionHandler {
     // var decryptedData = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
   }
 
-  async EncryptKey(key) {
-    const file_password = prompt(
-      "Enter password that you want to encrypt the file with:"
+  async EncryptKey(shared_key) {
+    const user_data = JSON.parse(localStorage.getItem("user_data"));
+    var public_key = user_data.Public_Key;
+
+    var encrypted = CryptoJS.AES.encrypt(
+      shared_key,
+      public_key
     );
 
-    var encrypted_key = key;
+    var encrypted_key = encrypted.toString();
     return encrypted_key;
   }
 
@@ -116,7 +123,7 @@ class EncrpytionHandler {
     const user_data = JSON.parse(localStorage.getItem("user_data"));
 
     // key used to encrypt data
-    var shared_key = user_data.Shared_Key;
+    var public_key = user_data.Public_Key;
 
     let data_string = "";
 
@@ -125,7 +132,7 @@ class EncrpytionHandler {
     }
 
     // responsible for successfully decrypting data
-    var bytes = CryptoJS.AES.decrypt(data_string, shared_key);
+    var bytes = CryptoJS.AES.decrypt(data_string, public_key);
 
     var decryptedData = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
 
@@ -289,6 +296,23 @@ class ApiHandler {
       } else return;
     }
   };
+  GetOtherUsers = async (clientID) => {
+    const response = await fetch(`/users`);
+    if (response.status == 200) {
+      var data = await response.json()
+      data = data.filter(user => {
+        if (user.ID != clientID) {
+          return user
+        }
+      })
+      return data;
+
+    } else {
+      if (response.status == 401) {
+        window.location.reload();
+      } else return;
+    }
+  }
 }
 
 class UiHandler {
@@ -471,26 +495,30 @@ class UiHandler {
             const date_string = `${file_date.toLocaleDateString()} ${file_date.toLocaleTimeString()}`;
 
             const file_div = document.createElement("div");
-            file_div.classList.add("file_div");
+            file_div.classList.add("file_div_auth");
             file_div.innerHTML = `
-          <div class="file_icon_div"></div>
-          <div class="file_text">
-            <div class="file_left">
-              <div class="file_name_desc">
-                <div class="file_meta_name">
-                    ${fileMeta.fileName}
+            <div class="d-flex w-100 top">
+              <div class="file_icon_div"></div>
+                <div class="file_text">
+                  <div class="file_left">
+                    <div class="file_name_desc">
+                      <div class="file_meta_name">
+                          ${fileMeta.fileName}
+                        </div>
+                        <div class="file_meta_desc">
+                          ${fileMeta.description}
+                        </div>
+                    </div>
                   </div>
-                  <div class="file_meta_desc">
-                    ${fileMeta.description}
+                  <div class="file_right">
+                    <div class="additional_meta">Uploaded at: ${date_string} by ${fileMeta.uploaded_by}</div>
                   </div>
+                </div>
               </div>
+            <div class="d-flex w-100 bottom">
               <div class="hover_section">
               </div>
             </div>
-            <div class="file_right">
-              <div class="additional_meta">Uploaded at: ${date_string} by ${fileMeta.uploaded_by}</div>
-            </div>
-          </div>
           `;
             files_section.append(file_div);
 
@@ -499,14 +527,14 @@ class UiHandler {
             file_div.addEventListener("mouseenter", () => {
               hover_section.innerHTML = `
               <div class="auth_buttons">
-                <div class="download_button"></div>
-                <div class="auth_btn auth_true"></div>
-                <div class="auth_btn auth_false"></div>
+                <div class="auth_download_button">Download</div>
+                <div class="auth_btn auth_true">Authorise</div>
+                <div class="auth_btn auth_false">Reject</div>
               </div>
               `;
 
               const download_button =
-                hover_section.querySelector(".download_button");
+                hover_section.querySelector(".auth_download_button");
               if (download_button) {
                 download_button.addEventListener("click", (e) => {
                   // console.log(e);
@@ -518,14 +546,16 @@ class UiHandler {
               auth_true_btn.addEventListener("click", async () => {
                 // file needs to be authed
                 await app.api_handler.AuthoriseFile(fileMeta.file_ID);
-                DisplayAuthorisedFilesContentsContent();
+                files_section.classList.add("fade_out")
+                setTimeout(DisplayAuthorisedFilesContentsContent, 500)
               });
 
               const auth_false_btn = hover_section.querySelector(".auth_false");
               auth_false_btn.addEventListener("click", async () => {
                 // file needs to be deleted
                 await app.api_handler.DeleteFile(fileMeta.file_ID);
-                DisplayAuthorisedFilesContentsContent();
+                files_section.classList.add("fade_out")
+                setTimeout(DisplayAuthorisedFilesContentsContent, 500)
               });
             });
 
@@ -545,8 +575,7 @@ class UiHandler {
         <li class="link" id="settings_link">Settings</li>
     </ul>
     <div class="link_divider"></div>
-    ${
-      app.api_handler.user_data?.Permission_Level < 2
+    ${app.api_handler.user_data?.Permission_Level < 2
         ? `
         <ul class="additional_links_ul">
           <li class="link" id="file_request_link">File Requests</li>
@@ -554,7 +583,7 @@ class UiHandler {
         </ul>
     `
         : ""
-    }
+      }
     `;
 
     const ClearLinkClasses = () => {
@@ -652,34 +681,32 @@ class UiHandler {
                   </div>
               </div>
               ${
-                /*
-                app.api_handler.user_data.Permission_Level < 2
-                  ? `
-              <div class="auth_icon ${
-                fileMeta.authorised == 0
-                  ? `false`
-                  : fileMeta.authorised == 1
-                  ? "true"
-                  : ""
-              }"></div>`
-                  : ""
-            */
-                `
-              <div class="auth_icon ${
-                fileMeta.authorised == 0
-                  ? `false`
-                  : fileMeta.authorised == 1
-                  ? "true"
-                  : ""
-              }"></div>`
-              }
+            /*
+            app.api_handler.user_data.Permission_Level < 2
+              ? `
+          <div class="auth_icon ${
+            fileMeta.authorised == 0
+              ? `false`
+              : fileMeta.authorised == 1
+              ? "true"
+              : ""
+          }"></div>`
+              : ""
+        */
+            `
+              <div class="auth_icon ${fileMeta.authorised == 0
+              ? `false`
+              : fileMeta.authorised == 1
+                ? "true"
+                : ""
+            }"></div>`
+            }
               
               <div class="hover_section"></div>
             </div>
             <div class="file_right">
-              <div class="additional_meta">Uploaded at: ${date_string} by ${
-            fileMeta.uploaded_by
-          }</div>
+              <div class="additional_meta">Uploaded at: ${date_string} by ${fileMeta.uploaded_by
+            }</div>
             </div>
           </div>
           `;
@@ -689,11 +716,10 @@ class UiHandler {
 
           file_div.addEventListener("mouseenter", () => {
             hover_section.innerHTML = `
-        ${
-          app.api_handler.user_data.Permission_Level < 3
-            ? `<div class="download_button"></div>`
-            : ""
-        }
+        ${app.api_handler.user_data.Permission_Level < 3
+                ? `<div class="download_button"></div>`
+                : ""
+              }
         <div class="view_button"></div>
         `;
 
@@ -731,8 +757,8 @@ class UiHandler {
   }
 
   // callback for submit button event listener
-  SubmitClickCallback() {
-    app.ui_handler.SubmitClicked();
+  SubmitClickCallback(selected_users) {
+    app.ui_handler.SubmitClicked(selected_users);
   }
   //opens modal
   OpenModal() {
@@ -757,10 +783,16 @@ class UiHandler {
                 <div class="file_name_input_div">
                     <input type="file" id="file_input">
                 </div>
+                <div class="share_toggle">
+                  <label>Share with other users?</label>
+                  <input type="checkbox" id="toggle_share">
+                </div>
+                <div class="toggle_select_users_section"></div>
                 <div class="btn submit_btn">Submit for approval</div>
             </div>
         </div>`;
     upload_modal.classList.remove("d-none");
+    let selected_users = []
 
     const submit_btn = upload_modal.querySelector(".submit_btn");
 
@@ -769,12 +801,81 @@ class UiHandler {
       app.ui_handler.CloseModal();
     });
 
-    submit_btn.addEventListener("click", app.ui_handler.SubmitClickCallback, {
+    submit_btn.addEventListener("click", () => {
+      app.ui_handler.SubmitClickCallback(selected_users)
+    }, {
       once: true,
     });
+
+    const toggle_share = upload_modal.querySelector('#toggle_share')
+    const toggle_select_users_section = upload_modal.querySelector('.toggle_select_users_section')
+    toggle_share.addEventListener('change', async () => {
+      switch (toggle_share.checked) {
+        case true:
+          const user_data = JSON.parse(localStorage.getItem("user_data"));
+
+          const other_users = await app.api_handler.GetOtherUsers(user_data.ID)
+          toggle_select_users_section.innerHTML = `
+          <ul class="other_users_ul">
+          </ul>`
+
+          const other_users_ul = toggle_select_users_section.querySelector('.other_users_ul')
+          for (const user of other_users) {
+            const lbl_id = `lbl_${user.ID}`
+            const input_class = `input_${user.ID}`
+
+            const li_el = document.createElement('li')
+            li_el.classList.add("other_user_li")
+
+            const lbl_el = document.createElement('label');
+            lbl_el.classList.add("other_user_lbl")
+            lbl_el.id = lbl_id
+            lbl_el.textContent = user.Name
+            li_el.append(lbl_el)
+
+            const input_el = document.createElement('input')
+            input_el.type = "checkbox"
+            input_el.id = input_class
+            input_el.classList.add("other_user_toggle")
+            li_el.append(input_el)
+
+            // other_users_ul.innerHTML += `
+            // <li class="other_user_li">
+            //   <label class="other_user_lbl" id="${lbl_id}">${user.Name}</label>
+            //   <input type="checkbox" class="other_user_toggle" id="${input_class}">
+            // </li>`
+
+            // const toggle_input = other_users_ul.querySelector(`#${input_class}`)
+            input_el.addEventListener('change', () => {
+              switch (input_el.checked) {
+                case true:
+                  li_el.classList.add("selected")
+                  selected_users.push(user.ID)
+                  break;
+                case false:
+                  li_el.classList.remove("selected")
+                  selected_users = selected_users.filter(_user => {
+                    if (_user != user.ID) {
+                      return _user
+                    }
+                  })
+                  break;
+              }
+            })
+
+            other_users_ul.append(li_el)
+          }
+          break;
+        case false:
+          selected_users = []
+          toggle_select_users_section.innerHTML = ``
+          break;
+      }
+
+    })
   }
   // executed once submit button is clicked
-  async SubmitClicked() {
+  async SubmitClicked(selected_users) {
     const file_input = document.querySelector("#file_input");
     const file_input_name = document.querySelector("#file_name_input");
     const file_input_desc = document.querySelector("#file_description_input");
@@ -792,6 +893,7 @@ class UiHandler {
             binaryString: key_and_buffer.data,
             encrypted_key: key_and_buffer.encrypted_key,
             timeStamp: new Date().toISOString(),
+            share_with_user_ids: selected_users
           };
           const json_obj = JSON.stringify(tranmission_obj);
           // console.log(json_obj);

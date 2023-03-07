@@ -8,6 +8,5 @@
     "Permission_Level": "1"
   },
   "file_path": "./company-files",
-  "num_miners": "1",
-  "shared_key": "c68eb6a70806df63f95f00e03f2f0d16587e37d08555430537a970819145db24b2d4471c4afb4882b107d11323b774e0a7c821403bafa3687f2882a5361f1cc87448bb8e6b891518910b6e2b754cb58c22a04026f92eac47396e9e158aa794d4f28fdbd95b6795d2c4737763f7c6aaa4b341f53c8ceb61e5b0926e91d4b03e2e"
+  "num_miners": "1"
 }

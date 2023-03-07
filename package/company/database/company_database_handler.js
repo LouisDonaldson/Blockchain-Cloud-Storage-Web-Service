@@ -17,7 +17,7 @@ module.exports = class Database_Handler {
       try {
         await db.exec(` 
         DROP TABLE users;`);
-      } catch {}
+      } catch { }
 
       await db.exec(` 
       CREATE TABLE "users" (
@@ -26,7 +26,7 @@ module.exports = class Database_Handler {
       "Username"	varchar(50) NOT NULL UNIQUE,
       "Password"	varchar(50) NOT NULL,
       "Name"	varchar(50) NOT NULL,
-      "Shared_Key" TEXT NOT NULL,
+      "Public_Key" TEXT NOT NULL,
 
       PRIMARY KEY("ID" AUTOINCREMENT)
         );`);
@@ -36,7 +36,7 @@ module.exports = class Database_Handler {
       try {
         await db.exec(` 
         DROP TABLE session_tokens;`);
-      } catch {}
+      } catch { }
 
       try {
         await db.exec(` 
@@ -52,7 +52,7 @@ module.exports = class Database_Handler {
       try {
         await db.exec(` 
         DROP TABLE files;`);
-      } catch {}
+      } catch { }
 
       try {
         await db.exec(` 
@@ -88,7 +88,7 @@ module.exports = class Database_Handler {
       try {
         await db.exec(` 
         DROP TABLE keyFileRelation;`);
-      } catch {}
+      } catch { }
 
       await db.exec(` 
       CREATE TABLE "keyFileRelation" (
@@ -129,22 +129,20 @@ module.exports = class Database_Handler {
 
             // admin has top level permissions
             await db.exec(`
-            INSERT INTO users (Username, Password, Name, Permission_Level, Shared_Key)
-            VALUES ("${config_data.admin_login.username}", "${hash_string}", "${
-              config_data.admin_login.name
-            }", "${
-              config_data.admin_login.Permission_Level
-            }", "${GenerateRandomToken(hash_string)}");`);
+            INSERT INTO users (Username, Password, Name, Permission_Level, Public_Key)
+            VALUES ("${config_data.admin_login.username}", "${hash_string}", "${config_data.admin_login.name
+              }", "${config_data.admin_login.Permission_Level
+              }", "${GenerateRandomToken(hash_string)}");`);
 
             await db.exec(`
-            INSERT INTO users (Username, Password, Name, Permission_Level, Shared_Key)
+            INSERT INTO users (Username, Password, Name, Permission_Level, Public_Key)
             VALUES ("admin2", "${hash_string}", "Second Admin", "1", "${GenerateRandomToken(
               hash_string
             )}");`);
 
             // temporary account // Permission level 2
             await db.exec(`
-            INSERT INTO users (Username, Password, Name, Permission_Level, Shared_Key)
+            INSERT INTO users (Username, Password, Name, Permission_Level, Public_Key)
             VALUES ("Viewer", "${hash_string}", "Viewer", "3", "${GenerateRandomToken(
               hash_string
             )}");`);
@@ -263,7 +261,7 @@ module.exports = class Database_Handler {
   async GetUserDataFromToken(token_string) {
     const id = await this.GetUserIDFromToken(token_string);
 
-    const sql_string = `SELECT ID, Permission_Level, Name, Username, Shared_Key FROM Users WHERE ID = "${id}"`;
+    const sql_string = `SELECT ID, Permission_Level, Name, Username, Public_Key FROM Users WHERE ID = "${id}"`;
     const rows = await db.all(sql_string);
 
     if (rows.length > 1) {
@@ -389,7 +387,7 @@ module.exports = class Database_Handler {
     return true;
   }
   async RegisterUser(name, username, password) {
-    const sql_string = `INSERT INTO users (Permission_Level, Username, Password, Name, Shared_Key)
+    const sql_string = `INSERT INTO users (Permission_Level, Username, Password, Name, Public_Key)
       VALUES ("3", "${username}", "${await this.GetHash(
       password
     )}", "${name}", "${this.GenerateRandomToken(
@@ -409,5 +407,10 @@ module.exports = class Database_Handler {
         };
       }
     }
+  }
+  async GetUserNames() {
+    const sql_string = `SELECT Name, ID FROM Users`;
+    const rows = await db.all(sql_string);
+    return rows
   }
 };

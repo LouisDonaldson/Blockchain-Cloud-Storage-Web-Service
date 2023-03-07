@@ -417,7 +417,22 @@ const api_website_files_handler = {
             }
           }
         }
-      } else {
+      } else if (req.url == "/users") {
+        if (req.headers?.cookie) {
+          if (
+            await api_website_files_handler.CheckValidSessionCookie(
+              req.headers.cookie
+            )
+          ) {
+            var users = await api_data_handler.GetUserNames();
+            if (users) {
+              res.writeHead(200);
+              res.end(JSON.stringify(users));
+            }
+          }
+        }
+      }
+      else {
         default_route_request(req, res);
       }
     } else {
@@ -701,6 +716,10 @@ class CompanyDataHandler {
   }
   async DeleteFile(file_id) {
     return await this.db_handler.DeleteFile(file_id);
+  }
+  async GetUserNames() {
+    let users = await this.db_handler.GetUserNames();
+    return users
   }
 }
 
