@@ -92,9 +92,10 @@ module.exports = class Database_Handler {
 
       await db.exec(` 
       CREATE TABLE "keyFileRelation" (
-      "ID"	INTEGER UNIQUE,
-      "file_id" INTEGER UNIQUE,
-      "encrypted_key" TEXT,
+      "ID"	INTEGER UNIQUE NOT NULL,
+      "file_id" INTEGER UNIQUE NOT NULL,
+      "user_id" INTEGER NOT NULL,
+      "encrypted_key" TEXT NOT NULL,
 
       PRIMARY KEY("ID" AUTOINCREMENT)
         );`);
@@ -310,8 +311,8 @@ module.exports = class Database_Handler {
       throw new Error("Multiple files of the same path.");
     }
 
-    const sql_string_two = `INSERT INTO keyFileRelation (file_id, encrypted_key)
-      VALUES ("${rows[0].file_ID}", "${upload_data.key}");`;
+    const sql_string_two = `INSERT INTO keyFileRelation (file_id, encrypted_key, user_id)
+      VALUES ("${rows[0].file_ID}", "${upload_data.key}", "${upload_data.user_id}");`;
     try {
       await db.exec(sql_string_two);
       // return 200;
@@ -362,7 +363,24 @@ module.exports = class Database_Handler {
     };
     // return rows[0];
   }
-
+  async GetUnauthorisedFiles() {
+    const sql_string = `SELECT file_ID, fileName, type, description, timestamp, UserID, authorised FROM files WHERE authorised = "0"`;
+    const rows = await db.all(sql_string);
+    for (const i in rows) {
+      const row = rows[i];
+      const user_data = await this.GetUserDataFromID(row.userID);
+      rows[i].uploaded_by = user_data.Name;
+    }
+    return rows;
+  }
+  async AuthoriseFile(file_id) {
+    const sql_string = `
+    UPDATE files
+    SET authorised = 1
+    WHERE file_iD =  "${file_id}";`;
+    const rows = await db.all(sql_string);
+    return true;
+  }
   async RegisterUser(name, username, password) {
     const sql_string = `INSERT INTO users (Permission_Level, Username, Password, Name, Shared_Key)
       VALUES ("3", "${username}", "${await this.GetHash(

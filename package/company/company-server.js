@@ -304,6 +304,21 @@ const api_website_files_handler = {
           }
         } else {
         }
+      } else if (req.url.includes("/authFiles")) {
+        if (req.headers?.cookie) {
+          if (
+            await api_website_files_handler.CheckValidSessionCookie(
+              req.headers.cookie
+            )
+          ) {
+            api_data_handler.SendUnauthorisedFiles(req, res);
+          } else {
+            // cookie not authed
+            res.writeHead(401);
+            res.end();
+          }
+        } else {
+        }
       } else if (req.url.includes("/company_data")) {
         const body = {
           name: api_data_handler.config_file.name,
@@ -356,6 +371,29 @@ const api_website_files_handler = {
             });
           }
         }
+      } else if (req.url.includes("/authFile?")) {
+        if (req.headers?.cookie) {
+          if (
+            await api_website_files_handler.CheckValidSessionCookie(
+              req.headers.cookie
+            )
+          ) {
+            let file_id;
+            const temp = req.url.split("?");
+            const parameters = temp[1].split("&");
+            for (const param of parameters) {
+              if (param.includes("file_id")) {
+                const split = param.split("=");
+                file_id = parseInt(split[1]);
+              }
+            }
+            var complete = await api_data_handler.AuthoriseFile(file_id);
+            if (complete) {
+              res.writeHead(200);
+              res.end();
+            }
+          }
+        }
       } else {
         default_route_request(req, res);
       }
@@ -369,6 +407,9 @@ const api_website_files_handler = {
     for (const _cookie of cookies) {
       const cookie = _cookie.trim();
       const split_cookie = cookie.split("=", 2);
+      if (split_cookie[0] != "session_token") {
+        continue;
+      }
       if (split_cookie[0] == "session_token") {
         if (await api_data_handler.CheckCookie(split_cookie[1])) {
           return true;
@@ -377,6 +418,7 @@ const api_website_files_handler = {
         }
       }
     }
+    return false;
   },
 };
 
@@ -437,6 +479,28 @@ class CompanyDataHandler {
           return file;
         }
       });
+    }
+
+    res.end(
+      JSON.stringify({
+        files: files,
+      })
+    );
+  }
+
+  async SendUnauthorisedFiles(req, res) {
+    // res.end(JSON.stringify(await db_handler.GetConfigFile()))
+    // this.config_file = await this.db_handler.GetConfigFile();
+    const user_data = await this.GetUserData(req);
+    let files = await this.db_handler.GetUnauthorisedFiles();
+    if (user_data.Permission_Level != 1) {
+      res.writeHead(501);
+      res.end(
+        JSON.stringify({
+          Error:
+            "Not permitted to authorise files. Please log in with an admin account.",
+        })
+      );
     }
 
     res.end(
@@ -608,6 +672,9 @@ class CompanyDataHandler {
         Error: err,
       };
     }
+  }
+  async AuthoriseFile(file_id) {
+    return await this.db_handler.AuthoriseFile(file_id);
   }
 }
 

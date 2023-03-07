@@ -43,25 +43,27 @@ class FileHandler {
   async DownloadFile(file_id) {
     const response = await app.api_handler.RequestFileData(file_id);
     const file_byte_arr = response.file_data;
+    var new_buffer;
+    try {
+      new_buffer = await app.encrpytion_handler.DecryptFile(file_byte_arr.data);
+      const buf_arr = new_buffer.split(",");
+      const buffer = new ArrayBuffer(buf_arr.length);
+      const view = new Uint8Array(buffer);
+      for (const i in buf_arr) {
+        view[i] = buf_arr[i];
+      }
 
-    var new_buffer = await app.encrpytion_handler.DecryptFile(
-      file_byte_arr.data
-    );
-    const buf_arr = new_buffer.split(",");
-    const buffer = new ArrayBuffer(buf_arr.length);
-    const view = new Uint8Array(buffer);
-    for (const i in buf_arr) {
-      view[i] = buf_arr[i];
+      const blob = new Blob([buffer], {
+        type: response.type,
+      });
+      const link = document.createElement("a");
+      // link.target = "_blank";
+      link.href = window.URL.createObjectURL(blob);
+      link.download = `${response.fileName}`;
+      link.click();
+    } catch (err) {
+      window.alert("Error when decrypting file.");
     }
-
-    const blob = new Blob([buffer], {
-      type: response.type,
-    });
-    const link = document.createElement("a");
-    // link.target = "_blank";
-    link.href = window.URL.createObjectURL(blob);
-    link.download = `${response.fileName}`;
-    link.click();
   }
 }
 
@@ -256,6 +258,27 @@ class ApiHandler {
     window.location.reload();
     // response;
   };
+  GetUnauthorisedFiles = async () => {
+    const response = await fetch("/authFiles");
+    if (response.status == 200) {
+      const data = await response.json();
+      return data;
+    } else {
+      if (response.status == 401) {
+        window.location.reload();
+      } else return [];
+    }
+  };
+  AuthoriseFile = async (file_id) => {
+    const response = await fetch(`/authFile?file_id=${file_id}`);
+    if (response.status == 200) {
+      return true;
+    } else {
+      if (response.status == 401) {
+        window.location.reload();
+      } else return;
+    }
+  };
 }
 
 class UiHandler {
@@ -269,7 +292,6 @@ class UiHandler {
     // log out functionality
     const log_out_div = document.querySelector(".log_out_div");
     log_out_div.addEventListener("click", () => {
-      // document.cookie = "test"
       app.LogOut();
       window.location.reload();
     });
@@ -413,6 +435,96 @@ class UiHandler {
       // setInterval(() => this.UpdateListFileDisplay(recent_files_div, false), 2000);
     };
 
+    const DisplayAuthorisedFilesContentsContent = () => {
+      this.displayed_files = "";
+      const folder_view = document.querySelector(".folder_view");
+      folder_view.innerHTML = `
+      <div class="authorise_files_request_btn">Click to Request Files to Authorise</div>
+      <div class="files_sections"></div>`;
+
+      const viewer_header = document.querySelector(".viewer_header");
+      viewer_header.textContent = "Authorise Files";
+
+      const authorise_files_request_btn = folder_view.querySelector(
+        ".authorise_files_request_btn"
+      );
+      authorise_files_request_btn.addEventListener("click", async () => {
+        const file_response = await app.api_handler.GetUnauthorisedFiles();
+        const files_section = folder_view.querySelector(".files_sections");
+        files_section.innerHTML = "";
+        if (file_response.files.length < 1) {
+          files_section.innerHTML = `<div>No files need to be authorised.</div>`;
+        } else {
+          // display files
+          file_response.files?.forEach((fileMeta, index) => {
+            const file_date = new Date(fileMeta.timeStamp);
+            const date_string = `${file_date.toLocaleDateString()} ${file_date.toLocaleTimeString()}`;
+
+            const file_div = document.createElement("div");
+            file_div.classList.add("file_div");
+            file_div.innerHTML = `
+          <div class="file_icon_div"></div>
+          <div class="file_text">
+            <div class="file_left">
+              <div class="file_name_desc">
+                <div class="file_meta_name">
+                    ${fileMeta.fileName}
+                  </div>
+                  <div class="file_meta_desc">
+                    ${fileMeta.description}
+                  </div>
+              </div>
+              <div class="hover_section">
+              </div>
+            </div>
+            <div class="file_right">
+              <div class="additional_meta">Uploaded at: ${date_string} by ${fileMeta.uploaded_by}</div>
+            </div>
+          </div>
+          `;
+            files_section.append(file_div);
+
+            const hover_section = file_div.querySelector(".hover_section");
+
+            file_div.addEventListener("mouseenter", () => {
+              hover_section.innerHTML = `
+              <div class="auth_buttons">
+                <div class="download_button"></div>
+                <div class="auth_btn auth_true"></div>
+                <div class="auth_btn auth_false"></div>
+              </div>
+              `;
+
+              const download_button =
+                hover_section.querySelector(".download_button");
+              if (download_button) {
+                download_button.addEventListener("click", (e) => {
+                  // console.log(e);
+                  app.file_handler.DownloadFile(fileMeta.file_ID);
+                });
+              }
+
+              const auth_true_btn = hover_section.querySelector(".auth_true");
+              auth_true_btn.addEventListener("click", async () => {
+                // file needs to be authed
+                await app.api_handler.AuthoriseFile(fileMeta.file_ID);
+                DisplayAuthorisedFilesContentsContent();
+              });
+
+              const auth_false_btn = hover_section.querySelector(".auth_false");
+              auth_false_btn.addEventListener("click", () => {
+                // file needs to be deleted
+              });
+            });
+
+            file_div.addEventListener("mouseleave", () => {
+              hover_section.innerHTML = "";
+            });
+          });
+        }
+      });
+    };
+
     const explorer_links = document.querySelector(".explorer_body_links");
     explorer_links.innerHTML = `
     <ul class="links_ul">
@@ -423,9 +535,11 @@ class UiHandler {
     <div class="link_divider"></div>
     ${
       app.api_handler.user_data?.Permission_Level < 2
-        ? `<ul class="additional_links_ul">
-        <li class="link" id="file_request_link">File Requests</li>
-    </ul>
+        ? `
+        <ul class="additional_links_ul">
+          <li class="link" id="file_request_link">File Requests</li>
+          <li class="link" id="authorise_files_link">Authorise Files</li>
+        </ul>
     `
         : ""
     }
@@ -464,6 +578,17 @@ class UiHandler {
         ClearLinkClasses();
         file_request_link.classList.add("active");
         DisplayFileRequestContentsContent();
+      });
+    }
+
+    const authorise_files_link = explorer_links.querySelector(
+      "#authorise_files_link"
+    );
+    if (authorise_files_link) {
+      authorise_files_link.addEventListener("click", () => {
+        ClearLinkClasses();
+        authorise_files_link.classList.add("active");
+        DisplayAuthorisedFilesContentsContent();
       });
     }
 

@@ -523,6 +523,7 @@ li.active {
 
 .hover_section {
   display: flex;
+  height: 100%;
 }
 
 .download_button {
@@ -586,6 +587,73 @@ li.active {
   color: #60969b;
   text-decoration: underline;
   cursor: pointer;
+}
+
+.authorise_files_request_btn {
+  background-color: #60969b;
+  width: 100%;
+  padding: 10px;
+  text-align: center;
+  color: white;
+  margin: 10px 0px;
+  transition: 0.25s;
+}
+
+.authorise_files_request_btn:hover {
+  background-color: #476380;
+  cursor: pointer;
+  transition: 0.5s;
+}
+
+.files_sections {
+  width: 100%;
+}
+
+.auth_buttons {
+  display: flex;
+  align-items: center;
+  margin: 0px 5px;
+  width: 100%;
+  min-width: 50px;
+  height: 100%;
+}
+
+.auth_btn {
+  height: 100%;
+  min-height: 30px;
+  width: 25px;
+  display: inline-flex;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: cover;
+  animation: fade-in 0.25s ease-in forwards;
+  transition: 0.25s;
+}
+
+.auth_buttons.download_button {
+  margin-right: 10px;
+}
+
+.auth_btn.auth_true {
+  -webkit-mask-image: url(../images/check.svg);
+  background-color: #2dd50f;
+}
+
+.auth_btn.auth_true:hover {
+  background-color: rgb(31, 172, 7);
+  transition: 0.5s;
+  cursor: pointer;
+}
+
+.auth_btn.auth_false {
+  -webkit-mask-image: url(../images/x.svg);
+  background-color: #d50f0f;
+}
+
+.auth_btn.auth_false:hover {
+  background-color: #a30707;
+  cursor: pointer;
+  transition: 0.5s;
 }
 
 /* Keep media queries on bottom */
