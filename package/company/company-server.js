@@ -394,6 +394,29 @@ const api_website_files_handler = {
             }
           }
         }
+      } else if (req.url.includes("/delFile?")) {
+        if (req.headers?.cookie) {
+          if (
+            await api_website_files_handler.CheckValidSessionCookie(
+              req.headers.cookie
+            )
+          ) {
+            let file_id;
+            const temp = req.url.split("?");
+            const parameters = temp[1].split("&");
+            for (const param of parameters) {
+              if (param.includes("file_id")) {
+                const split = param.split("=");
+                file_id = parseInt(split[1]);
+              }
+            }
+            var complete = await api_data_handler.DeleteFile(file_id);
+            if (complete) {
+              res.writeHead(200);
+              res.end();
+            }
+          }
+        }
       } else {
         default_route_request(req, res);
       }
@@ -675,6 +698,9 @@ class CompanyDataHandler {
   }
   async AuthoriseFile(file_id) {
     return await this.db_handler.AuthoriseFile(file_id);
+  }
+  async DeleteFile(file_id) {
+    return await this.db_handler.DeleteFile(file_id);
   }
 }
 

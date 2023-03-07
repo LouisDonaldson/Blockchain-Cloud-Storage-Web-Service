@@ -381,6 +381,13 @@ module.exports = class Database_Handler {
     const rows = await db.all(sql_string);
     return true;
   }
+  async DeleteFile(file_id) {
+    const sql_string = `
+   DELETE FROM files WHERE file_id = "${file_id}";
+`;
+    const rows = await db.all(sql_string);
+    return true;
+  }
   async RegisterUser(name, username, password) {
     const sql_string = `INSERT INTO users (Permission_Level, Username, Password, Name, Shared_Key)
       VALUES ("3", "${username}", "${await this.GetHash(

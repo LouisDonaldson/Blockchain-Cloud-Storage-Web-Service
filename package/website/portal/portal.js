@@ -279,6 +279,16 @@ class ApiHandler {
       } else return;
     }
   };
+  DeleteFile = async (file_id) => {
+    const response = await fetch(`/delFile?file_id=${file_id}`);
+    if (response.status == 200) {
+      return true;
+    } else {
+      if (response.status == 401) {
+        window.location.reload();
+      } else return;
+    }
+  };
 }
 
 class UiHandler {
@@ -512,8 +522,10 @@ class UiHandler {
               });
 
               const auth_false_btn = hover_section.querySelector(".auth_false");
-              auth_false_btn.addEventListener("click", () => {
+              auth_false_btn.addEventListener("click", async () => {
                 // file needs to be deleted
+                await app.api_handler.DeleteFile(fileMeta.file_ID);
+                DisplayAuthorisedFilesContentsContent();
               });
             });
 
