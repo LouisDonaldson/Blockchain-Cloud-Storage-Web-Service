@@ -45,7 +45,10 @@ class FileHandler {
     const file_byte_arr = response.file_data;
     var new_buffer;
     try {
-      new_buffer = await app.encrpytion_handler.DecryptFile(file_byte_arr.data, response.key_for_user.encrypted_key);
+      new_buffer = await app.encrpytion_handler.DecryptFile(
+        file_byte_arr.data,
+        response.key_for_user.encrypted_key
+      );
       const buf_arr = new_buffer.split(",");
       const buffer = new ArrayBuffer(buf_arr.length);
       const view = new Uint8Array(buffer);
@@ -80,13 +83,8 @@ class EncrpytionHandler {
   }
 
   async EncryptFile(buffer) {
-
-
     // generate new key for encryption
-    const shared_key = await this.GenerateKey()
-
-    // key used to encrypt new key
-
+    const shared_key = await this.GenerateKey();
 
     // encrypted = encrypted data
     var encrypted = CryptoJS.AES.encrypt(
@@ -94,22 +92,16 @@ class EncrpytionHandler {
       shared_key
     );
 
+    // encrypt shared key with user's public key
     const encrypted_key = await this.EncryptKey(shared_key);
     return { data: encrypted.toString(), encrypted_key: encrypted_key };
-
-    // responsible for successfully decrypting data
-    // var bytes = CryptoJS.AES.decrypt(encrypted, shared_key);
-    // var decryptedData = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
   }
 
   async EncryptKey(shared_key) {
     const user_data = JSON.parse(localStorage.getItem("user_data"));
     var public_key = user_data.Public_Key;
 
-    var encrypted = CryptoJS.AES.encrypt(
-      shared_key,
-      public_key
-    );
+    var encrypted = CryptoJS.AES.encrypt(shared_key, public_key);
 
     var encrypted_key = encrypted.toString();
     return encrypted_key;
@@ -120,7 +112,7 @@ class EncrpytionHandler {
     var bytes = CryptoJS.AES.decrypt(encrypted_key, public_key);
 
     var decryptedData = bytes.toString(CryptoJS.enc.Utf8);
-    return decryptedData
+    return decryptedData;
   }
 
   async DecryptFile(buffer, encrypted_key) {
@@ -129,7 +121,7 @@ class EncrpytionHandler {
     // key used to encrypt the encrypted shared key
     var public_key = user_data.Public_Key;
 
-    const decryption_key = await this.DecryptKey(encrypted_key, public_key)
+    const decryption_key = await this.DecryptKey(encrypted_key, public_key);
     let data_string = "";
 
     for (const char in buffer) {
@@ -297,20 +289,19 @@ class ApiHandler {
   GetOtherUsers = async (clientID) => {
     const response = await fetch(`/users`);
     if (response.status == 200) {
-      var data = await response.json()
-      data = data.filter(user => {
+      var data = await response.json();
+      data = data.filter((user) => {
         if (user.ID != clientID) {
-          return user
+          return user;
         }
-      })
+      });
       return data;
-
     } else {
       if (response.status == 401) {
         window.location.reload();
       } else return;
     }
-  }
+  };
 }
 
 class UiHandler {
@@ -531,8 +522,9 @@ class UiHandler {
               </div>
               `;
 
-              const download_button =
-                hover_section.querySelector(".auth_download_button");
+              const download_button = hover_section.querySelector(
+                ".auth_download_button"
+              );
               if (download_button) {
                 download_button.addEventListener("click", (e) => {
                   // console.log(e);
@@ -544,16 +536,16 @@ class UiHandler {
               auth_true_btn.addEventListener("click", async () => {
                 // file needs to be authed
                 await app.api_handler.AuthoriseFile(fileMeta.file_ID);
-                files_section.classList.add("fade_out")
-                setTimeout(DisplayAuthorisedFilesContentsContent, 500)
+                files_section.classList.add("fade_out");
+                setTimeout(DisplayAuthorisedFilesContentsContent, 500);
               });
 
               const auth_false_btn = hover_section.querySelector(".auth_false");
               auth_false_btn.addEventListener("click", async () => {
                 // file needs to be deleted
                 await app.api_handler.DeleteFile(fileMeta.file_ID);
-                files_section.classList.add("fade_out")
-                setTimeout(DisplayAuthorisedFilesContentsContent, 500)
+                files_section.classList.add("fade_out");
+                setTimeout(DisplayAuthorisedFilesContentsContent, 500);
               });
             });
 
@@ -573,7 +565,8 @@ class UiHandler {
         <li class="link" id="settings_link">Settings</li>
     </ul>
     <div class="link_divider"></div>
-    ${app.api_handler.user_data?.Permission_Level < 2
+    ${
+      app.api_handler.user_data?.Permission_Level < 2
         ? `
         <ul class="additional_links_ul">
           <li class="link" id="file_request_link">File Requests</li>
@@ -581,7 +574,7 @@ class UiHandler {
         </ul>
     `
         : ""
-      }
+    }
     `;
 
     const ClearLinkClasses = () => {
@@ -679,7 +672,7 @@ class UiHandler {
                   </div>
               </div>
               ${
-            /*
+                /*
             app.api_handler.user_data.Permission_Level < 2
               ? `
           <div class="auth_icon ${
@@ -691,20 +684,22 @@ class UiHandler {
           }"></div>`
               : ""
         */
-            `
-              <div class="auth_icon ${fileMeta.authorised == 0
-              ? `false`
-              : fileMeta.authorised == 1
-                ? "true"
-                : ""
-            }"></div>`
-            }
+                `
+              <div class="auth_icon ${
+                fileMeta.authorised == 0
+                  ? `false`
+                  : fileMeta.authorised == 1
+                  ? "true"
+                  : ""
+              }"></div>`
+              }
               
               <div class="hover_section"></div>
             </div>
             <div class="file_right">
-              <div class="additional_meta">Uploaded at: ${date_string} by ${fileMeta.uploaded_by
-            }</div>
+              <div class="additional_meta">Uploaded at: ${date_string} by ${
+            fileMeta.uploaded_by
+          }</div>
             </div>
           </div>
           `;
@@ -714,10 +709,11 @@ class UiHandler {
 
           file_div.addEventListener("mouseenter", () => {
             hover_section.innerHTML = `
-        ${app.api_handler.user_data.Permission_Level < 3
-                ? `<div class="download_button"></div>`
-                : ""
-              }
+        ${
+          app.api_handler.user_data.Permission_Level < 3
+            ? `<div class="download_button"></div>`
+            : ""
+        }
         <div class="view_button"></div>
         `;
 
@@ -790,7 +786,7 @@ class UiHandler {
             </div>
         </div>`;
     upload_modal.classList.remove("d-none");
-    let selected_users = []
+    let selected_users = [];
 
     const submit_btn = upload_modal.querySelector(".submit_btn");
 
@@ -799,43 +795,50 @@ class UiHandler {
       app.ui_handler.CloseModal();
     });
 
-    submit_btn.addEventListener("click", () => {
-      app.ui_handler.SubmitClickCallback(selected_users)
-    }, {
-      once: true,
-    });
+    submit_btn.addEventListener(
+      "click",
+      () => {
+        app.ui_handler.SubmitClickCallback(selected_users);
+      },
+      {
+        once: true,
+      }
+    );
 
-    const toggle_share = upload_modal.querySelector('#toggle_share')
-    const toggle_select_users_section = upload_modal.querySelector('.toggle_select_users_section')
-    toggle_share.addEventListener('change', async () => {
+    const toggle_share = upload_modal.querySelector("#toggle_share");
+    const toggle_select_users_section = upload_modal.querySelector(
+      ".toggle_select_users_section"
+    );
+    toggle_share.addEventListener("change", async () => {
       switch (toggle_share.checked) {
         case true:
           const user_data = JSON.parse(localStorage.getItem("user_data"));
 
-          const other_users = await app.api_handler.GetOtherUsers(user_data.ID)
+          const other_users = await app.api_handler.GetOtherUsers(user_data.ID);
           toggle_select_users_section.innerHTML = `
           <ul class="other_users_ul">
-          </ul>`
+          </ul>`;
 
-          const other_users_ul = toggle_select_users_section.querySelector('.other_users_ul')
+          const other_users_ul =
+            toggle_select_users_section.querySelector(".other_users_ul");
           for (const user of other_users) {
-            const lbl_id = `lbl_${user.ID}`
-            const input_class = `input_${user.ID}`
+            const lbl_id = `lbl_${user.ID}`;
+            const input_class = `input_${user.ID}`;
 
-            const li_el = document.createElement('li')
-            li_el.classList.add("other_user_li")
+            const li_el = document.createElement("li");
+            li_el.classList.add("other_user_li");
 
-            const lbl_el = document.createElement('label');
-            lbl_el.classList.add("other_user_lbl")
-            lbl_el.id = lbl_id
-            lbl_el.textContent = user.Name
-            li_el.append(lbl_el)
+            const lbl_el = document.createElement("label");
+            lbl_el.classList.add("other_user_lbl");
+            lbl_el.id = lbl_id;
+            lbl_el.textContent = user.Name;
+            li_el.append(lbl_el);
 
-            const input_el = document.createElement('input')
-            input_el.type = "checkbox"
-            input_el.id = input_class
-            input_el.classList.add("other_user_toggle")
-            li_el.append(input_el)
+            const input_el = document.createElement("input");
+            input_el.type = "checkbox";
+            input_el.id = input_class;
+            input_el.classList.add("other_user_toggle");
+            li_el.append(input_el);
 
             // other_users_ul.innerHTML += `
             // <li class="other_user_li">
@@ -844,33 +847,32 @@ class UiHandler {
             // </li>`
 
             // const toggle_input = other_users_ul.querySelector(`#${input_class}`)
-            input_el.addEventListener('change', () => {
+            input_el.addEventListener("change", () => {
               switch (input_el.checked) {
                 case true:
-                  li_el.classList.add("selected")
-                  selected_users.push(user.ID)
+                  li_el.classList.add("selected");
+                  selected_users.push(user.ID);
                   break;
                 case false:
-                  li_el.classList.remove("selected")
-                  selected_users = selected_users.filter(_user => {
+                  li_el.classList.remove("selected");
+                  selected_users = selected_users.filter((_user) => {
                     if (_user != user.ID) {
-                      return _user
+                      return _user;
                     }
-                  })
+                  });
                   break;
               }
-            })
+            });
 
-            other_users_ul.append(li_el)
+            other_users_ul.append(li_el);
           }
           break;
         case false:
-          selected_users = []
-          toggle_select_users_section.innerHTML = ``
+          selected_users = [];
+          toggle_select_users_section.innerHTML = ``;
           break;
       }
-
-    })
+    });
   }
   // executed once submit button is clicked
   async SubmitClicked(selected_users) {
@@ -882,7 +884,8 @@ class UiHandler {
         .CreateBufferArray(file_input.files[0])
         .then((key_and_buffer) => {
           let new_name = file_input_name.value;
-          new_name += `.${file_input.files[0].name.split(".")[1]}`;
+          const split = file_input.files[0].name.split(".");
+          new_name += `.${split[split.length - 1]}`;
           const tranmission_obj = {
             name: `${new_name}`,
             type: `${file_input.files[0].type}`,
@@ -891,7 +894,7 @@ class UiHandler {
             binaryString: key_and_buffer.data,
             encrypted_key: key_and_buffer.encrypted_key,
             timeStamp: new Date().toISOString(),
-            share_with_user_ids: selected_users
+            share_with_user_ids: selected_users,
           };
           const json_obj = JSON.stringify(tranmission_obj);
           // console.log(json_obj);

@@ -3,7 +3,7 @@ const { open } = require("sqlite");
 const fs = require("fs").promises;
 const _fs = require("fs");
 const path = require("path");
-const CryptoJS = require("crypto-js")
+const CryptoJS = require("crypto-js");
 
 // any changes to the configuration of tables means this needs to be set to true to take affect
 const reset_tables = false;
@@ -18,7 +18,7 @@ module.exports = class Database_Handler {
       try {
         await db.exec(` 
         DROP TABLE users;`);
-      } catch { }
+      } catch {}
 
       await db.exec(` 
       CREATE TABLE "users" (
@@ -37,7 +37,7 @@ module.exports = class Database_Handler {
       try {
         await db.exec(` 
         DROP TABLE session_tokens;`);
-      } catch { }
+      } catch {}
 
       try {
         await db.exec(` 
@@ -53,7 +53,7 @@ module.exports = class Database_Handler {
       try {
         await db.exec(` 
         DROP TABLE files;`);
-      } catch { }
+      } catch {}
 
       try {
         await db.exec(` 
@@ -89,7 +89,7 @@ module.exports = class Database_Handler {
       try {
         await db.exec(` 
         DROP TABLE keyFileRelation;`);
-      } catch { }
+      } catch {}
 
       await db.exec(` 
       CREATE TABLE "keyFileRelation" (
@@ -131,9 +131,11 @@ module.exports = class Database_Handler {
             // admin has top level permissions
             await db.exec(`
             INSERT INTO users (Username, Password, Name, Permission_Level, Public_Key)
-            VALUES ("${config_data.admin_login.username}", "${hash_string}", "${config_data.admin_login.name
-              }", "${config_data.admin_login.Permission_Level
-              }", "${GenerateRandomToken(hash_string)}");`);
+            VALUES ("${config_data.admin_login.username}", "${hash_string}", "${
+              config_data.admin_login.name
+            }", "${
+              config_data.admin_login.Permission_Level
+            }", "${GenerateRandomToken(hash_string)}");`);
 
             await db.exec(`
             INSERT INTO users (Username, Password, Name, Permission_Level, Public_Key)
@@ -300,14 +302,26 @@ module.exports = class Database_Handler {
       });
 
       // decrypt key then re-encrypt with different user's public keys
-      const user_data = await this.GetUserDataFromID(upload_data.userID)
-      const decryption_key = user_data.Public_Key
+      const user_data = await this.GetUserDataFromID(upload_data.userID);
+      const decryption_key = user_data.Public_Key;
 
       var bytes = CryptoJS.AES.decrypt(upload_data.key, decryption_key);
       var decrypted_key = bytes.toString(CryptoJS.enc.Utf8);
 
+      // add admin accounts to the share list automatically
+      if (!upload_data.share_with_user_ids) {
+        upload_data.share_with_user_ids = [];
+      }
+      upload_data.share_with_user_ids.push(...(await this.GetAdminIDs()));
+      upload_data.share_with_user_ids = upload_data.share_with_user_ids.filter(
+        (_user) => {
+          if (_user != upload_data.userID) {
+            return _user;
+          }
+        }
+      );
       for (const user_id of upload_data.share_with_user_ids) {
-        const _user_data = await this.GetUserDataFromID(user_id)
+        const _user_data = await this.GetUserDataFromID(user_id);
         const encrypted = CryptoJS.AES.encrypt(
           decrypted_key,
           _user_data.Public_Key
@@ -323,7 +337,7 @@ module.exports = class Database_Handler {
       }
       return true;
     } catch (err) {
-      err;
+      console.Error(err);
       return false;
     }
   }
@@ -414,7 +428,7 @@ module.exports = class Database_Handler {
   }
   async RegisterUser(name, username, password) {
     const sql_string = `INSERT INTO users (Permission_Level, Username, Password, Name, Public_Key)
-      VALUES ("3", "${username}", "${await this.GetHash(
+      VALUES ("2", "${username}", "${await this.GetHash(
       password
     )}", "${name}", "${this.GenerateRandomToken(
       await this.GetHash(password)
@@ -435,17 +449,26 @@ module.exports = class Database_Handler {
     }
   }
   async GetUserNames() {
-    const sql_string = `SELECT Name, ID FROM Users`;
+    const sql_string = `SELECT Name, ID FROM Users WHERE Permission_Level > 1`;
     const rows = await db.all(sql_string);
-    return rows
+    return rows;
   }
   async GetFileKeyFromUserID(file_id, user_id) {
     const sql_string = `SELECT encrypted_key FROM keyFileRelation where file_ID="${file_id}" AND user_id = "${user_id}"`;
     const rows = await db.all(sql_string);
     if (rows.length > 1) {
-      throw new Error("Multiple encryption keys for a single file and user.")
+      throw new Error("Multiple encryption keys for a single file and user.");
     }
 
-    return rows[0]
+    return rows[0];
+  }
+  async GetAdminIDs() {
+    const sql_string = `SELECT ID FROM users where Permission_Level="1"`;
+    const rows = await db.all(sql_string);
+    let arr = [];
+    for (const row of rows) {
+      arr.push(row.ID);
+    }
+    return arr;
   }
 };
