@@ -1,3 +1,4 @@
+const asym_crypto = window.asym_crypto;
 class App {
   constructor() {
     this.api_handler = new ApiHandler();
@@ -164,7 +165,38 @@ class UiHandler {
       }
 
       const register_btn = modal_pop_up.querySelector(".register_btn");
-      register_btn.addEventListener("click", () => {
+      register_btn.addEventListener("click", async () => {
+        const GenerateKeyPair = async () => {
+          // Node RSA library - https://www.npmjs.com/package/node-rsa
+
+          const key = new window.rsa({ b: 512 });
+          const pair = key.generateKeyPair()
+          const publicKey = pair.exportKey(["public-der"])
+          const privateKey = pair.exportKey(["private-der"])
+
+          return {
+            publicKey: publicKey,
+            privateKey: privateKey
+          }
+
+          // private key to be symetrically encrypted by password.
+        }
+
+        const EncryptKey = async (key, passphrase) => {
+          // const hashed_passphrase = CryptoJS.MD5(passphrase).toString()
+          const bytes = await CryptoJS.AES.encrypt(key, passphrase)
+          var encryptedData = bytes.ciphertext.toString(CryptoJS.enc.hex);
+          return encryptedData
+        }
+
+        const DecryptKey = async (encryped_key, passphrase) => {
+          // const hashed_passphrase = CryptoJS.MD5(passphrase).toString()
+          const bytes = await CryptoJS.AES.decrypt(encryped_key, passphrase)
+          var decryptedData = bytes.toString(CryptoJS.enc.hex);
+          return decryptedData;
+        }
+
+
         // register clicked
         const error_message_span = document.querySelector(
           ".register_error_message"
@@ -185,6 +217,22 @@ class UiHandler {
             if (password_one.value != "" && password_one.value != undefined) {
               if (password_one.value.length >= 5) {
                 if (password_one.value == password_two.value) {
+                  const KeyPair = await GenerateKeyPair();
+                  let private_key_hex = "";
+                  for (const num of KeyPair.privateKey) {
+                    private_key_hex += parseInt(num).toString(16)
+                  }
+
+                  const encryptedPrivateKey = await EncryptKey(private_key_hex, password_one.value)
+                  const decrypted_private_key = await DecryptKey(encryptedPrivateKey, password_one.value)
+
+
+                  if (decrypted_private_key == private_key_hex) {
+                    console.log(true);
+                  }
+                  else {
+                    throw new Error("Decrpytion does not work.")
+                  }
                   app.api_handler
                     .Register(
                       name_input.value,

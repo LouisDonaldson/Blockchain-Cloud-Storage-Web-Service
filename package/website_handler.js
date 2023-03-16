@@ -101,6 +101,14 @@ module.exports = {
         "Content-Type": "font/ttf",
       });
       res.end(contents);
+    } else if (req.url.includes("/asym_encrypt_browser.js")) {
+      const contents = await fs.readFile(
+        __dirname + `${req.url}`
+      );
+      res.writeHead(200, {
+        "Content-Type": "text/javascript",
+      });
+      res.end(contents);
     }
     //#endregion
 
