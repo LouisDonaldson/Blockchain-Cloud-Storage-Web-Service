@@ -169,33 +169,42 @@ class UiHandler {
         const GenerateKeyPair = async () => {
           // Node RSA library - https://www.npmjs.com/package/node-rsa
 
+          const Format = (key) => {
+            const bound = "-----";
+            return key;
+          };
           const key = new window.rsa({ b: 512 });
-          const pair = key.generateKeyPair()
-          const publicKey = pair.exportKey(["public-der"])
-          const privateKey = pair.exportKey(["private-der"])
+          const pair = key.generateKeyPair();
+          const publicKey = pair.exportKey(["public"]);
+          const privateKey = pair.exportKey(["private"]);
 
           return {
-            publicKey: publicKey,
-            privateKey: privateKey
-          }
+            publicKey: Format(publicKey),
+            privateKey: Format(privateKey),
+          };
 
           // private key to be symetrically encrypted by password.
-        }
+        };
 
         const EncryptKey = async (key, passphrase) => {
-          // const hashed_passphrase = CryptoJS.MD5(passphrase).toString()
-          const bytes = await CryptoJS.AES.encrypt(key, passphrase)
-          var encryptedData = bytes.ciphertext.toString(CryptoJS.enc.hex);
-          return encryptedData
-        }
+          const hashed_passphrase = CryptoJS.SHA256(passphrase).toString();
+          const bytes = await CryptoJS.AES.encrypt(
+            key.toString(),
+            hashed_passphrase
+          );
+          var encryptedData = bytes.ciphertext.toString();
+          return encryptedData;
+        };
 
         const DecryptKey = async (encryped_key, passphrase) => {
-          // const hashed_passphrase = CryptoJS.MD5(passphrase).toString()
-          const bytes = await CryptoJS.AES.decrypt(encryped_key, passphrase)
-          var decryptedData = bytes.toString(CryptoJS.enc.hex);
+          const hashed_passphrase = CryptoJS.SHA256(passphrase).toString();
+          const bytes = await CryptoJS.AES.decrypt(
+            encryped_key.toString(),
+            hashed_passphrase
+          );
+          var decryptedData = bytes.toString();
           return decryptedData;
-        }
-
+        };
 
         // register clicked
         const error_message_span = document.querySelector(
@@ -218,20 +227,32 @@ class UiHandler {
               if (password_one.value.length >= 5) {
                 if (password_one.value == password_two.value) {
                   const KeyPair = await GenerateKeyPair();
+                  console.log(KeyPair.privateKey.toString());
                   let private_key_hex = "";
+                  // const ascii_private_key = Buffer.from(
+                  //   KeyPair.privateKey,
+                  //   "base64"
+                  // );
                   for (const num of KeyPair.privateKey) {
-                    private_key_hex += parseInt(num).toString(16)
+                    // private_key_hex += parseInt(num).toString(64);
+                    private_key_hex += btoa(num);
                   }
-
-                  const encryptedPrivateKey = await EncryptKey(private_key_hex, password_one.value)
-                  const decrypted_private_key = await DecryptKey(encryptedPrivateKey, password_one.value)
-
+                  const passphrase = password_one.value;
+                  const encryptedPrivateKey = await EncryptKey(
+                    private_key_hex,
+                    passphrase
+                  );
+                  console.log(encryptedPrivateKey.toString());
+                  const decrypted_private_key = await DecryptKey(
+                    encryptedPrivateKey,
+                    passphrase
+                  );
+                  console.log(decrypted_private_key.toString());
 
                   if (decrypted_private_key == private_key_hex) {
                     console.log(true);
-                  }
-                  else {
-                    throw new Error("Decrpytion does not work.")
+                  } else {
+                    throw new Error("Decrpytion does not work.");
                   }
                   app.api_handler
                     .Register(
@@ -288,7 +309,7 @@ class ApiHandler {
     try {
       this.company_data = JSON.parse(localStorage.getItem("company_data"));
       app.ui_handler.UpdateUi(this.company_data);
-    } catch { }
+    } catch {}
     this.company_data = await this.GetCompanyData();
     localStorage.setItem("company_data", JSON.stringify(this.company_data));
     app.ui_handler.UpdateUi(this.company_data);
@@ -314,7 +335,7 @@ class ApiHandler {
       const data = await response.json();
       console.log(response.headers);
       return data;
-    } catch (err) { }
+    } catch (err) {}
   }
   async Register(name, username, password) {
     // if registration is successful, return 200
@@ -332,7 +353,7 @@ class ApiHandler {
       const data = await response.json();
       console.log(response.headers);
       return data;
-    } catch (err) { }
+    } catch (err) {}
 
     return "Not implemented";
   }
