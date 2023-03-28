@@ -15,18 +15,10 @@ const axios = require("axios");
 const web_server_address = `localhost:8000`;
 const encryption_handler = require("../encryption_handler");
 //#region Global variables
-
-const admin_log_in = {
-  username: "admin",
-  password: "password",
-};
-let company_id = 1;
-let company_name = "CompTest";
 const port = 3001;
 //#endregion
 
 // only cache HTML, CSS and JS. Dynamic data does not require caching.
-let cache_counter = 0;
 const cache_deletion_timer = 60000
 let cache = {};
 
@@ -39,9 +31,7 @@ function CheckCache(key) {
     }
   }
 }
-
 // const temp_token = btoa("this is a temporary token");
-
 const server_handler = async (req, res) => {
   console.log(
     `Incoming request for: ${req.url} (${req.connection.remoteAddress})`

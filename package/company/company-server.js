@@ -38,7 +38,6 @@ const database_handler = require("./database/company_database_handler.js");
 const encryption_handler = require("../encryption_handler");
 const BlockchainHandler = require("./BlockchainHandler.js");
 const WorkerHandler = new require("./WorkerHandler.js");
-const crypto = require("crypto-js");
 
 // const miner = require("../blockchain/miner");
 // const { Worker } = require("node:worker_threads");

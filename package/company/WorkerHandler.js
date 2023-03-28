@@ -3,11 +3,7 @@ const { Worker, isMainThread, parentPort } = require("node:worker_threads");
 module.exports = class WorkerHandler {
   constructor(threads_num = 5) {
     this.worker_pool = new ThreadPool(threads_num);
-    const Sleep = (timeout = 250) => {
-      return new Promise((resolve, reject) => {
-        setTimeout(resolve, timeout);
-      });
-    };
+
   }
   ActivateWorker = (message) => {
     var thread = this.worker_pool.GetWorker();

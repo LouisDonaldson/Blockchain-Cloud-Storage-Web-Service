@@ -5,9 +5,9 @@ class App {
     this.api_handler = new ApiHandler();
     this.encrpytion_handler = new EncrpytionHandler();
     // console.log(this.encrpytion_handler.GenerateKey().toString());
-    window.addEventListener("DOMContentLoaded", () => {
-      this.ui_handler = new UiHandler();
-    });
+    // window.addEventListener("DOMContentLoaded", () => {
+    this.ui_handler = new UiHandler();
+    // });
     this.user_data;
   }
 
@@ -565,8 +565,7 @@ class UiHandler {
         <li class="link" id="settings_link">Settings</li>
     </ul>
     <div class="link_divider"></div>
-    ${
-      app.api_handler.user_data?.Permission_Level < 2
+    ${app.api_handler.user_data?.Permission_Level < 2
         ? `
         <ul class="additional_links_ul">
           <li class="link" id="file_request_link">File Requests</li>
@@ -574,7 +573,7 @@ class UiHandler {
         </ul>
     `
         : ""
-    }
+      }
     `;
 
     const ClearLinkClasses = () => {
@@ -672,34 +671,32 @@ class UiHandler {
                   </div>
               </div>
               ${
-                /*
-            app.api_handler.user_data.Permission_Level < 2
-              ? `
-          <div class="auth_icon ${
-            fileMeta.authorised == 0
+            /*
+        app.api_handler.user_data.Permission_Level < 2
+          ? `
+      <div class="auth_icon ${
+        fileMeta.authorised == 0
+          ? `false`
+          : fileMeta.authorised == 1
+          ? "true"
+          : ""
+      }"></div>`
+          : ""
+    */
+            `
+              <div class="auth_icon ${fileMeta.authorised == 0
               ? `false`
               : fileMeta.authorised == 1
-              ? "true"
-              : ""
-          }"></div>`
-              : ""
-        */
-                `
-              <div class="auth_icon ${
-                fileMeta.authorised == 0
-                  ? `false`
-                  : fileMeta.authorised == 1
-                  ? "true"
-                  : ""
-              }"></div>`
-              }
+                ? "true"
+                : ""
+            }"></div>`
+            }
               
               <div class="hover_section"></div>
             </div>
             <div class="file_right">
-              <div class="additional_meta">Uploaded at: ${date_string} by ${
-            fileMeta.uploaded_by
-          }</div>
+              <div class="additional_meta">Uploaded at: ${date_string} by ${fileMeta.uploaded_by
+            }</div>
             </div>
           </div>
           `;
@@ -709,11 +706,10 @@ class UiHandler {
 
           file_div.addEventListener("mouseenter", () => {
             hover_section.innerHTML = `
-        ${
-          app.api_handler.user_data.Permission_Level < 3
-            ? `<div class="download_button"></div>`
-            : ""
-        }
+        ${app.api_handler.user_data.Permission_Level < 3
+                ? `<div class="download_button"></div>`
+                : ""
+              }
         <div class="view_button"></div>
         `;
 
