@@ -169,9 +169,15 @@ class UiHandler {
         const GenerateKeyPair = async () => {
           // Node RSA library - https://www.npmjs.com/package/node-rsa
 
-          const Format = (key) => {
-            const bound = "-----";
-            return key;
+          const Format = (key, type = "public") => {
+            var bound = `-----`;
+            var split_1 = key.split(`${bound}\n`);
+            var split_2 = split_1[1].split(`\n${bound}`);
+            // var lower_bound = `\n-----END ${type.toUpperCase()} KEY-----`;
+            // var split = key.split(upper_bound);
+            // var split_2 = split[1].split(lower_bound);
+            const _key = split_2[0];
+            return _key;
           };
           const key = new window.rsa({ b: 512 });
           const pair = key.generateKeyPair();
@@ -179,12 +185,26 @@ class UiHandler {
           const privateKey = pair.exportKey(["private"]);
 
           return {
-            publicKey: Format(publicKey),
-            privateKey: Format(privateKey),
+            publicKey: Format(publicKey, "public"),
+            privateKey: Format(privateKey, "private"),
           };
 
           // private key to be symetrically encrypted by password.
         };
+
+        // register clicked
+        const error_message_span = document.querySelector(
+          ".register_error_message"
+        );
+
+        const name_input = modal_pop_up.querySelector("#register_name_input");
+        const username_input = modal_pop_up.querySelector(
+          "#register_username_input"
+        );
+        const password_one = modal_pop_up.querySelector("#init_password_input");
+        const password_two = modal_pop_up.querySelector(
+          "#repeat_password_input"
+        );
 
         const EncryptKey = async (key, passphrase) => {
           const hashed_passphrase = CryptoJS.SHA256(passphrase).toString();
@@ -202,23 +222,9 @@ class UiHandler {
             encryped_key.toString(),
             hashed_passphrase
           );
-          var decryptedData = bytes.toString();
+          var decryptedData = bytes.toString(CryptoJS.enc.Base64);
           return decryptedData;
         };
-
-        // register clicked
-        const error_message_span = document.querySelector(
-          ".register_error_message"
-        );
-
-        const name_input = modal_pop_up.querySelector("#register_name_input");
-        const username_input = modal_pop_up.querySelector(
-          "#register_username_input"
-        );
-        const password_one = modal_pop_up.querySelector("#init_password_input");
-        const password_two = modal_pop_up.querySelector(
-          "#repeat_password_input"
-        );
 
         // check to see if fields are valid
         if (name_input.value != "" && username_input.value != undefined) {
@@ -227,33 +233,28 @@ class UiHandler {
               if (password_one.value.length >= 5) {
                 if (password_one.value == password_two.value) {
                   const KeyPair = await GenerateKeyPair();
-                  console.log(KeyPair.privateKey.toString());
-                  let private_key_hex = "";
-                  // const ascii_private_key = Buffer.from(
-                  //   KeyPair.privateKey,
-                  //   "base64"
-                  // );
-                  for (const num of KeyPair.privateKey) {
-                    // private_key_hex += parseInt(num).toString(64);
-                    private_key_hex += btoa(num);
-                  }
-                  const passphrase = password_one.value;
-                  const encryptedPrivateKey = await EncryptKey(
-                    private_key_hex,
-                    passphrase
-                  );
-                  console.log(encryptedPrivateKey.toString());
-                  const decrypted_private_key = await DecryptKey(
-                    encryptedPrivateKey,
-                    passphrase
-                  );
-                  console.log(decrypted_private_key.toString());
 
-                  if (decrypted_private_key == private_key_hex) {
-                    console.log(true);
-                  } else {
-                    throw new Error("Decrpytion does not work.");
-                  }
+                  // const hashed_passphrase = CryptoJS.SHA256(
+                  //   password_one.value
+                  // ).toString();
+
+                  // var message_to_encrypt = KeyPair.privateKey;
+
+                  // AES
+
+                  // // Encrypt
+                  // var encrypted = CryptoJS.AES.encrypt(
+                  //   message_to_encrypt,
+                  //   hashed_passphrase
+                  // );
+
+                  // // Decrypt
+                  // var decrypted = CryptoJS.AES.decrypt(
+                  //   encrypted.toString(),
+                  //   hashed_passphrase
+                  // );
+                  // var decryptedstring = decrypted.toString(CryptoJS.enc.Utf8);
+
                   app.api_handler
                     .Register(
                       name_input.value,
