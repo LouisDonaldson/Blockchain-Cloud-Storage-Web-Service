@@ -177,7 +177,7 @@ class UiHandler {
             // var split = key.split(upper_bound);
             // var split_2 = split[1].split(lower_bound);
             const _key = split_2[0];
-            return _key;
+            return key;
           };
           const key = new window.rsa({ b: 512 });
           const pair = key.generateKeyPair();
@@ -234,32 +234,34 @@ class UiHandler {
                 if (password_one.value == password_two.value) {
                   const KeyPair = await GenerateKeyPair();
 
-                  // const hashed_passphrase = CryptoJS.SHA256(
-                  //   password_one.value
-                  // ).toString();
+                  const hashed_passphrase = CryptoJS.SHA256(
+                    password_one.value
+                  ).toString();
 
-                  // var message_to_encrypt = KeyPair.privateKey;
+                  var message_to_encrypt = KeyPair.privateKey;
 
-                  // AES
+                  // AES;
 
-                  // // Encrypt
-                  // var encrypted = CryptoJS.AES.encrypt(
-                  //   message_to_encrypt,
-                  //   hashed_passphrase
-                  // );
+                  // Encrypt
+                  var encrypted = CryptoJS.AES.encrypt(
+                    message_to_encrypt,
+                    hashed_passphrase
+                  );
 
-                  // // Decrypt
-                  // var decrypted = CryptoJS.AES.decrypt(
-                  //   encrypted.toString(),
-                  //   hashed_passphrase
-                  // );
-                  // var decryptedstring = decrypted.toString(CryptoJS.enc.Utf8);
+                  // Decrypt
+                  var decrypted = CryptoJS.AES.decrypt(
+                    encrypted.toString(),
+                    hashed_passphrase
+                  );
+                  var decryptedstring = decrypted.toString(CryptoJS.enc.Utf8);
 
                   app.api_handler
                     .Register(
                       name_input.value,
                       username_input.value,
-                      password_one.value
+                      password_one.value,
+                      KeyPair.publicKey,
+                      encrypted.toString()
                     )
                     .then((response) => {
                       if (response == 200) {
@@ -338,7 +340,7 @@ class ApiHandler {
       return data;
     } catch (err) {}
   }
-  async Register(name, username, password) {
+  async Register(name, username, password, publicKey, encryptedPrivateKey) {
     // if registration is successful, return 200
     // else return with error message
 
@@ -349,12 +351,16 @@ class ApiHandler {
           name: name,
           username: username,
           password: password,
+          publicKey: JSON.stringify(publicKey),
+          encryptedPrivateKey: JSON.stringify(encryptedPrivateKey),
         },
       });
       const data = await response.json();
       console.log(response.headers);
       return data;
-    } catch (err) {}
+    } catch (err) {
+      console.error(err);
+    }
 
     return "Not implemented";
   }

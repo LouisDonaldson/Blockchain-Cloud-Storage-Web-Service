@@ -4,9 +4,10 @@ const fs = require("fs").promises;
 const _fs = require("fs");
 const path = require("path");
 const CryptoJS = require("crypto-js");
+const NodeRSA = require("node-rsa");
 
 // any changes to the configuration of tables means this needs to be set to true to take affect
-const reset_tables = false;
+const reset_tables = true;
 
 let db;
 module.exports = class Database_Handler {
@@ -27,7 +28,8 @@ module.exports = class Database_Handler {
       "Username"	varchar(50) NOT NULL UNIQUE,
       "Password"	varchar(50) NOT NULL,
       "Name"	varchar(50) NOT NULL,
-      "Public_Key" TEXT NOT NULL,
+      "Public_Key" TEXT,
+      "Encrypted_Private_Key" TEXT,
 
       PRIMARY KEY("ID" AUTOINCREMENT)
         );`);
@@ -128,14 +130,25 @@ module.exports = class Database_Handler {
             );
             const hash_string = password_hash.toString();
 
+            // new keypair
+            const key = new NodeRSA();
+            key.generateKeyPair();
+            const publicKey = pair.exportKey(["public"]);
+            const privateKey = pair.exportKey(["private"]);
+
+            const encrypted_private_key = CryptoJS.AES.encrypt(
+              privateKey,
+              CryptoJS.SHA256(config_data.admin_login.password)
+            );
+
             // admin has top level permissions
             await db.exec(`
-            INSERT INTO users (Username, Password, Name, Permission_Level, Public_Key)
+            INSERT INTO users (Username, Password, Name, Permission_Level, Public_Key, Encrypted_Private_Key)
             VALUES ("${config_data.admin_login.username}", "${hash_string}", "${
               config_data.admin_login.name
             }", "${
               config_data.admin_login.Permission_Level
-            }", "${GenerateRandomToken(hash_string)}");`);
+            }", "${publicKey}", "${encrypted_private_key.toString()}");`);
 
             await db.exec(`
             INSERT INTO users (Username, Password, Name, Permission_Level, Public_Key)
@@ -263,7 +276,7 @@ module.exports = class Database_Handler {
   async GetUserDataFromToken(token_string) {
     const id = await this.GetUserIDFromToken(token_string);
 
-    const sql_string = `SELECT ID, Permission_Level, Name, Username, Public_Key FROM Users WHERE ID = "${id}"`;
+    const sql_string = `SELECT ID, Permission_Level, Name, Username, Public_Key, Encrypted_Private_Key FROM Users WHERE ID = "${id}"`;
     const rows = await db.all(sql_string);
 
     if (rows.length > 1) {
@@ -426,13 +439,11 @@ module.exports = class Database_Handler {
     const rows = await db.all(sql_string);
     return true;
   }
-  async RegisterUser(name, username, password) {
-    const sql_string = `INSERT INTO users (Permission_Level, Username, Password, Name, Public_Key)
+  async RegisterUser(name, username, password, publicKey, encryptedPrivateKey) {
+    const sql_string = `INSERT INTO users (Permission_Level, Username, Password, Name, Public_Key, Encrypted_Private_Key)
       VALUES ("2", "${username}", "${await this.GetHash(
       password
-    )}", "${name}", "${this.GenerateRandomToken(
-      await this.GetHash(password)
-    )}");`;
+    )}", "${name}", "${publicKey}", "${encryptedPrivateKey}");`;
     try {
       await db.exec(sql_string);
       return 200;

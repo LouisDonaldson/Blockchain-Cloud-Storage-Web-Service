@@ -113,11 +113,15 @@ const server_handler = async (req, res) => {
       const name = req.headers?.name;
       const username = req.headers?.username;
       const password = req.headers?.password;
+      const publicKeyJSON = req.headers?.publickey;
+      const encryptedPrivateKeyJSON = req.headers?.encryptedprivatekey;
 
       const response = await api_data_handler.RegisterUser(
         name,
         username,
-        password
+        password,
+        JSON.parse(publicKeyJSON),
+        JSON.parse(encryptedPrivateKeyJSON)
       );
       if (response == 200) {
         res.writeHead(200);
@@ -430,8 +434,7 @@ const api_website_files_handler = {
             }
           }
         }
-      }
-      else {
+      } else {
         default_route_request(req, res);
       }
     } else {
@@ -694,12 +697,14 @@ class CompanyDataHandler {
     return file_data;
   }
 
-  async RegisterUser(name, username, password) {
+  async RegisterUser(name, username, password, publicKey, privateKey) {
     try {
       const response = await this.db_handler.RegisterUser(
         name,
         username,
-        password
+        password,
+        publicKey,
+        privateKey
       );
 
       return response;
@@ -718,7 +723,7 @@ class CompanyDataHandler {
   }
   async GetUserNames() {
     let users = await this.db_handler.GetUserNames();
-    return users
+    return users;
   }
 }
 
