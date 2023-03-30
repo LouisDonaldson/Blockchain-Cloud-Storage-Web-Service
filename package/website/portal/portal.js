@@ -166,68 +166,6 @@ class EncrpytionHandler {
     const decryptedBuffer = bytes.toString(CryptoJS.enc.Utf8);
 
     return JSON.parse(decryptedBuffer);
-
-    // const utf_string = stringFromUTF8Array(buffer)
-
-    // // // responsible for successfully decrypting data
-    // function stringFromUTF8Array(data) {
-    //   const extraByteMap = [1, 1, 1, 1, 2, 2, 3, 0];
-    //   var count = data.length;
-    //   var str = "";
-
-    //   for (var index = 0; index < count;) {
-    //     var ch = data[index++];
-    //     if (ch & 0x80) {
-    //       var extra = extraByteMap[(ch >> 3) & 0x07];
-    //       if (!(ch & 0x40) || !extra || ((index + extra) > count))
-    //         return null;
-
-    //       ch = ch & (0x3F >> extra);
-    //       for (; extra > 0; extra -= 1) {
-    //         var chx = data[index++];
-    //         if ((chx & 0xC0) != 0x80)
-    //           return null;
-
-    //         ch = (ch << 6) | (chx & 0x3F);
-    //       }
-    //     }
-
-    //     str += String.fromCharCode(ch);
-    //   }
-
-    //   return str;
-    // }
-
-    // temp just testing rsa
-    {
-      // let testKey = window.rsa()
-      // let key = testKey.generateKeyPair();
-      // let test_message = "Encrypt this!"
-      // const encrypted = key.encrypt(test_message)
-      // const decrypted = key.decrypt(encrypted, "utf8")
-      // console.log(decrypted)
-    }
-
-    // try {
-    //   let key = new window.rsa()
-    //   key.importKey(privateKey, "pkcs1")
-    //   if (!key.isPrivate()) {
-    //     throw new Error("Key is not private")
-    //   }
-    //   const decryptedData = key.decrypt(Buffer, "utf8")
-    //   return decryptedData;
-    // }
-    // catch (err) {
-    //   console.error(err)
-    //   throw err;
-    // }
-
-
-    // var bytes = CryptoJS.AES.decrypt(data_string, decryption_key);
-
-    // var decryptedData = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
-
-    return "";
   }
 }
 
