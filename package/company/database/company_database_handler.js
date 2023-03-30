@@ -7,7 +7,7 @@ const CryptoJS = require("crypto-js");
 const NodeRSA = require("node-rsa");
 
 // any changes to the configuration of tables means this needs to be set to true to take affect
-const reset_tables = false;
+const reset_tables = true;
 
 let db;
 module.exports = class Database_Handler {
