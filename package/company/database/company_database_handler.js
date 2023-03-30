@@ -7,7 +7,7 @@ const CryptoJS = require("crypto-js");
 const NodeRSA = require("node-rsa");
 
 // any changes to the configuration of tables means this needs to be set to true to take affect
-const reset_tables = true;
+const reset_tables = false;
 
 let db;
 module.exports = class Database_Handler {
@@ -124,44 +124,77 @@ module.exports = class Database_Handler {
 
             await CreateCompanyFilesDir(config_data.file_path);
 
-            // Add dummy data here
+            console.log("Adding initial users and generating RSA keypairs.");
+
+            const passwordSha256Hash = CryptoJS.SHA256(
+              config_data.admin_login.password
+            );
             const password_hash = await GetHash(
               config_data.admin_login.password
             );
             const hash_string = password_hash.toString();
 
-            // new keypair
-            const key = new NodeRSA();
-            key.generateKeyPair();
-            const publicKey = pair.exportKey(["public"]);
-            const privateKey = pair.exportKey(["private"]);
+            {
+              // Add dummy data here
 
-            const encrypted_private_key = CryptoJS.AES.encrypt(
-              privateKey,
-              CryptoJS.SHA256(config_data.admin_login.password)
-            );
+              // new keypair
+              const key = new NodeRSA();
+              const pair = key.generateKeyPair();
+              const publicKey = pair.exportKey(["public"]);
+              const privateKey = pair.exportKey(["private"]);
 
-            // admin has top level permissions
-            await db.exec(`
+              const encrypted_private_key = CryptoJS.AES.encrypt(
+                privateKey,
+                passwordSha256Hash.toString()
+              );
+
+              // admin has top level permissions
+              await db.exec(`
             INSERT INTO users (Username, Password, Name, Permission_Level, Public_Key, Encrypted_Private_Key)
             VALUES ("${config_data.admin_login.username}", "${hash_string}", "${
-              config_data.admin_login.name
-            }", "${
-              config_data.admin_login.Permission_Level
-            }", "${publicKey}", "${encrypted_private_key.toString()}");`);
+                config_data.admin_login.name
+              }", "${
+                config_data.admin_login.Permission_Level
+              }", "${publicKey}", "${encrypted_private_key.toString()}");`);
+            }
 
-            await db.exec(`
-            INSERT INTO users (Username, Password, Name, Permission_Level, Public_Key)
-            VALUES ("admin2", "${hash_string}", "Second Admin", "1", "${GenerateRandomToken(
-              hash_string
-            )}");`);
+            {
+              // new keypair
+              const key = new NodeRSA();
+              const pair = key.generateKeyPair();
+              const publicKey = pair.exportKey(["public"]);
+              const privateKey = pair.exportKey(["private"]);
 
-            // temporary account // Permission level 2
-            await db.exec(`
-            INSERT INTO users (Username, Password, Name, Permission_Level, Public_Key)
-            VALUES ("Viewer", "${hash_string}", "Viewer", "3", "${GenerateRandomToken(
-              hash_string
-            )}");`);
+              const encrypted_private_key = CryptoJS.AES.encrypt(
+                privateKey,
+                passwordSha256Hash.toString()
+              );
+
+              await db.exec(`
+            INSERT INTO users (Username, Password, Name, Permission_Level, Public_Key, Encrypted_Private_Key)
+            VALUES ("admin2", "${hash_string}", "Second Admin", "1", "${publicKey}", "${encrypted_private_key}");`);
+            }
+
+            {
+              // temporary account // Permission level 2
+
+              // new keypair
+              const key = new NodeRSA();
+              const pair = key.generateKeyPair();
+              const publicKey = pair.exportKey(["public"]);
+              const privateKey = pair.exportKey(["private"]);
+
+              const encrypted_private_key = CryptoJS.AES.encrypt(
+                privateKey,
+                passwordSha256Hash.toString()
+              );
+              await db.exec(`
+            INSERT INTO users (Username, Password, Name, Permission_Level, Public_Key, Encrypted_Private_Key)
+            VALUES ("Regular User", "${hash_string}", "Regular", "2", "${publicKey}", "${encrypted_private_key}");`);
+            }
+            console.log(
+              "Initial users created and private keys encrypted and added to database."
+            );
           }
         }
       } catch (err) {
@@ -474,12 +507,28 @@ module.exports = class Database_Handler {
     return rows[0];
   }
   async GetAdminIDs() {
-    const sql_string = `SELECT ID FROM users where Permission_Level="1"`;
-    const rows = await db.all(sql_string);
-    let arr = [];
-    for (const row of rows) {
-      arr.push(row.ID);
+    try {
+      const sql_string = `SELECT ID FROM users where Permission_Level="1"`;
+      const rows = await db.all(sql_string);
+      let arr = [];
+      for (const row of rows) {
+        arr.push(row.ID);
+      }
+      return arr;
+    } catch (err) {
+      console.error(err);
     }
-    return arr;
+  }
+  async GetUsersWithPublicKeys(ids) {
+    let users_data = [];
+    for (const id of ids) {
+      const user_data = await this.GetUserDataFromID(parseInt(id));
+      user_data;
+      users_data.push({
+        ID: user_data.ID,
+        publicKey: user_data.Public_Key,
+      });
+    }
+    return users_data;
   }
 };

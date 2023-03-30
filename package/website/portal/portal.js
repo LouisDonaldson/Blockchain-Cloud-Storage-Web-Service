@@ -33,9 +33,9 @@ class FileHandler {
         // binaryString = String.fromCharCode.apply(null, array);
 
         // encrypt the buffer here
-        const encrypted_string = app.encrpytion_handler.EncryptFile(array);
+        // const encrypted_string = app.encrpytion_handler.EncryptFile(array);
 
-        resolve(encrypted_string);
+        resolve(array);
       };
       reader.readAsArrayBuffer(file);
     });
@@ -93,21 +93,28 @@ class EncrpytionHandler {
     );
 
     // encrypt shared key with user's public key
-    const encrypted_key = await this.EncryptKey(shared_key);
-    return { data: encrypted.toString(), encrypted_key: encrypted_key };
+    // const encrypted_key = await this.EncryptKey(shared_key);
+    return { data: encrypted.toString(), key: shared_key };
   }
 
-  async EncryptKey(shared_key) {
-    const user_data = JSON.parse(localStorage.getItem("user_data"));
-    var public_key = user_data.Public_Key;
+  async EncryptKey(symmetric_key, public_key) {
+    // must use RSA
 
-    var encrypted = CryptoJS.AES.encrypt(shared_key, public_key);
+    const rsa_key = new window.rsa(public_key);
+    console.log(rsa_key.isPrivate());
+
+    // rsa_key.importKey(public_key, "pkcs8");
+    const encrypted = rsa_key.encrypt(symmetric_key, "base64");
+    // var encrypted = CryptoJS.AES.encrypt(symmetric_key, public_key);
+
+    // decrypt
+    // const decrypted = rsa_key.decrypt(encrypted, "utf8"); // key must be private not public
 
     var encrypted_key = encrypted.toString();
     return encrypted_key;
   }
 
-  async DecryptKey(encrypted_key, public_key) {
+  async DecryptKey(encrypted_key, private_key) {
     // decrypt encrypted key with public key
     var bytes = CryptoJS.AES.decrypt(encrypted_key, public_key);
 
@@ -288,6 +295,30 @@ class ApiHandler {
   };
   GetOtherUsers = async (clientID) => {
     const response = await fetch(`/users`);
+    if (response.status == 200) {
+      var data = await response.json();
+      data = data.filter((user) => {
+        if (user.ID != clientID) {
+          return user;
+        }
+      });
+      return data;
+    } else {
+      if (response.status == 401) {
+        window.location.reload();
+      } else return;
+    }
+  };
+  GetOtherUserIdsAndPublicKeys = async (clientID, otherIds = []) => {
+    let base_uri = `/users/publicKeys`;
+    if (otherIds.length > 0) {
+      base_uri += "?";
+      for (const id of otherIds) {
+        base_uri += `id=${id}&`;
+      }
+      base_uri = base_uri.slice(0, base_uri.length - 1);
+    }
+    const response = await fetch(base_uri);
     if (response.status == 200) {
       var data = await response.json();
       data = data.filter((user) => {
@@ -565,7 +596,8 @@ class UiHandler {
         <li class="link" id="settings_link">Settings</li>
     </ul>
     <div class="link_divider"></div>
-    ${app.api_handler.user_data?.Permission_Level < 2
+    ${
+      app.api_handler.user_data?.Permission_Level < 2
         ? `
         <ul class="additional_links_ul">
           <li class="link" id="file_request_link">File Requests</li>
@@ -573,7 +605,7 @@ class UiHandler {
         </ul>
     `
         : ""
-      }
+    }
     `;
 
     const ClearLinkClasses = () => {
@@ -671,7 +703,7 @@ class UiHandler {
                   </div>
               </div>
               ${
-            /*
+                /*
         app.api_handler.user_data.Permission_Level < 2
           ? `
       <div class="auth_icon ${
@@ -683,20 +715,22 @@ class UiHandler {
       }"></div>`
           : ""
     */
-            `
-              <div class="auth_icon ${fileMeta.authorised == 0
-              ? `false`
-              : fileMeta.authorised == 1
-                ? "true"
-                : ""
-            }"></div>`
-            }
+                `
+              <div class="auth_icon ${
+                fileMeta.authorised == 0
+                  ? `false`
+                  : fileMeta.authorised == 1
+                  ? "true"
+                  : ""
+              }"></div>`
+              }
               
               <div class="hover_section"></div>
             </div>
             <div class="file_right">
-              <div class="additional_meta">Uploaded at: ${date_string} by ${fileMeta.uploaded_by
-            }</div>
+              <div class="additional_meta">Uploaded at: ${date_string} by ${
+            fileMeta.uploaded_by
+          }</div>
             </div>
           </div>
           `;
@@ -706,10 +740,11 @@ class UiHandler {
 
           file_div.addEventListener("mouseenter", () => {
             hover_section.innerHTML = `
-        ${app.api_handler.user_data.Permission_Level < 3
-                ? `<div class="download_button"></div>`
-                : ""
-              }
+        ${
+          app.api_handler.user_data.Permission_Level < 3
+            ? `<div class="download_button"></div>`
+            : ""
+        }
         <div class="view_button"></div>
         `;
 
@@ -878,10 +913,32 @@ class UiHandler {
     if (file_input.files.length > 0) {
       app.file_handler
         .CreateBufferArray(file_input.files[0])
-        .then((key_and_buffer) => {
+        .then(async (buffer) => {
           let new_name = file_input_name.value;
           const split = file_input.files[0].name.split(".");
           new_name += `.${split[split.length - 1]}`;
+          // const symmetric_key = app.encrpytion_handler.GenerateKey();
+          var encrypted_buffer = await app.encrpytion_handler.EncryptFile(
+            buffer
+          );
+
+          const user_data = JSON.parse(localStorage.getItem("user_data"));
+          var public_key = user_data.Public_Key;
+          // encrypted with public key returned from server
+          var encrypted_symmetric_key = await app.encrpytion_handler.EncryptKey(
+            encrypted_buffer.key,
+            public_key
+          );
+          const OtherUserIDsAndPublicKeys =
+            await app.api_handler.GetOtherUserIdsAndPublicKeys(
+              user_data.ID,
+              selected_users
+            );
+
+          // iterate through array of other users and their public keys, encrypt the
+          // symmetric then upload the file along with the encrypted keys
+          let otherUsersAndEncryptedKeys = [];
+
           const tranmission_obj = {
             name: `${new_name}`,
             type: `${file_input.files[0].type}`,

@@ -1,4 +1,3 @@
-const asym_crypto = window.asym_crypto;
 class App {
   constructor() {
     this.api_handler = new ApiHandler();

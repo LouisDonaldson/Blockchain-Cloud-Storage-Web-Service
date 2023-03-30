@@ -434,6 +434,33 @@ const api_website_files_handler = {
             }
           }
         }
+      } else if (req.url.includes("/users/publicKeys")) {
+        if (req.headers?.cookie) {
+          if (
+            await api_website_files_handler.CheckValidSessionCookie(
+              req.headers.cookie
+            )
+          ) {
+            // split parameters
+            let ids = [];
+            {
+              const split = req.url.split("?")[1];
+              const split_ids = split.split("&");
+              split_ids.forEach((id) => {
+                const split_text = id.split("=");
+                if (split_text[0] == "id") {
+                  ids.push(split_text[1]);
+                }
+              });
+            }
+
+            var users = await api_data_handler.GetUserDataAndPublicKeys(ids);
+            if (users) {
+              res.writeHead(200);
+              res.end(JSON.stringify(users));
+            }
+          }
+        }
       } else {
         default_route_request(req, res);
       }
@@ -723,6 +750,13 @@ class CompanyDataHandler {
   }
   async GetUserNames() {
     let users = await this.db_handler.GetUserNames();
+    return users;
+  }
+
+  async GetUserDataAndPublicKeys(ids) {
+    let ids_to_process = ids;
+    ids_to_process.push(...(await this.db_handler.GetAdminIDs()));
+    let users = await this.db_handler.GetUsersWithPublicKeys(ids_to_process);
     return users;
   }
 }
