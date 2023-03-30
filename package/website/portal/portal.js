@@ -101,7 +101,9 @@ class EncrpytionHandler {
     // must use RSA
 
     const rsa_key = new window.rsa(public_key);
-    console.log(rsa_key.isPrivate());
+    if (rsa_key.isPrivate()) {
+      throw new Error("Key retrieved from server is not a public key.")
+    }
 
     // rsa_key.importKey(public_key, "pkcs8");
     const encrypted = rsa_key.encrypt(symmetric_key, "base64");
@@ -122,25 +124,81 @@ class EncrpytionHandler {
     return decryptedData;
   }
 
+  async DecryptPrivateKey(encrypted_key, encrypted_private_key) {
+    const password = prompt("Enter your password:");
+    const password_hash = CryptoJS.SHA256(password);
+
+    const bytes = CryptoJS.AES.decrypt(encrypted_private_key, password_hash.toString());
+
+    const private_Key = bytes.toString(CryptoJS.enc.Utf8);
+    return private_Key;
+
+    // return decryptedData;
+  }
+
   async DecryptFile(buffer, encrypted_key) {
     const user_data = JSON.parse(localStorage.getItem("user_data"));
 
     // key used to encrypt the encrypted shared key
-    var public_key = user_data.Public_Key;
+    const Encrypted_Private_Key = user_data.Encrypted_Private_Key;
 
-    const decryption_key = await this.DecryptKey(encrypted_key, public_key);
+    const privateKey = await this.DecryptPrivateKey(encrypted_key, Encrypted_Private_Key);
     let data_string = "";
 
     for (const char in buffer) {
       data_string += String.fromCharCode(buffer[char]);
     }
 
-    // responsible for successfully decrypting data
-    var bytes = CryptoJS.AES.decrypt(data_string, decryption_key);
+    const utf_string = stringFromUTF8Array(buffer)
 
-    var decryptedData = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
+    // // responsible for successfully decrypting data
+    function stringFromUTF8Array(data) {
+      const extraByteMap = [1, 1, 1, 1, 2, 2, 3, 0];
+      var count = data.length;
+      var str = "";
 
-    return decryptedData;
+      for (var index = 0; index < count;) {
+        var ch = data[index++];
+        if (ch & 0x80) {
+          var extra = extraByteMap[(ch >> 3) & 0x07];
+          if (!(ch & 0x40) || !extra || ((index + extra) > count))
+            return null;
+
+          ch = ch & (0x3F >> extra);
+          for (; extra > 0; extra -= 1) {
+            var chx = data[index++];
+            if ((chx & 0xC0) != 0x80)
+              return null;
+
+            ch = (ch << 6) | (chx & 0x3F);
+          }
+        }
+
+        str += String.fromCharCode(ch);
+      }
+
+      return str;
+    }
+
+    try {
+      const key = new window.rsa(privateKey)
+      if (!key.isPrivate()) {
+        throw new Error("Key is not private")
+      }
+      const decryptedData = key.decrypt(data_string)
+      return decryptedData;
+    }
+    catch (err) {
+      console.error(err)
+      throw err;
+    }
+
+
+    // var bytes = CryptoJS.AES.decrypt(data_string, decryption_key);
+
+    // var decryptedData = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
+
+    return "";
   }
 }
 
@@ -596,8 +654,7 @@ class UiHandler {
         <li class="link" id="settings_link">Settings</li>
     </ul>
     <div class="link_divider"></div>
-    ${
-      app.api_handler.user_data?.Permission_Level < 2
+    ${app.api_handler.user_data?.Permission_Level < 2
         ? `
         <ul class="additional_links_ul">
           <li class="link" id="file_request_link">File Requests</li>
@@ -605,7 +662,7 @@ class UiHandler {
         </ul>
     `
         : ""
-    }
+      }
     `;
 
     const ClearLinkClasses = () => {
@@ -703,34 +760,32 @@ class UiHandler {
                   </div>
               </div>
               ${
-                /*
-        app.api_handler.user_data.Permission_Level < 2
-          ? `
-      <div class="auth_icon ${
-        fileMeta.authorised == 0
-          ? `false`
-          : fileMeta.authorised == 1
-          ? "true"
-          : ""
-      }"></div>`
-          : ""
-    */
-                `
-              <div class="auth_icon ${
-                fileMeta.authorised == 0
-                  ? `false`
-                  : fileMeta.authorised == 1
-                  ? "true"
-                  : ""
-              }"></div>`
-              }
+            /*
+    app.api_handler.user_data.Permission_Level < 2
+      ? `
+  <div class="auth_icon ${
+    fileMeta.authorised == 0
+      ? `false`
+      : fileMeta.authorised == 1
+      ? "true"
+      : ""
+  }"></div>`
+      : ""
+*/
+            `
+              <div class="auth_icon ${fileMeta.authorised == 0
+              ? `false`
+              : fileMeta.authorised == 1
+                ? "true"
+                : ""
+            }"></div>`
+            }
               
               <div class="hover_section"></div>
             </div>
             <div class="file_right">
-              <div class="additional_meta">Uploaded at: ${date_string} by ${
-            fileMeta.uploaded_by
-          }</div>
+              <div class="additional_meta">Uploaded at: ${date_string} by ${fileMeta.uploaded_by
+            }</div>
             </div>
           </div>
           `;
@@ -740,11 +795,10 @@ class UiHandler {
 
           file_div.addEventListener("mouseenter", () => {
             hover_section.innerHTML = `
-        ${
-          app.api_handler.user_data.Permission_Level < 3
-            ? `<div class="download_button"></div>`
-            : ""
-        }
+        ${app.api_handler.user_data.Permission_Level < 3
+                ? `<div class="download_button"></div>`
+                : ""
+              }
         <div class="view_button"></div>
         `;
 
@@ -923,9 +977,9 @@ class UiHandler {
           );
 
           const user_data = JSON.parse(localStorage.getItem("user_data"));
-          var public_key = user_data.Public_Key;
+          const public_key = user_data.Public_Key;
           // encrypted with public key returned from server
-          var encrypted_symmetric_key = await app.encrpytion_handler.EncryptKey(
+          const encrypted_symmetric_key = await app.encrpytion_handler.EncryptKey(
             encrypted_buffer.key,
             public_key
           );
@@ -938,14 +992,27 @@ class UiHandler {
           // iterate through array of other users and their public keys, encrypt the
           // symmetric then upload the file along with the encrypted keys
           let otherUsersAndEncryptedKeys = [];
+          const keyToEncrypt = encrypted_buffer.key
+          for (const userWithKey of OtherUserIDsAndPublicKeys) {
+            // const rsa = window.rsa(userWithKey.publicKey)
+            const encrypted_symmetric_key = await app.encrpytion_handler.EncryptKey(
+              keyToEncrypt,
+              userWithKey.publicKey
+            );
+            otherUsersAndEncryptedKeys.push({
+              ID: userWithKey.ID,
+              EncryptedSymmetricKey: encrypted_symmetric_key
+            })
+          }
 
           const tranmission_obj = {
             name: `${new_name}`,
             type: `${file_input.files[0].type}`,
             size: `${file_input.files[0].size}`,
             description: file_input_desc?.value ?? "",
-            binaryString: key_and_buffer.data,
-            encrypted_key: key_and_buffer.encrypted_key,
+            binaryString: encrypted_buffer.data,
+            client_encrypted_key: encrypted_symmetric_key,
+            other_users: JSON.stringify(otherUsersAndEncryptedKeys),
             timeStamp: new Date().toISOString(),
             share_with_user_ids: selected_users,
           };

@@ -240,15 +240,6 @@ const api_website_files_handler = {
             let incomingData = "";
             console.log("Incoming file transmission.");
 
-            // const message = {
-            //   message: "incoming file",
-            //   data: {
-            //     req: req,
-            //     res: res,
-            //   },
-            // };
-            // worker.postMessage(message);
-
             req.on("data", async (chunk) => {
               incomingData += chunk.toString(); // convert Buffer to string
             });
@@ -444,14 +435,22 @@ const api_website_files_handler = {
             // split parameters
             let ids = [];
             {
-              const split = req.url.split("?")[1];
-              const split_ids = split.split("&");
-              split_ids.forEach((id) => {
-                const split_text = id.split("=");
-                if (split_text[0] == "id") {
-                  ids.push(split_text[1]);
+              try {
+                if (req.url.includes("?")) {
+                  const split = req.url.split("?")[1];
+                  const split_ids = split.split("&");
+                  split_ids.forEach((id) => {
+                    const split_text = id.split("=");
+                    if (split_text[0] == "id") {
+                      ids.push(split_text[1]);
+                    }
+                  });
                 }
-              });
+              }
+              catch (err) {
+                console.error(err)
+                ids = []
+              }
             }
 
             var users = await api_data_handler.GetUserDataAndPublicKeys(ids);

@@ -19,7 +19,7 @@ module.exports = class Database_Handler {
       try {
         await db.exec(` 
         DROP TABLE users;`);
-      } catch {}
+      } catch { }
 
       await db.exec(` 
       CREATE TABLE "users" (
@@ -39,7 +39,7 @@ module.exports = class Database_Handler {
       try {
         await db.exec(` 
         DROP TABLE session_tokens;`);
-      } catch {}
+      } catch { }
 
       try {
         await db.exec(` 
@@ -55,7 +55,7 @@ module.exports = class Database_Handler {
       try {
         await db.exec(` 
         DROP TABLE files;`);
-      } catch {}
+      } catch { }
 
       try {
         await db.exec(` 
@@ -91,7 +91,7 @@ module.exports = class Database_Handler {
       try {
         await db.exec(` 
         DROP TABLE keyFileRelation;`);
-      } catch {}
+      } catch { }
 
       await db.exec(` 
       CREATE TABLE "keyFileRelation" (
@@ -151,11 +151,9 @@ module.exports = class Database_Handler {
               // admin has top level permissions
               await db.exec(`
             INSERT INTO users (Username, Password, Name, Permission_Level, Public_Key, Encrypted_Private_Key)
-            VALUES ("${config_data.admin_login.username}", "${hash_string}", "${
-                config_data.admin_login.name
-              }", "${
-                config_data.admin_login.Permission_Level
-              }", "${publicKey}", "${encrypted_private_key.toString()}");`);
+            VALUES ("${config_data.admin_login.username}", "${hash_string}", "${config_data.admin_login.name
+                }", "${config_data.admin_login.Permission_Level
+                }", "${publicKey}", "${encrypted_private_key.toString()}");`);
             }
 
             {
@@ -333,54 +331,22 @@ module.exports = class Database_Handler {
   }
   async UploadFile(upload_data, file_path) {
     // const file_json = JSON.stringify(upload_data.binary_data)
-    const file_buffer = Buffer.from(JSON.stringify(upload_data.binary_data));
+    // const file_buffer = Buffer.from(JSON.stringify(upload_data.binary_data));
     const sql_string = `INSERT INTO files (UserID, fileName, type, size, filePath, description, timestamp, authorised)
       VALUES (${upload_data.userID}, "${upload_data.fileName}", "${upload_data.type}", ${upload_data.size}, "${file_path}", "${upload_data.description}", "${upload_data.timestamp}", false);`;
     try {
       await db.exec(sql_string);
 
       //initial owner of file's key
-      await this.AddKeyFileRelation({
-        uploader_user_id: upload_data.userID,
-        new_user: upload_data.userID,
-        path: upload_data.path,
-        key: upload_data.key,
-      });
 
-      // decrypt key then re-encrypt with different user's public keys
-      const user_data = await this.GetUserDataFromID(upload_data.userID);
-      const decryption_key = user_data.Public_Key;
-
-      var bytes = CryptoJS.AES.decrypt(upload_data.key, decryption_key);
-      var decrypted_key = bytes.toString(CryptoJS.enc.Utf8);
-
-      // add admin accounts to the share list automatically
-      if (!upload_data.share_with_user_ids) {
-        upload_data.share_with_user_ids = [];
-      }
-      upload_data.share_with_user_ids.push(...(await this.GetAdminIDs()));
-      upload_data.share_with_user_ids = upload_data.share_with_user_ids.filter(
-        (_user) => {
-          if (_user != upload_data.userID) {
-            return _user;
-          }
-        }
-      );
-      for (const user_id of upload_data.share_with_user_ids) {
-        const _user_data = await this.GetUserDataFromID(user_id);
-        const encrypted = CryptoJS.AES.encrypt(
-          decrypted_key,
-          _user_data.Public_Key
-        );
-
-        var new_encrypted_key = encrypted.toString();
-        this.AddKeyFileRelation({
+      await this.AddKeyFileRelation(
+        {
+          UsersAndKeys: upload_data.UsersAndKeys,
           uploader_user_id: upload_data.userID,
-          new_user: user_id,
-          path: upload_data.path,
-          key: new_encrypted_key,
-        });
-      }
+          path: file_path
+        })
+
+
       return true;
     } catch (err) {
       console.Error(err);
@@ -395,22 +361,16 @@ module.exports = class Database_Handler {
       throw new Error("Multiple files of the same path.");
     }
 
-    const sql_string_two = `INSERT INTO keyFileRelation (file_id, encrypted_key, user_id)
-      VALUES ("${rows[0].file_ID}", "${upload_data.key}", "${upload_data.new_user}");`;
-    try {
-      await db.exec(sql_string_two);
-      // return 200;
-    } catch (err) {
-      err;
+    for (const { ID, EncryptedSymmetricKey } of upload_data.UsersAndKeys) {
+      const sql_string_two = `INSERT INTO keyFileRelation (file_id, encrypted_key, user_id)
+      VALUES ("${rows[0].file_ID}", "${EncryptedSymmetricKey}", "${ID}");`;
+      try {
+        await db.exec(sql_string_two);
+        // return 200;
+      } catch (err) {
+        err;
+      }
     }
-    return true;
-
-    // for (const i in rows) {
-    //   const row = rows[i];
-    //   // const user_data = await this.GetUserDataFromID(row.userID);
-    //   // rows[i].uploaded_by = user_data.Name;
-    // }
-    // return rows;
   }
   async GetFileMeta() {
     const sql_string = `SELECT file_ID, fileName, type, description, timestamp, UserID, authorised FROM files`;

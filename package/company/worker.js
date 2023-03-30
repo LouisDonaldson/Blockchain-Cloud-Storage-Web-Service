@@ -219,26 +219,15 @@ try {
         return await this.db_handler.CheckToken(cookie_string);
       }
 
-      async HandleFileUpload(data_obj_json, token_string, file_name) {
+      async HandleFileUpload(data_obj_json, token_string) {
         console.log("Uploading data to database.");
         const data_obj = JSON.parse(JSON.parse(data_obj_json));
         const file_data = JSON.parse(JSON.parse(data_obj.file));
         const dateTime = data_obj.dateTime;
+        let UsersAndKeys = JSON.parse(file_data.other_users)
 
-        // data_obj
 
-        // file name = obj.name
-        // file data = obj.binaryString
         let file_buffer = file_data.binaryString;
-        // console.log(file_buffer);
-        // const file_data_entries = Object.entries(file_buffer);
-        // const array = [];
-
-        // for (const i in file_data_entries) {
-        //   array[i] = file_data_entries[i][1];
-        // }
-
-        // const fs_buffer = Buffer.from(array);
 
         this.config_file = await this.db_handler.GetConfigFile();
 
@@ -259,6 +248,11 @@ try {
           await this.GetSessionTokenFromString(token_string)
         );
 
+        UsersAndKeys.push({
+          ID: username,
+          EncryptedSymmetricKey: file_data.client_encrypted_key
+        })
+
         const transaction_buffer = Buffer.from(JSON.stringify(file_buffer));
         const binary_string = transaction_buffer.toString();
         const file_hash = await encryption_handler.GetHash(binary_string);
@@ -277,7 +271,7 @@ try {
               timestamp: file_data.timeStamp,
               path: `${fs_name}`,
               key: file_data.encrypted_key,
-              share_with_user_ids: file_data.share_with_user_ids
+              UsersAndKeys: UsersAndKeys
             },
             `${fs_name}`
           )
