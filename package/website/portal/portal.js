@@ -131,7 +131,16 @@ class EncrpytionHandler {
     const bytes = CryptoJS.AES.decrypt(encrypted_private_key, password_hash.toString());
 
     const private_Key = bytes.toString(CryptoJS.enc.Utf8);
-    return private_Key;
+
+    let key = new window.rsa()
+    key.importKey(private_Key, "pkcs1")
+    if (!key.isPrivate()) {
+      throw new Error("Key is not private")
+    }
+    const decryptedData = key.decrypt(encrypted_key, "utf8")
+    return decryptedData;
+
+    // return private_Key;
 
     // return decryptedData;
   }
@@ -142,56 +151,76 @@ class EncrpytionHandler {
     // key used to encrypt the encrypted shared key
     const Encrypted_Private_Key = user_data.Encrypted_Private_Key;
 
-    const privateKey = await this.DecryptPrivateKey(encrypted_key, Encrypted_Private_Key);
+    // decrypt private key with RSA private key
+    const symmetricKey = await this.DecryptPrivateKey(encrypted_key, Encrypted_Private_Key);
     let data_string = "";
+
+    const Buffer = new Uint8Array(buffer)
 
     for (const char in buffer) {
       data_string += String.fromCharCode(buffer[char]);
     }
 
-    const utf_string = stringFromUTF8Array(buffer)
+    const bytes = CryptoJS.AES.decrypt(data_string, symmetricKey);
 
-    // // responsible for successfully decrypting data
-    function stringFromUTF8Array(data) {
-      const extraByteMap = [1, 1, 1, 1, 2, 2, 3, 0];
-      var count = data.length;
-      var str = "";
+    const decryptedBuffer = bytes.toString(CryptoJS.enc.Utf8);
 
-      for (var index = 0; index < count;) {
-        var ch = data[index++];
-        if (ch & 0x80) {
-          var extra = extraByteMap[(ch >> 3) & 0x07];
-          if (!(ch & 0x40) || !extra || ((index + extra) > count))
-            return null;
+    return JSON.parse(decryptedBuffer);
 
-          ch = ch & (0x3F >> extra);
-          for (; extra > 0; extra -= 1) {
-            var chx = data[index++];
-            if ((chx & 0xC0) != 0x80)
-              return null;
+    // const utf_string = stringFromUTF8Array(buffer)
 
-            ch = (ch << 6) | (chx & 0x3F);
-          }
-        }
+    // // // responsible for successfully decrypting data
+    // function stringFromUTF8Array(data) {
+    //   const extraByteMap = [1, 1, 1, 1, 2, 2, 3, 0];
+    //   var count = data.length;
+    //   var str = "";
 
-        str += String.fromCharCode(ch);
-      }
+    //   for (var index = 0; index < count;) {
+    //     var ch = data[index++];
+    //     if (ch & 0x80) {
+    //       var extra = extraByteMap[(ch >> 3) & 0x07];
+    //       if (!(ch & 0x40) || !extra || ((index + extra) > count))
+    //         return null;
 
-      return str;
+    //       ch = ch & (0x3F >> extra);
+    //       for (; extra > 0; extra -= 1) {
+    //         var chx = data[index++];
+    //         if ((chx & 0xC0) != 0x80)
+    //           return null;
+
+    //         ch = (ch << 6) | (chx & 0x3F);
+    //       }
+    //     }
+
+    //     str += String.fromCharCode(ch);
+    //   }
+
+    //   return str;
+    // }
+
+    // temp just testing rsa
+    {
+      // let testKey = window.rsa()
+      // let key = testKey.generateKeyPair();
+      // let test_message = "Encrypt this!"
+      // const encrypted = key.encrypt(test_message)
+      // const decrypted = key.decrypt(encrypted, "utf8")
+      // console.log(decrypted)
     }
 
-    try {
-      const key = new window.rsa(privateKey)
-      if (!key.isPrivate()) {
-        throw new Error("Key is not private")
-      }
-      const decryptedData = key.decrypt(data_string)
-      return decryptedData;
-    }
-    catch (err) {
-      console.error(err)
-      throw err;
-    }
+    // try {
+    //   let key = new window.rsa()
+    //   key.importKey(privateKey, "pkcs1")
+    //   if (!key.isPrivate()) {
+    //     throw new Error("Key is not private")
+    //   }
+    //   const decryptedData = key.decrypt(Buffer, "utf8")
+    //   return decryptedData;
+    // }
+    // catch (err) {
+    //   console.error(err)
+    //   throw err;
+    // }
 
 
     // var bytes = CryptoJS.AES.decrypt(data_string, decryption_key);
