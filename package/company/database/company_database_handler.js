@@ -7,7 +7,7 @@ const CryptoJS = require("crypto-js");
 const NodeRSA = require("node-rsa");
 
 // any changes to the configuration of tables means this needs to be set to true to take affect
-const reset_tables = true;
+const reset_tables = false;
 
 let db;
 module.exports = class Database_Handler {
@@ -19,7 +19,7 @@ module.exports = class Database_Handler {
       try {
         await db.exec(` 
         DROP TABLE users;`);
-      } catch { }
+      } catch {}
 
       await db.exec(` 
       CREATE TABLE "users" (
@@ -39,7 +39,7 @@ module.exports = class Database_Handler {
       try {
         await db.exec(` 
         DROP TABLE session_tokens;`);
-      } catch { }
+      } catch {}
 
       try {
         await db.exec(` 
@@ -55,7 +55,7 @@ module.exports = class Database_Handler {
       try {
         await db.exec(` 
         DROP TABLE files;`);
-      } catch { }
+      } catch {}
 
       try {
         await db.exec(` 
@@ -91,7 +91,7 @@ module.exports = class Database_Handler {
       try {
         await db.exec(` 
         DROP TABLE keyFileRelation;`);
-      } catch { }
+      } catch {}
 
       await db.exec(` 
       CREATE TABLE "keyFileRelation" (
@@ -151,9 +151,11 @@ module.exports = class Database_Handler {
               // admin has top level permissions
               await db.exec(`
             INSERT INTO users (Username, Password, Name, Permission_Level, Public_Key, Encrypted_Private_Key)
-            VALUES ("${config_data.admin_login.username}", "${hash_string}", "${config_data.admin_login.name
-                }", "${config_data.admin_login.Permission_Level
-                }", "${publicKey}", "${encrypted_private_key.toString()}");`);
+            VALUES ("${config_data.admin_login.username}", "${hash_string}", "${
+                config_data.admin_login.name
+              }", "${
+                config_data.admin_login.Permission_Level
+              }", "${publicKey}", "${encrypted_private_key.toString()}");`);
             }
 
             {
@@ -339,13 +341,11 @@ module.exports = class Database_Handler {
 
       //initial owner of file's key
 
-      await this.AddKeyFileRelation(
-        {
-          UsersAndKeys: upload_data.UsersAndKeys,
-          uploader_user_id: upload_data.userID,
-          path: file_path
-        })
-
+      await this.AddKeyFileRelation({
+        UsersAndKeys: upload_data.UsersAndKeys,
+        uploader_user_id: upload_data.userID,
+        path: file_path,
+      });
 
       return true;
     } catch (err) {
