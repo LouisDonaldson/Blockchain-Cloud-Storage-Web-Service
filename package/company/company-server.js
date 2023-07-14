@@ -7,23 +7,6 @@ Sits behind the company gateway server
 */
 
 const { Worker } = require("node:worker_threads");
-/*
-
-const express = require("express");
-const { Worker } = require("worker_threads");
-...
-app.get("/blocking", async (req, res) => {
-  const worker = new Worker("./worker.js");
-  worker.postMessage([data])
-  worker.on("message", (data) => {
-    res.status(200).send(`result is ${data}`);
-  });
-  worker.on("error", (msg) => {
-    res.status(404).send(`An error occurred: ${msg}`);
-  });
-});
-
-*/
 
 let ping = false;
 
@@ -34,14 +17,13 @@ const fs_promises = require("fs").promises;
 const fs = require("fs");
 const axios = require("axios");
 const web_server_address = `localhost:3001`;
+// const web_server_address = `150.237.96.87:3001`;
+
 const database_handler = require("./database/company_database_handler.js");
 const encryption_handler = require("../encryption_handler");
 const BlockchainHandler = require("./BlockchainHandler.js");
 const WorkerHandler = new require("./WorkerHandler.js");
 
-// const miner = require("../blockchain/miner");
-// const { Worker } = require("node:worker_threads");
-// const miner = new Worker("../blockchain/miner");
 let blockchain_handler;
 let worker_handler;
 
@@ -52,12 +34,6 @@ let ping_interval = 5000;
 let api_data_handler;
 let machine_address = ip.address();
 //#endregion
-
-// let worker;
-// worker = new Worker(__dirname + "/worker.js");
-// worker.on("error", (msg) => {
-//   console.log(`An error occurred: ${msg}`);
-// });
 
 const server_handler = async (req, res) => {
   // const _worker = new worker.Worker(__dirname + "/worker.js");
@@ -148,57 +124,144 @@ const api_website_files_handler = {
     const default_route_request = async (req, res) => {
       let response;
       try {
-        response = await axios({
-          method: "get",
-          url: `http://${web_server_address}${req.url}`,
-          headers: {
-            auth_token: this.server_token,
-          },
-        });
-        const data = response.data;
-
-        res.writeHead(response.status, {
-          "Content-type": response?.headers?.["content-type"] ?? "",
-        });
-        res.end(data);
-      } catch (err) {
-        console.log("Axios error:");
-        console.error(err);
-        if (response?.status) {
-          res.writeHead(response?.status);
-        } else {
-          res.writeHead(502);
+        if (req.url == "/") {
+          fs_promises
+            .readFile(`./website/index/index.html`)
+            .then((contents) => {
+              res.writeHead(200, {
+                "Content-type": "text/html",
+              });
+              res.end(contents);
+            })
+            .catch((err) => {
+              throw err;
+            });
+        } else if (req.url == "/index.js") {
+          fs_promises
+            .readFile(`./website/index/index.js`)
+            .then((contents) => {
+              res.writeHead(200, {
+                "Content-type": "text/javascript",
+              });
+              res.end(contents);
+            })
+            .catch((err) => {
+              throw err;
+            });
+        } else if (req.url == "/index.css") {
+          fs_promises
+            .readFile(`./website/index/index.css`)
+            .then((contents) => {
+              res.writeHead(200, {
+                "Content-type": "text/css",
+              });
+              res.end(contents);
+            })
+            .catch((err) => {
+              throw err;
+            });
         }
+        //#endregion
+        //#region Portal
+        else if (req.url == "/portal") {
+          fs_promises
+            .readFile(`./website/portal/portal.html`)
+            .then((contents) => {
+              res.writeHead(200, {
+                "Content-type": "text/html",
+              });
+              res.end(contents);
+            })
+            .catch((err) => {
+              throw err;
+            });
+        } else if (req.url == "/portal.css") {
+          fs_promises
+            .readFile(`./website/portal/portal.css`)
+            .then((contents) => {
+              res.writeHead(200, {
+                "Content-type": "text/css",
+              });
+              res.end(contents);
+            })
+            .catch((err) => {
+              throw err;
+            });
+        } else if (req.url == "/portal.js") {
+          fs_promises
+            .readFile(`./website/portal/portal.js`)
+            .then((contents) => {
+              res.writeHead(200, {
+                "Content-type": "text/javascript",
+              });
+              res.end(contents);
+            })
+            .catch((err) => {
+              throw err;
+            });
+        } else if (req.url == "/client_encrpytion_handler.js") {
+          fs_promises
+            .readFile(`./website/portal/client_encrpytion_handler.js`)
+            .then((contents) => {
+              res.writeHead(200, {
+                "Content-type": "text/javascript",
+              });
+              res.end(contents);
+            })
+            .catch((err) => {
+              throw err;
+            });
+        }
+        //#endregion
+        //#region Misc
+        else if (req.url.includes("/images/")) {
+          const image = await fs_promises.readFile("./website" + `${req.url}`);
+          res.writeHead(200, {
+            "Content-Type": "image/svg+xml",
+          });
+          res.end(image);
+        } else if (req.url.includes("/font/")) {
+          const contents = await fs_promises.readFile(
+            "./website/" + `${req.url}`
+          );
+          res.writeHead(200, {
+            "Content-Type": "font/ttf",
+          });
+          res.end(contents);
+        } else if (req.url == "/asym_encrypt_browser.js") {
+          const contents = await fs_promises.readFile(`./${req.url}`);
+          res.writeHead(200, {
+            "Content-Type": "text/javascript",
+          });
+          res.end(contents);
+        }
+        //#endregion
+
+        //#region blockchain
+        else if (req.url.includes("/blockchain/")) {
+          if (req.url.includes("/init")) {
+            // return init data back to miner
+          }
+        }
+        //#endregion
+
+        //#region Default Response
+        // Ensure this is at the bottom of the page
+        else {
+          res.writeHead(404);
+          res.end("<h1>404 Not found</h1>");
+        }
+        // res.end(data);
+      } catch (err) {
+        console.error(err);
+        res.writeHead(404);
         res.end();
       }
     };
 
     const auth_route_request = async (req, res) => {
-      let response;
-      try {
-        response = await axios({
-          method: "get",
-          url: `http://${web_server_address}/portal`,
-          headers: {
-            auth_token: this.server_token,
-          },
-        });
-        const data = response.data;
-
-        res.writeHead(response.status, {
-          "Content-type": response?.headers?.["content-type"] ?? "",
-        });
-        res.end(data);
-      } catch (err) {
-        console.log("Axios error:");
-        console.error(err);
-        if (response?.status) {
-          res.writeHead(response?.status);
-        } else {
-          res.writeHead(502);
-        }
-        res.end();
-      }
+      req.url = "/portal";
+      default_route_request(req, res);
     };
 
     const Unauthorised_User_Route = async (req, res) => {
@@ -446,10 +509,9 @@ const api_website_files_handler = {
                     }
                   });
                 }
-              }
-              catch (err) {
-                console.error(err)
-                ids = []
+              } catch (err) {
+                console.error(err);
+                ids = [];
               }
             }
 
@@ -800,23 +862,23 @@ async function PingWebServer() {
     `Company-proxy deployed.\nCompany ID set to '1' by default. Variable is 'company_id'.`
   );
 
-  // Ping web-server to make sure it's up
-  console.log("Pinging gateway...");
-  try {
-    if (PingWebServer()) {
-      console.log("Response from gateway.");
-    }
-  } catch (err) {
-    console.log("No response from gateway...");
-    throw new Error("gateway not active");
-  }
+  // // Ping web-server to make sure it's up
+  // console.log("Pinging gateway...");
+  // try {
+  //   if (PingWebServer()) {
+  //     console.log("Response from gateway.");
+  //   }
+  // } catch (err) {
+  //   console.log("No response from gateway...");
+  //   throw new Error("gateway not active");
+  // }
 
-  try {
-    api_website_files_handler.server_token = await GetServerToken();
-    console.log("Auth token received");
-  } catch (err) {
-    throw new Error(`Auth token wasn't retrieved.`);
-  }
+  // try {
+  //   api_website_files_handler.server_token = await GetServerToken();
+  //   console.log("Auth token received");
+  // } catch (err) {
+  //   throw new Error(`Auth token wasn't retrieved.`);
+  // }
 
   console.log("Starting HTTP service...");
   const server = await http
@@ -827,10 +889,10 @@ async function PingWebServer() {
     .listen(port);
   console.log("Company server HTTP service running on port " + port);
 
-  if (ping) {
-    console.log("Starting ping intervals to proxy.");
-    PingIntervals(ping_interval);
-  }
+  // if (ping) {
+  //   console.log("Starting ping intervals to proxy.");
+  //   PingIntervals(ping_interval);
+  // }
 })();
 
 function PingIntervals(time) {
