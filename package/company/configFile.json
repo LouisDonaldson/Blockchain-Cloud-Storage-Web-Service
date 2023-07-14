@@ -1,6 +1,6 @@
 {
   "name": "Dyl & Don Design Ltd",
-  "logo_path": "../package/dylndon.png",
+  "logo_path": "../dylndon.png",
   "admin_login": {
     "username": "admin",
     "password": "admin",

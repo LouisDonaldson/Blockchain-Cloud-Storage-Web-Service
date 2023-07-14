@@ -107,7 +107,7 @@ module.exports = class Database_Handler {
     (async () => {
       // open the database
       db = await open({
-        filename: `./company/database/company-database.db`,
+        filename: `./database/company-database.db`,
         driver: sqlite3.Database,
       });
       // console.log("Database connected...");
@@ -206,7 +206,7 @@ module.exports = class Database_Handler {
   }
   async GetConfigFile() {
     // non batch file
-    const contents = await fs.readFile("./company/configFile.json");
+    const contents = await fs.readFile("./configFile.json");
 
     // non batch file
     // const contents = await fs.readFile("./configFile.json");

@@ -126,7 +126,7 @@ const api_website_files_handler = {
       try {
         if (req.url == "/") {
           fs_promises
-            .readFile(`./website/index/index.html`)
+            .readFile(`../website/index/index.html`)
             .then((contents) => {
               res.writeHead(200, {
                 "Content-type": "text/html",
@@ -138,7 +138,7 @@ const api_website_files_handler = {
             });
         } else if (req.url == "/index.js") {
           fs_promises
-            .readFile(`./website/index/index.js`)
+            .readFile(`../website/index/index.js`)
             .then((contents) => {
               res.writeHead(200, {
                 "Content-type": "text/javascript",
@@ -150,7 +150,7 @@ const api_website_files_handler = {
             });
         } else if (req.url == "/index.css") {
           fs_promises
-            .readFile(`./website/index/index.css`)
+            .readFile(`../website/index/index.css`)
             .then((contents) => {
               res.writeHead(200, {
                 "Content-type": "text/css",
@@ -165,7 +165,7 @@ const api_website_files_handler = {
         //#region Portal
         else if (req.url == "/portal") {
           fs_promises
-            .readFile(`./website/portal/portal.html`)
+            .readFile(`../website/portal/portal.html`)
             .then((contents) => {
               res.writeHead(200, {
                 "Content-type": "text/html",
@@ -177,7 +177,7 @@ const api_website_files_handler = {
             });
         } else if (req.url == "/portal.css") {
           fs_promises
-            .readFile(`./website/portal/portal.css`)
+            .readFile(`../website/portal/portal.css`)
             .then((contents) => {
               res.writeHead(200, {
                 "Content-type": "text/css",
@@ -189,7 +189,7 @@ const api_website_files_handler = {
             });
         } else if (req.url == "/portal.js") {
           fs_promises
-            .readFile(`./website/portal/portal.js`)
+            .readFile(`../website/portal/portal.js`)
             .then((contents) => {
               res.writeHead(200, {
                 "Content-type": "text/javascript",
@@ -201,7 +201,7 @@ const api_website_files_handler = {
             });
         } else if (req.url == "/client_encrpytion_handler.js") {
           fs_promises
-            .readFile(`./website/portal/client_encrpytion_handler.js`)
+            .readFile(`../website/portal/client_encrpytion_handler.js`)
             .then((contents) => {
               res.writeHead(200, {
                 "Content-type": "text/javascript",
@@ -215,21 +215,21 @@ const api_website_files_handler = {
         //#endregion
         //#region Misc
         else if (req.url.includes("/images/")) {
-          const image = await fs_promises.readFile("./website" + `${req.url}`);
+          const image = await fs_promises.readFile("../website" + `${req.url}`);
           res.writeHead(200, {
             "Content-Type": "image/svg+xml",
           });
           res.end(image);
         } else if (req.url.includes("/font/")) {
           const contents = await fs_promises.readFile(
-            "./website/" + `${req.url}`
+            "../website/" + `${req.url}`
           );
           res.writeHead(200, {
             "Content-Type": "font/ttf",
           });
           res.end(contents);
         } else if (req.url == "/asym_encrypt_browser.js") {
-          const contents = await fs_promises.readFile(`./${req.url}`);
+          const contents = await fs_promises.readFile(`../${req.url}`);
           res.writeHead(200, {
             "Content-Type": "text/javascript",
           });
