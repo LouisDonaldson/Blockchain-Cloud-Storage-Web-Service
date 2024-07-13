@@ -1,3 +1,3 @@
-@echo off
+@echo on
 start node ../company/company-server.js
-pause 
+pause
